@@ -1,0 +1,29 @@
+{
+    "game": "Stable",
+    "creator": "09302023",
+
+    "filler_item_name": "Free Character of Your Choice",
+
+    "starting_items": [
+        {
+            "items": ["Ryu", "Akuma"]
+        },
+        {
+            "item_categories": ["Left Side"],
+            "random": 1
+        },
+        {
+            "if_previous_item": ["Ryu"],
+            "items": ["Wolverine", "Storm", "Phoenix"],
+            "random": 1
+        },
+        {
+            "if_previous_item": ["Storm"],
+            "item_categories": ["Trash"]
+        },
+        {
+            "if_previous_item": ["Frank West"],
+            "random": 3
+        }
+    ]
+}

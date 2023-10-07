@@ -1,0 +1,8 @@
+{
+    "Victory (Unnecessary, Only for Testing)": {
+        "connects_to": [],
+        "requires": "|@Left Side:25| AND |@Right Side:25|"
+    },
+
+    "Unused Region (for testing)": {}
+}
