@@ -45,7 +45,7 @@ jobs:
           path: ${{ env.BASENAME }}.apworld
           if-no-files-found: error
       - name: Add Changelog text to a file for release body, to preserve newlines
-        run: echo "${{ env.CHANGELOG }}" > bodyFile.txt
+        run: echo -en "${{ env.CHANGELOG }}" > bodyFile.txt
       - name: Create an unstable release
         uses: ncipollo/release-action@v1
         with:
