@@ -11,7 +11,6 @@ on:
 permissions:
   actions: read
   contents: write
-  id-token: read
 
 jobs:
   create-release:
