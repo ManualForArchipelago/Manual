@@ -8,6 +8,11 @@ on:
         required: true
         type: string
 
+permissions:
+  actions: read
+  contents: write
+  id-token: read
+
 jobs:
   create-release:
     name: Create unstable apworld
@@ -22,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Create apworld file
         run: |
-          zip ${{ env.BASENAME }}.zip src
+          zip ${{ env.BASENAME }}.zip src/*
           mv ${{ env.BASENAME }}.zip ${{ env.BASENAME }}.apworld
       - name: Upload apworld as an artifact
         uses: actions/upload-artifact@v4
