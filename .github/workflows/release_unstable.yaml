@@ -42,7 +42,7 @@ jobs:
         # rename src folder, zip it, change extension
         run: |
           mv src ${{ env.BASENAME }}
-          zip ${{ env.BASENAME }}.zip ${{ env.BASENAME }}/*
+          zip -r ${{ env.BASENAME }}.zip ${{ env.BASENAME }}/*
           mv ${{ env.BASENAME }}.zip ${{ env.BASENAME }}.apworld
       - name: Upload apworld as an artifact
         uses: actions/upload-artifact@v4
@@ -55,7 +55,7 @@ jobs:
       - name: Create an unstable release
         uses: ncipollo/release-action@v1
         with:
-          name: "Unstable release - ${{ env.CURRENT_DATE_TEXT }}"
+          name: "Unstable - ${{ env.CURRENT_DATE_TEXT }}"
           bodyFile: bodyFile.txt
           tag: ${{ env.BASENAME }}
           commit: main
