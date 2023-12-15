@@ -35,4 +35,5 @@ jobs:
         with:
           artifacts: "${{ env.BASENAME }}.apworld"
           body: ${{ github.event.inputs.changelog }}
-          tag: main
+          tag: ${{ env.BASENAME }}
+          commit: main
