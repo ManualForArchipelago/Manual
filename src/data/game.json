@@ -1,6 +1,6 @@
 {
-    "game": "Stable",
-    "creator": "09302023",
+    "game": "UltimateMarvelVsCapcom3",
+    "player": "Fuzzy",
 
     "filler_item_name": "Free Character of Your Choice",
 
@@ -13,16 +13,13 @@
             "random": 1
         },
         {
-            "if_previous_item": ["Ryu"],
             "items": ["Wolverine", "Storm", "Phoenix"],
             "random": 1
         },
         {
-            "if_previous_item": ["Storm"],
             "item_categories": ["Trash"]
         },
         {
-            "if_previous_item": ["Frank West"],
             "random": 3
         }
     ]

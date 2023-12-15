@@ -1,4 +1,5 @@
 from BaseClasses import Entrance, MultiWorld, Region
+from .Helpers import is_category_enabled
 from .Data import region_table
 from .Locations import ManualLocation
 from worlds.AutoWorld import World
@@ -20,9 +21,9 @@ regionMap["Manual"] = {
 
 regionMap = before_region_table_processed(regionMap)
 
-def create_regions(base: World, world: MultiWorld, player: int): 
+def create_regions(base: World, world: MultiWorld, player: int):
     # Create regions and assign locations to each region
-    for region in regionMap:  
+    for region in regionMap:
         if "connects_to" not in regionMap[region]:
             exit_array = None
         else:
@@ -32,9 +33,19 @@ def create_regions(base: World, world: MultiWorld, player: int):
         if not exit_array:
             exit_array = None
 
-        new_region = create_region(base, world, player, region, [
-            location["name"] for location in base.location_table if "region" in location and location["region"] == region
-        ], exit_array)
+        locations = []
+        for location in base.location_table:
+            if "region" in location and location["region"] == region:
+                remove = False
+                for category in location.get("category", []):
+                    if not is_category_enabled(world, player, category):
+                        remove = True
+                        break
+
+                if not remove:
+                    locations.append(location["name"])
+
+        new_region = create_region(base, world, player, region, locations, exit_array)
         world.regions += [new_region]
 
     menu = create_region(base, world, player, "Menu", None, ["Manual"])
@@ -51,7 +62,7 @@ def create_regions(base: World, world: MultiWorld, player: int):
 
 def create_region(base: World, world: MultiWorld, player: int, name: str, locations=None, exits=None):
     ret = Region(name, player, world)
-    
+
     if locations:
         for location in locations:
             loc_id = base.location_name_to_id.get(location, 0)

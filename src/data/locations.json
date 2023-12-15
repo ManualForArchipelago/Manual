@@ -1,12 +1,4 @@
 [
-    {
-        "name": "We Saved the World!",
-        "victory": true,
-        "region": "Victory (Unnecessary, Only for Testing)",
-        "category": ["All Characters Complete!"],
-        "requires": "|@Left Side:25| AND |@Right Side:25|"
-    },
-    
     { 
         "name": "Beat the Game - Ryu", 
         "category": ["Starter Team", "Left Side"],
@@ -257,5 +249,60 @@
         "name": "Beat the Game - Taskmaster", 
         "category": ["Unlocked Teams", "Right Side"],
         "requires": "|Taskmaster|"
+    },
+
+    {
+        "name": "We Saved the World!",
+        "victory": true,
+        "category": ["All Characters Complete!"],
+        "requires": [
+            "Jill",
+            "Shuma-Gorath",
+            "Nemesis T-Type",
+            "Firebrand",
+            "Strider Hiryu",
+            "Phoenix Wright",
+            "Nova",
+            "Ghost Rider",
+            "Hawkeye",
+            "Doctor Strange", 
+            "Chris",
+            "Arthur",
+            "Frank West",
+            "Vergil",
+            "Iron Fist",
+            "Rocket Raccoon",
+            "Captain America",
+            "Dormammu",
+            "Wesker",
+            "Zero",
+            "Dante",
+            "Deadpool",
+            "Wolverine",
+            "Iron Man",
+            "Doctor Doom",
+            "Morrigan",
+            "Tron",
+            "Trish",
+            "X-23",
+            "Storm",
+            "Thor",
+            "M.O.D.O.K.",
+            "Felicia",
+            "Spencer",
+            "Viewtiful Joe",
+            "Spider-Man",
+            "Sentinel",
+            "Hulk",
+            "Super-Skrull",
+            "Hsien-Ko",
+            "Haggar",
+            "C. Viper",
+            "Amaterasu",
+            "Phoenix",
+            "Magneto",
+            "She-Hulk",
+            "Taskmaster"
+        ]
     }
 ]
