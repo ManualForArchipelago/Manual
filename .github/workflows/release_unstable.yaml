@@ -36,7 +36,7 @@ jobs:
       - name: Change game name and player name to standard names for Manual releases
         run: |
           tmp=$(mktemp)
-          jq '.game = "Unstable", .player = "${{ env.CURRENT_DATE }}"' src/data/game.json > "$tmp"
+          jq '.game = "Unstable" | .player = "${{ env.CURRENT_DATE }}"' src/data/game.json > "$tmp"
           mv "$tmp" src/data/game.json
       - name: Create apworld file
         # rename src folder, zip it, change extension
