@@ -1,0 +1,33 @@
+on:
+  workflow_dispatch:
+    inputs:
+      changelog:
+        description: 'Changelog'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current date to env
+        run: echo "CURRENT_DATE=$(date +'%m%d%Y')" >> "$GITHUB_ENV"
+      - name: Set expected file basename to env
+        run: echo "BASENAME=manual_unstable_${{ env.CURRENT_DATE }}" >> "$GITHUB_ENV"
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Create apworld file
+        run: |
+          zip ${{ env.BASENAME }}.zip src
+          mv ${{ env.BASENAME }}.zip ${{ env.BASENAME }}.apworld
+      - name: Upload apworld as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BASENAME }}.apworld
+          path: ${{ env.BASENAME }}.apworld
+          if-no-files-found: error
+      - name: Create an unstable release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ env.BASENAME }}.apworld"
+          body: ${{ github.event.inputs.changelog }}
