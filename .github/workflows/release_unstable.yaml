@@ -40,7 +40,10 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           name: "Unstable release - ${{ env.CURRENT_DATE }}"
-          body: ${{ github.event.inputs.changelog }}
+          body: |
+            This release contains the following changes:
+            
+            ${{ github.event.inputs.changelog }}
           tag: ${{ env.BASENAME }}
           commit: main
           artifacts: "${{ env.BASENAME }}.apworld"
