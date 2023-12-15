@@ -27,6 +27,7 @@ jobs:
       - name: Format changelog input as multiline string and put into env
         run: |
           echo 'CHANGELOG<<EOF' >> "$GITHUB_ENV"
+          echo "This release contains the following changes:\n\n" >> "$GITHUB_ENV"
           echo "${{ github.event.inputs.changelog }}" >> "$GITHUB_ENV"
           echo 'EOF' >> "$GITHUB_ENV"
       - name: Checkout repo
@@ -47,10 +48,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           name: "Unstable release - ${{ env.CURRENT_DATE_TEXT }}"
-          body: |
-            This release contains the following changes:
-
-            ${{ env.CHANGELOG }}
+          body: ${{ env.CHANGELOG }}
           tag: ${{ env.BASENAME }}
           commit: main
           artifacts: "${{ env.BASENAME }}.apworld"
