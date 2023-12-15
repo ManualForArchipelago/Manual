@@ -10,7 +10,9 @@ on:
 
 jobs:
   create-release:
+    name: Create unstable apworld
     runs-on: ubuntu-latest
+
     steps:
       - name: Set current date to env
         run: echo "CURRENT_DATE=$(date +'%m%d%Y')" >> "$GITHUB_ENV"
@@ -33,3 +35,4 @@ jobs:
         with:
           artifacts: "${{ env.BASENAME }}.apworld"
           body: ${{ github.event.inputs.changelog }}
+          tag: main
