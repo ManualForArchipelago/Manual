@@ -19,9 +19,16 @@ jobs:
 
     steps:
       - name: Set current date to env
-        run: echo "CURRENT_DATE=$(date +'%m%d%Y')" >> "$GITHUB_ENV"
+        run: |
+          echo "CURRENT_DATE=$(date +'%m%d%Y')" >> "$GITHUB_ENV"
+          echo "CURRENT_DATE_TEXT=$(date +'%B %d, %Y')" >> "$GITHUB_ENV"
       - name: Set expected file basename to env
         run: echo "BASENAME=manual_unstable_${{ env.CURRENT_DATE }}" >> "$GITHUB_ENV"
+      - name: Format changelog input as multiline string and put into env
+        run: |
+          echo 'CHANGELOG<<EOF' >> "$GITHUB_ENV"
+          echo "${{ github.event.inputs.changelog }}" >> "$GITHUB_ENV"
+          echo 'EOF' >> "$GITHUB_ENV"
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Create apworld file
@@ -39,11 +46,11 @@ jobs:
       - name: Create an unstable release
         uses: ncipollo/release-action@v1
         with:
-          name: "Unstable release - ${{ env.CURRENT_DATE }}"
+          name: "Unstable release - ${{ env.CURRENT_DATE_TEXT }}"
           body: |
             This release contains the following changes:
-            
-            ${{ github.event.inputs.changelog }}
+
+            ${{ env.CHANGELOG }}
           tag: ${{ env.BASENAME }}
           commit: main
           artifacts: "${{ env.BASENAME }}.apworld"
