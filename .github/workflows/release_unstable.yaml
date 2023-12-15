@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Set current date to env
         run: |
-          echo "CURRENT_DATE=$(date +'%m%d%Y')" >> "$GITHUB_ENV"
+          echo "CURRENT_DATE=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
           echo "CURRENT_DATE_VERSION=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
       - name: Set expected file basename to env
         run: echo "BASENAME=manual_unstable_${{ env.CURRENT_DATE }}" >> "$GITHUB_ENV"
