@@ -21,7 +21,7 @@ jobs:
       - name: Set current date to env
         run: |
           echo "CURRENT_DATE=$(date +'%m%d%Y')" >> "$GITHUB_ENV"
-          echo "CURRENT_DATE_TEXT=$(date +'%B %d, %Y')" >> "$GITHUB_ENV"
+          echo "CURRENT_DATE_VERSION=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
       - name: Set expected file basename to env
         run: echo "BASENAME=manual_unstable_${{ env.CURRENT_DATE }}" >> "$GITHUB_ENV"
       - name: Format changelog input as multiline string and put into env
@@ -55,7 +55,7 @@ jobs:
       - name: Create an unstable release
         uses: ncipollo/release-action@v1
         with:
-          name: "Unstable - ${{ env.CURRENT_DATE_TEXT }}"
+          name: "Unstable - ${{ env.CURRENT_DATE_VERSION }}"
           bodyFile: bodyFile.txt
           tag: ${{ env.BASENAME }}
           commit: main
