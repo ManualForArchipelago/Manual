@@ -25,8 +25,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Create apworld file
+        # rename src folder, zip it, change extension
         run: |
-          zip ${{ env.BASENAME }}.zip src/*
+          mv src ${{ env.BASENAME }}
+          zip ${{ env.BASENAME }}.zip ${{ env.BASENAME }}
           mv ${{ env.BASENAME }}.zip ${{ env.BASENAME }}.apworld
       - name: Upload apworld as an artifact
         uses: actions/upload-artifact@v4
