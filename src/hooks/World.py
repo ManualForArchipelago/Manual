@@ -69,6 +69,15 @@ def before_generate_basic(item_pool: list, world: World, multiworld: MultiWorld,
         item_pool.remove(item)
     
     return item_pool
+    
+    # Some other useful hook options:
+    
+    ''' # Place an item at a specific location
+    location = next(l for l in multiworld.get_unfilled_locations(player=player) if l.name == "Location Name")
+    item_to_place = next(i for i in item_pool if i.name == "Item Name")
+    location.place_locked_item(item_to_place)
+    item_pool.remove(item_to_place)
+    '''
 
 # This method is run at the very end of pre-generation, once the place_item options have been handled and before AP generation occurs
 def after_generate_basic(world: World, multiworld: MultiWorld, player: int):
