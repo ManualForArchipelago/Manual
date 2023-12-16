@@ -93,7 +93,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 elif item_count.lower() == 'half':
                     item_count = sum([items_counts.get(category_item["name"], 0) for category_item in category_items]) / 2
                 elif item_count.lower().endswith('%') and len(item_count) > 1:
-                    percent = min(float(item_count[:-1]) / 100, 1 )
+                    percent = max(min(float(item_count[:-1] / 100) , 1 ), 0) #at least 0% and at max 100%
                     item_count = math.ceil(sum([items_counts.get(category_item["name"], 0) for category_item in category_items]) * percent)
                 else:
                     item_count = int(item_count)
@@ -109,7 +109,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 elif item_count.lower() == 'half':
                     item_count = item_current_count / 2
                 elif item_count.lower().endswith('%') and len(item_count) > 1:
-                    percent = max(min(float(item_count[:-1]) / 100, 1 ), 0)
+                    percent = max(min(float(item_count[:-1] / 100) , 1 ), 0) #at least 0% and at max 100%
                     item_count = math.ceil(item_current_count * percent)
                 else:
                     item_count = int(item_count)
