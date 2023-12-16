@@ -275,11 +275,15 @@ class ManualWorld(World):
             self.multiworld.itempool.remove(item_to_place)
 
         after_generate_basic(self, self.multiworld, self.player)
-
+        if not hasattr(self, 'manual_item_counts'): #Add a dict so this is only computed once per player, otherwise for a 2 player generation it add 25 seconds of proccess
+            self.manual_item_counts = {}
+        if self.player not in self.manual_item_counts:
+            real_pool = self.multiworld.get_items()
+            self.manual_item_counts[self.player] = {i.name:real_pool.count(i) for i in real_pool if i.player == self.player}
         # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
 
-        # from Utils import visualize_regions
-        # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}.puml")
+        from Utils import visualize_regions
+        visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
 
     def create_item(self, name: str) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)

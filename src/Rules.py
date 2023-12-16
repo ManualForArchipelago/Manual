@@ -65,12 +65,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
     def checkRequireStringForArea(state, area):
         requires_list = area["requires"]
         
-        if not hasattr(state, 'manual_item_counts'): #Add a dict so this is only computed once per player, otherwise for a 2 player generation it add 25 seconds of proccess
-            state.manual_item_counts = {}
-        if player not in state.manual_item_counts:
-            real_pool = world.get_items()
-            state.manual_item_counts[player] = {i.name:real_pool.count(i) for i in real_pool if i.player == player}
-        items_counts = state.manual_item_counts[player]
+        items_counts = base.manual_item_counts[player]
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
             require_type = 'item'
