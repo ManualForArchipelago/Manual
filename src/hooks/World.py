@@ -35,7 +35,16 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
 # Called after regions and locations are created, in case you want to see or modify that information.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
-    pass
+    # Use this hook to remove locations from the world
+    locationNamesToRemove = [] # List of location names
+    
+    # Add your code here to calculate which locations to remove
+    
+    for region in multiworld.regions:
+        if region.player == player:
+            for location in list(region.locations):
+                if location.name in locationNamesToRemove:
+                    region.locations.remove(location)
 
 # Called before rules for accessing regions and locations are created. Not clear why you'd want this, but it's here.
 def before_set_rules(world: World, multiworld: MultiWorld, player: int):
@@ -47,6 +56,18 @@ def after_set_rules(world: World, multiworld: MultiWorld, player: int):
 
 # The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
 def before_generate_basic(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    # Use this hook to remove items from the item pool
+    itemNamesToRemove = [] # List of item names
+    
+    # Add your code here to calculate which items to remove.
+    # 
+    # Because multiple copies of an item can exist, you need to add an item name
+    # to the list multiple times if you want to remove multiple copies of it.
+    
+    for itemName in itemNamesToRemove:
+        item = next(i for i in item_pool if i.name == itemName)
+        item_pool.remove(item)
+    
     return item_pool
 
 # This method is run at the very end of pre-generation, once the place_item options have been handled and before AP generation occurs
