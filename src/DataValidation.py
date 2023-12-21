@@ -27,6 +27,8 @@ class DataValidation():
                         # it's just a category, so ignore it
                         if '@' in item:
                             continue
+                        if '$' in item:
+                            continue
 
                         item = item.replace("|", "")
 
@@ -40,13 +42,13 @@ class DataValidation():
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
-                        
+
             else:  # item access is in dict form
                 for item in location["requires"]:
                     # if the require entry is an object with "or" or a list of items, treat it as a standalone require of its own
                     if (isinstance(item, dict) and "or" in item and isinstance(item["or"], list)) or (isinstance(item, list)):
                         or_items = item
-                        
+
                         if isinstance(item, dict):
                             or_items = item["or"]
 
@@ -64,7 +66,7 @@ class DataValidation():
                     else:
                         item_parts = item.split(":")
                         item_name = item
-                        
+
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
@@ -103,13 +105,13 @@ class DataValidation():
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
-                        
+
             else:  # item access is in dict form
                 for item in region["requires"]:
                     # if the require entry is an object with "or" or a list of items, treat it as a standalone require of its own
                     if (isinstance(item, dict) and "or" in item and isinstance(item["or"], list)) or (isinstance(item, list)):
                         or_items = item
-                        
+
                         if isinstance(item, dict):
                             or_items = item["or"]
 
@@ -127,7 +129,7 @@ class DataValidation():
                     else:
                         item_parts = item.split(":")
                         item_name = item
-                        
+
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
@@ -143,7 +145,7 @@ class DataValidation():
                 continue
 
             region_exists = len([name for name in DataValidation.region_table if name == location["region"]]) > 0
-            
+
             if not region_exists:
                 raise ValidationError("Region %s is set for location %s, but the region is misspelled or does not exist." % (location["region"], location["name"]))
 
@@ -212,7 +214,7 @@ class DataValidation():
 
         if victory_count > 1:
             raise ValidationError("There are %s victory locations defined, but there should only be 1." % (str(victory_count)))
-        
+
     @staticmethod
     def checkForDuplicateItemNames():
         for item in DataValidation.item_table:
@@ -237,12 +239,12 @@ class DataValidation():
 
             if name_count > 1:
                 raise ValidationError("Region %s is defined more than once." % (region_name))
-            
+
     @staticmethod
     def checkStartingItemsForValidItemsAndCategories():
         if "starting_items" not in DataValidation.game_table:
             return
-        
+
         starting_items = DataValidation.game_table["starting_items"]
 
         for starting_block in starting_items:
@@ -253,7 +255,7 @@ class DataValidation():
                 for item_name in starting_block["items"]:
                     if not item_name in [item["name"] for item in DataValidation.item_table]:
                         raise ValidationError("Item %s is set as a starting item, but is misspelled or is not defined." % (item_name))
-            
+
             if "item_categories" in starting_block:
                 for category_name in starting_block["item_categories"]:
                     if len([item for item in DataValidation.item_table if "category" in item and category_name in item["category"]]) == 0:
@@ -268,12 +270,12 @@ class DataValidation():
     def checkForItemsBeingInvalidJSON():
         if len(DataValidation.item_table) == 0:
             raise ValidationError("No items were found in your items.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
-        
+
     @staticmethod
     def checkForLocationsBeingInvalidJSON():
         if len(DataValidation.location_table) == 0:
             raise ValidationError("No locations were found in your locations.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
-        
+
     @staticmethod
     def checkForGameFillerMatchingAnItemName():
         filler_item = DataValidation.game_table["filler_item_name"] or "Filler"
@@ -281,14 +283,14 @@ class DataValidation():
 
         if len(items_matching) > 0:
             raise ValidationError("Your game's filler item name ('%s') matches an item you defined in your items.json. Item names must be unique, including the default filler item." % (filler_item))
-        
+
     @staticmethod
     def checkForNonStartingRegionsThatAreUnreachable():
         using_starting_regions = len([region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region] and not DataValidation.region_table[region]["starting"]]) > 0
 
         if not using_starting_regions:
             return
-        
+
         nonstarting_regions = [region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region] and not DataValidation.region_table[region]["starting"]]
 
         for nonstarter in nonstarting_regions:
