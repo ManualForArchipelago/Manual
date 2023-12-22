@@ -65,7 +65,13 @@ def set_rules(base: World, world: MultiWorld, player: int):
     def checkRequireStringForArea(state, area):
         requires_list = area["requires"]
         
-        items_counts = base.manual_item_counts[player]
+        items_counts = base.item_counts.get(player, {})
+        
+        # fallback if items_counts[player] not present (eg. UT doest gen items thus no items count)(will not be acurate to real item count)
+        if items_counts == {}:
+            base.item_counts[player] = {i["name"]:i.get('count', 1) for i in base.item_name_to_item.values()}
+            items_counts = base.item_counts[player]
+        
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
             require_type = 'item'
@@ -83,18 +89,18 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 item_name = item_parts[0]
                 item_count = item_parts[1]
                 
-            item_current_count = items_counts.get(item_name, 0)
             total = 0
 
             if require_type == 'category':
                 category_items = [item for item in base.item_name_to_item.values() if "category" in item and item_name in item["category"]]
+                category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
                 if item_count.lower() == 'all':
-                    item_count = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
+                    item_count = category_items_counts
                 elif item_count.lower() == 'half':
-                    item_count = sum([items_counts.get(category_item["name"], 0) for category_item in category_items]) / 2
-                elif item_count.lower().endswith('%') and len(item_count) > 1:
-                    percent = max(min(float(item_count[:-1] / 100) , 1 ), 0) #at least 0% and at max 100%
-                    item_count = math.ceil(sum([items_counts.get(category_item["name"], 0) for category_item in category_items]) * percent)
+                    item_count = category_items_counts / 2
+                elif item_count.endswith('%') and len(item_count) > 1:
+                    percent = max(0, min(1, float(item_count[:-1]) / 100)) # at least 0% and at max 100%
+                    item_count = math.ceil(category_items_counts * percent)
                 else:
                     item_count = int(item_count)
 
@@ -104,12 +110,13 @@ def set_rules(base: World, world: MultiWorld, player: int):
                     if total >= item_count:
                         requires_list = requires_list.replace(item_base, "1")
             elif require_type == 'item':
+                item_current_count = items_counts.get(item_name, 0)
                 if item_count.lower() == 'all':
                     item_count = item_current_count
                 elif item_count.lower() == 'half':
                     item_count = item_current_count / 2
-                elif item_count.lower().endswith('%') and len(item_count) > 1:
-                    percent = max(min(float(item_count[:-1] / 100) , 1 ), 0) #at least 0% and at max 100%
+                elif item_count.endswith('%') and len(item_count) > 1:
+                    percent = max(0, min(1, float(item_count[:-1]) / 100)) # at least 0% and at max 100%
                     item_count = math.ceil(item_current_count * percent)
                 else:
                     item_count = int(item_count)

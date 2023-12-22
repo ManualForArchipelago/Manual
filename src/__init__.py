@@ -61,6 +61,8 @@ class ManualWorld(World):
     item_name_to_id = item_name_to_id
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
+    item_counts = {}
+
     advancement_item_names = advancement_item_names
     location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
     location_id_to_name = location_id_to_name
@@ -273,14 +275,13 @@ class ManualWorld(World):
             
             # remove the item we're about to place from the pool so it isn't placed twice
             self.multiworld.itempool.remove(item_to_place)
+            
+        # Generate item_counts here so it could be acessed in after_generate_basic
+        if self.player not in self.item_counts:
+            real_pool = self.multiworld.get_items()
+            self.item_counts[self.player] = {i.name:real_pool.count(i) for i in real_pool if i.player == self.player}
 
         after_generate_basic(self, self.multiworld, self.player)
-        
-        if not hasattr(self, 'manual_item_counts'): #Add a dict so this is only computed once per player, otherwise for a 2 player generation it add 25 seconds of proccess
-            self.manual_item_counts = {}
-        if self.player not in self.manual_item_counts:
-            real_pool = self.multiworld.get_items()
-            self.manual_item_counts[self.player] = {i.name:real_pool.count(i) for i in real_pool if i.player == self.player}
         # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
 
         # from Utils import visualize_regions
