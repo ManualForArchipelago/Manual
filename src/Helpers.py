@@ -14,7 +14,7 @@ def get_option_value(world: MultiWorld, player: int, name: str) -> Union[int, di
 
     return option[player].value
 
-def clamp(value, min, max) -> int:
+def clamp(value, min, max):
     if value < min:
         return min
     elif value > max:
