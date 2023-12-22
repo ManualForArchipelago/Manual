@@ -14,6 +14,14 @@ def get_option_value(world: MultiWorld, player: int, name: str) -> Union[int, di
 
     return option[player].value
 
+def clamp(value, min, max) -> int:
+    if value < min:
+        return min
+    elif value > max:
+        return max
+    else:
+        return value
+
 def is_category_enabled(world: MultiWorld, player: int, category_name: str) -> bool:
     """Check if a category has been disabled by a yaml option."""
     hook_result = before_is_category_enabled(world, player, category_name)

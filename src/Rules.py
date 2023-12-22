@@ -2,6 +2,7 @@ from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld
+from .Helpers import clamp
 import re
 import math
 
@@ -67,7 +68,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         
         items_counts = base.item_counts.get(player, {})
         
-        # fallback if items_counts[player] not present (eg. UT doest gen items thus no items count)(will not be acurate to real item count)
+        # fallback if items_counts[player] not present (eg. UT doesn't gen items thus no items count)(will not be acurate to real item count)
         if items_counts == {}:
             base.item_counts[player] = {i["name"]:i.get('count', 1) for i in base.item_name_to_item.values()}
             items_counts = base.item_counts[player]
@@ -99,7 +100,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 elif item_count.lower() == 'half':
                     item_count = category_items_counts / 2
                 elif item_count.endswith('%') and len(item_count) > 1:
-                    percent = max(0, min(1, float(item_count[:-1]) / 100)) # at least 0% and at max 100%
+                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
                     item_count = math.ceil(category_items_counts * percent)
                 else:
                     item_count = int(item_count)
@@ -116,7 +117,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 elif item_count.lower() == 'half':
                     item_count = item_current_count / 2
                 elif item_count.endswith('%') and len(item_count) > 1:
-                    percent = max(0, min(1, float(item_count[:-1]) / 100)) # at least 0% and at max 100%
+                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
                     item_count = math.ceil(item_current_count * percent)
                 else:
                     item_count = int(item_count)
