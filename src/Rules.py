@@ -70,8 +70,9 @@ def set_rules(base: World, world: MultiWorld, player: int):
         
         # fallback if items_counts[player] not present (eg. UT doesn't gen items thus no items count)(will not be accurate to real item count)
         if items_counts == {}:
-            base.item_counts[player] = {i["name"]:int(i.get('count', 1)) for i in base.item_name_to_item.values()}
-            items_counts = base.item_counts[player]
+            if 'fallback' not in base.item_counts:
+                base.item_counts['fallback'] = {i['name']:int(i.get('count', 1)) for i in base.item_name_to_item.values()}
+            items_counts = base.item_counts.get('fallback')
         
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
