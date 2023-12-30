@@ -54,7 +54,23 @@ def before_set_rules(world: World, multiworld: MultiWorld, player: int):
 
 # Called after rules for accessing regions and locations are created, in case you want to see or modify that information.
 def after_set_rules(world: World, multiworld: MultiWorld, player: int):
-    pass
+    # Use this hook to modify the access rules for a given location
+    
+    def Example_Rule(state: CollectionState) -> bool:
+        # Calculated rules take a CollectionState object and return a boolean 
+        # True if the player can access the location
+        # CollectionState is defined in BaseClasses
+        return True
+    
+    ## Common functions:
+    # location = world.get_location(location_name, player)
+    # location.access_rule = Example_Rule
+    
+    ## Combine rules:
+    # old_rule = location.access_rule
+    # location.access_rule = lambda state: old_rule(state) and Example_Rule(state)
+    # OR
+    # location.access_rule = lambda state: old_rule(state) or Example_Rule(state)
 
 # The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
 def before_generate_basic(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
@@ -74,12 +90,11 @@ def before_generate_basic(item_pool: list, world: World, multiworld: MultiWorld,
     
     # Some other useful hook options:
     
-    ''' # Place an item at a specific location
-    location = next(l for l in multiworld.get_unfilled_locations(player=player) if l.name == "Location Name")
-    item_to_place = next(i for i in item_pool if i.name == "Item Name")
-    location.place_locked_item(item_to_place)
-    item_pool.remove(item_to_place)
-    '''
+    ## Place an item at a specific location
+    # location = next(l for l in multiworld.get_unfilled_locations(player=player) if l.name == "Location Name")
+    # item_to_place = next(i for i in item_pool if i.name == "Item Name")
+    # location.place_locked_item(item_to_place)
+    # item_pool.remove(item_to_place)
 
 # This method is run at the very end of pre-generation, once the place_item options have been handled and before AP generation occurs
 def after_generate_basic(world: World, multiworld: MultiWorld, player: int):
