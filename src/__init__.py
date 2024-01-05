@@ -69,6 +69,10 @@ class ManualWorld(World):
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
+    
+    def interpret_slot_data(self, slot_data: dict[str, any]) -> None: 
+        #this is called by UT before rules are called
+        self.item_counts[self.player] = slot_data['item_counts']
 
     def pre_fill(self):
         before_pre_fill(self, self.multiworld, self.player)
@@ -330,6 +334,7 @@ class ManualWorld(World):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
+        slot_data["item_counts"] = self.item_counts.get(self.player)
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
