@@ -64,28 +64,26 @@ def evaluate_postfix(expr, location):
 def set_rules(base: World, world: MultiWorld, player: int):
     # this is only called if a player's item_count doesnt exist
     def get_fallback_item_counts():
-        if 'fallback' not in base.item_counts: 
+        if 'fallback' not in base.item_counts:
             base.item_counts['fallback'] = {}
             for item in base.item_name_to_item.values():
                 enabled = True
-                
+
                 for category in item.get("category", []):
                     if not is_category_enabled(world, player, category):
                         enabled = False
                         break
-                    
+
                 if enabled:
                     base.item_counts['fallback'][item['name']] = int(item.get('count', 1))
-            #base.item_counts['fallback'] = {i['name']:int(i.get('count', 1)) for i in base.item_name_to_item.values()}
-            
         return base.item_counts.get('fallback')
-        
+
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state, area):
         requires_list = area["requires"]
         # fallback if items_counts[player] not present (will not be accurate to hooks item count)
         items_counts = base.item_counts.get(player, get_fallback_item_counts())
-        
+
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
             require_type = 'item'
@@ -102,7 +100,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
             if len(item_parts) > 1:
                 item_name = item_parts[0]
                 item_count = item_parts[1]
-                
+
             total = 0
 
             if require_type == 'category':
