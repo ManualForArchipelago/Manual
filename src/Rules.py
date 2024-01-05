@@ -2,7 +2,7 @@ from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld
-from .Helpers import clamp
+from .Helpers import clamp, is_category_enabled
 import re
 import math
 
@@ -62,17 +62,29 @@ def evaluate_postfix(expr, location):
 
 
 def set_rules(base: World, world: MultiWorld, player: int):
+    # this is only called if a player's item_count doesnt exist
+    def get_fallback_item_counts():
+        if 'fallback' not in base.item_counts: 
+            base.item_counts['fallback'] = {}
+            for item in base.item_name_to_item.values():
+                enabled = True
+                
+                for category in item.get("category", []):
+                    if not is_category_enabled(world, player, category):
+                        enabled = False
+                        break
+                    
+                if enabled:
+                    base.item_counts['fallback'][item['name']] = int(item.get('count', 1))
+            #base.item_counts['fallback'] = {i['name']:int(i.get('count', 1)) for i in base.item_name_to_item.values()}
+            
+        return base.item_counts.get('fallback')
+        
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state, area):
         requires_list = area["requires"]
-        
-        items_counts = base.item_counts.get(player, {})
-        
-        # fallback if items_counts[player] not present (eg. UT doesn't gen items thus no items count)(will not be accurate to real item count)
-        if items_counts == {}:
-            if 'fallback' not in base.item_counts:
-                base.item_counts['fallback'] = {i['name']:int(i.get('count', 1)) for i in base.item_name_to_item.values()}
-            items_counts = base.item_counts.get('fallback')
+        # fallback if items_counts[player] not present (will not be accurate to hooks item count)
+        items_counts = base.item_counts.get(player, get_fallback_item_counts())
         
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
