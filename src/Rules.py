@@ -2,7 +2,7 @@ from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld
-from .Helpers import clamp, is_category_enabled
+from .Helpers import clamp, is_item_enabled
 import re
 import math
 
@@ -67,15 +67,9 @@ def set_rules(base: World, world: MultiWorld, player: int):
         if 'fallback' not in base.item_counts:
             base.item_counts['fallback'] = {}
             for item in base.item_name_to_item.values():
-                enabled = True
-
-                for category in item.get("category", []):
-                    if not is_category_enabled(world, player, category):
-                        enabled = False
-                        break
-
-                if enabled:
+                if is_item_enabled(world,player,item):
                     base.item_counts['fallback'][item['name']] = int(item.get('count', 1))
+
         return base.item_counts.get('fallback')
 
     # this is only called when the area (think, location or region) has a "requires" field that is a string

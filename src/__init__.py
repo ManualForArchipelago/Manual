@@ -15,7 +15,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options
-from .Helpers import is_category_enabled, is_option_enabled, get_option_value
+from .Helpers import is_option_enabled, is_item_enabled, get_option_value
 
 from BaseClasses import ItemClassification, Tutorial, Item
 from worlds.AutoWorld import World, WebWorld
@@ -69,8 +69,8 @@ class ManualWorld(World):
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
-    
-    def interpret_slot_data(self, slot_data: dict[str, any]) -> None: 
+
+    def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by UT before rules are called
         self.item_counts[self.player] = slot_data['item_counts']
 
@@ -115,10 +115,8 @@ class ManualWorld(World):
                 item_count = int(item["count"])
 
             if "category" in item:
-                for category in item.get("category", []):
-                    if not is_category_enabled(self.multiworld, self.player, category):
-                        item_count = 0
-                        break
+                if not is_item_enabled(self.multiworld, self.player, item):
+                    item_count = 0
 
             if item_count == 0:
                 continue
@@ -209,9 +207,9 @@ class ManualWorld(World):
             if "dont_place_item" in manual_location:
                 if len(manual_location["dont_place_item"]) == 0:
                     continue
-                
+
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
-            
+
             if "dont_place_item_category" in manual_location:
                 if len(manual_location["dont_place_item_category"]) == 0:
                     continue
@@ -251,9 +249,9 @@ class ManualWorld(World):
             if "dont_place_item" in manual_location:
                 if len(manual_location["dont_place_item"]) == 0:
                     continue
-                
+
                 eligible_items = [item for item in eligible_items if item.name not in manual_location["dont_place_item"]]
-                
+
                 if len(eligible_items) == 0:
                     raise Exception("Could not find a suitable item to place at %s. No items that match placed_items(_category) because of forbidden %s." % (manual_location["name"], ", ".join(manual_location["dont_place_item"])))
 
@@ -262,7 +260,7 @@ class ManualWorld(World):
                     continue
 
                 forbidden_item_names = [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
-                
+
                 eligible_items = [item for item in eligible_items if item.name not in forbidden_item_names]
 
                 if len(eligible_items) == 0:

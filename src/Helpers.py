@@ -1,6 +1,8 @@
 from BaseClasses import MultiWorld
 from .Data import category_table
-from .hooks.Helpers import before_is_category_enabled
+from .Items import ManualItem
+from .Locations import ManualLocation
+from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
 
 from typing import Union
 
@@ -34,3 +36,45 @@ def is_category_enabled(world: MultiWorld, player: int, category_name: str) -> b
             if not is_option_enabled(world, player, option_name):
                 return False
     return True
+
+def is_item_name_enabled(world: MultiWorld, player: int, item_name: str) -> bool:
+    """Check if an item named 'item_name' has been disabled by a yaml option."""
+    item = world.worlds[player].item_name_to_item.get(item_name, {})
+    if item == {}:
+        return False
+
+    return is_item_enabled(world, player, item)
+
+def is_item_enabled(world: MultiWorld, player: int, item: ManualItem) -> bool:
+    """Check if an item has been disabled by a yaml option."""
+    hook_result = before_is_item_enabled(world, player, item)
+    if hook_result is not None:
+        return hook_result
+
+    return is_manualobject_enabled(world, player, item)
+
+def is_location_name_enabled(world: MultiWorld, player: int, location_name: str) -> bool:
+    """Check if a location named 'location_name' has been disabled by a yaml option."""
+    location = world.worlds[player].location_name_to_location.get(location_name, {})
+    if location == {}:
+        return False
+
+    return is_location_enabled(world, player, location)
+
+def is_location_enabled(world: MultiWorld, player: int, location: ManualLocation) -> bool:
+    """Check if a location has been disabled by a yaml option."""
+    hook_result = before_is_location_enabled(world, player, location)
+    if hook_result is not None:
+        return hook_result
+
+    return is_manualobject_enabled(world, player, location)
+
+def is_manualobject_enabled(world: MultiWorld, player: int, object: any) -> bool:
+    """Check if a Manual Object has any category disabled by a yaml option."""
+    enabled = True
+    for category in object.get("category", []):
+        if not is_category_enabled(world, player, category):
+            enabled = False
+            break
+
+    return enabled
