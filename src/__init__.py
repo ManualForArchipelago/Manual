@@ -6,10 +6,10 @@ from typing import Callable, Optional
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
-from .Data import item_table, progressive_item_table, location_table, region_table, category_table
+from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
-from .Items import item_id_to_name, item_name_to_id, item_name_to_item, advancement_item_names, item_name_groups
+from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 
 from .Regions import create_regions
 from .Items import ManualItem
@@ -21,11 +21,11 @@ from BaseClasses import ItemClassification, Tutorial, Item
 from worlds.AutoWorld import World, WebWorld
 
 from .hooks.World import \
-    before_pre_fill, after_pre_fill, \
-    before_generate_basic, after_generate_basic, \
+    before_create_regions, after_create_regions, \
+    before_create_items, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
-    before_create_regions, after_create_regions, \
+    before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data
 
 class ManualWeb(WebWorld):
@@ -37,7 +37,6 @@ class ManualWeb(WebWorld):
         "setup/en",
         ["Fuzzy"]
     )]
-
 
 class ManualWorld(World):
     """
@@ -55,21 +54,23 @@ class ManualWorld(World):
 
     # These properties are set from the imports of the same name above.
     item_table = item_table
+    location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
     category_table = category_table
-    progressive_item_table = progressive_item_table
+
     item_id_to_name = item_id_to_name
     item_name_to_id = item_name_to_id
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
-    advancement_item_names = advancement_item_names
-    location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+    
     location_id_to_name = location_id_to_name
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
 
-    def pre_fill(self):
-        before_pre_fill(self, self.multiworld, self.player)
+    def create_regions(self):
+        before_create_regions(self, self.multiworld, self.player)
+
+        create_regions(self, self.multiworld, self.player)
 
         location_game_complete = self.multiworld.get_location("__Manual Game Complete__", self.player)
         location_game_complete.address = None
@@ -77,64 +78,48 @@ class ManualWorld(World):
         location_game_complete.place_locked_item(
             ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
 
-        after_pre_fill(self, self.multiworld, self.player)
+        after_create_regions(self, self.multiworld, self.player)
 
-    def generate_basic(self):
+    def create_items(self):
         # Generate item pool
         pool = []
         traps = []
         configured_item_names = self.item_id_to_name.copy()
 
         for name in configured_item_names.values():
-            if name == "__Victory__":
-                continue
-
-            # If it's the filler item, skip it until we know if we need any extra items
-            if name == filler_item_name:
-                continue
-
-            # if (hasattr(self.multiworld, "progressive_items") and len(self.multiworld.progressive_items) > 0):
-            #     shouldUseProgressive = (self.multiworld.progressive_items[self.player].value);
-
-            #     if shouldUseProgressive and name in self.progressive_item_table:
-            #         name = self.progressive_item_table[name]
+            if name == "__Victory__": continue
+            if name == filler_item_name: continue
 
             item = self.item_name_to_item[name]
-            item_count = 1
+            item_count = int(item.get("count") or 1)
 
             if item.get("trap"):
                 traps.append(name)
 
-            if "count" in item:
-                item_count = int(item["count"])
-
             if "category" in item:
-                for category in item.get("category", []):
-                    if not is_category_enabled(self.multiworld, self.player, category):
-                        item_count = 0
-                        break
+                any_categories_disabled = [cat for cat in item.get("category", []) if not is_category_enabled(self.multiworld, self.player, cat)]
 
-            if item_count == 0:
-                continue
+                if len(any_categories_disabled) > 0:
+                    item_count = 0
+                    break
+                
+            if item_count == 0: continue
 
             for i in range(item_count):
                 new_item = self.create_item(name)
                 pool.append(new_item)
 
-            if item.get("early") and item.get("local"):
-              # both
+            if item.get("early") and item.get("local"): # both
                 self.multiworld.local_early_items[self.player][name] = item_count
-
-            elif item.get("early"):
-                # only early
+            elif item.get("early"): # only early
                 self.multiworld.early_items[self.player][name] = item_count
-
-            elif item.get("local"):
-              # only local
+            elif item.get("local"): # only local
                 if name not in self.multiworld.local_items[self.player].value:
                     self.multiworld.local_items[self.player].value.add(name)
 
         items_started = []
+
+        pool = before_create_items(pool, self, self.multiworld, self.player)
 
         if starting_items:
             for starting_item_block in starting_items:
@@ -171,11 +156,46 @@ class ManualWorld(World):
 
         pool = self.add_filler_items(pool, traps)
 
-        pool = before_generate_basic(pool, self, self.multiworld, self.player)
+        pool = after_create_items(pool, self, self.multiworld, self.player)
 
         # need to put all of the items in the pool so we can have a full state for placement
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
+
+    def create_item(self, name: str) -> Item:
+        name = before_create_item(name, self, self.multiworld, self.player)
+
+        item = self.item_name_to_item[name]
+        classification = ItemClassification.filler
+
+        if "trap" in item and item["trap"]:
+            classification = ItemClassification.trap
+
+        if "useful" in item and item["useful"]:
+            classification = ItemClassification.useful
+
+        if "progression" in item and item["progression"]:
+            classification = ItemClassification.progression
+
+        if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            classification = ItemClassification.progression_skip_balancing
+
+        item_object = ManualItem(name, classification,
+                        self.item_name_to_id[name], player=self.player)
+
+        item_object = after_create_item(item_object, self, self.multiworld, self.player)
+
+        return item_object
+    
+    def set_rules(self):
+        before_set_rules(self, self.multiworld, self.player)
+
+        set_rules(self, self.multiworld, self.player)
+
+        after_set_rules(self, self.multiworld, self.player)
+
+    def generate_basic(self):
+        before_generate_basic(self, self.multiworld, self.player)
 
         # Handle item forbidding
         manual_locations_with_forbid = {location['name']: location for location in location_name_to_location.values() if "dont_place_item" in location or "dont_place_item_category" in location}
@@ -265,45 +285,6 @@ class ManualWorld(World):
         # from Utils import visualize_regions
         # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}.puml")
 
-    def create_item(self, name: str) -> Item:
-        name = before_create_item(name, self, self.multiworld, self.player)
-
-        item = self.item_name_to_item[name]
-        classification = ItemClassification.filler
-
-        if "trap" in item and item["trap"]:
-            classification = ItemClassification.trap
-
-        if "useful" in item and item["useful"]:
-            classification = ItemClassification.useful
-
-        if "progression" in item and item["progression"]:
-            classification = ItemClassification.progression
-
-        if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
-            classification = ItemClassification.progression_skip_balancing
-
-        item_object = ManualItem(name, classification,
-                        self.item_name_to_id[name], player=self.player)
-
-        item_object = after_create_item(item_object, self, self.multiworld, self.player)
-
-        return item_object
-
-    def set_rules(self):
-        before_set_rules(self, self.multiworld, self.player)
-
-        set_rules(self, self.multiworld, self.player)
-
-        after_set_rules(self, self.multiworld, self.player)
-
-    def create_regions(self):
-        before_create_regions(self, self.multiworld, self.player)
-
-        create_regions(self, self.multiworld, self.player)
-
-        after_create_regions(self, self.multiworld, self.player)
-
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
@@ -313,6 +294,10 @@ class ManualWorld(World):
 
         return slot_data
     
+    ###
+    # Non-standard AP world methods
+    ###
+
     def add_filler_items(self, item_pool, traps):
         extras = len(self.multiworld.get_unfilled_locations(player=self.player)) - len(item_pool) - 1 # subtracting 1 because of Victory; seems right
 
@@ -342,8 +327,7 @@ class ManualWorld(World):
             'locations': self.location_name_to_location,
             # todo: extract connections out of mutliworld.get_regions() instead, in case hooks have modified the regions.
             'regions': region_table,
-            'categories': category_table,
-
+            'categories': category_table
         }
 
     def generate_output(self, output_directory: str):
