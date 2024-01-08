@@ -40,7 +40,7 @@ def is_category_enabled(world: MultiWorld, player: int, category_name: str) -> b
 def is_item_name_enabled(world: MultiWorld, player: int, item_name: str) -> bool:
     """Check if an item named 'item_name' has been disabled by a yaml option."""
     item = world.worlds[player].item_name_to_item.get(item_name, {})
-    if item == {}:
+    if not item:
         return False
 
     return is_item_enabled(world, player, item)
@@ -56,7 +56,7 @@ def is_item_enabled(world: MultiWorld, player: int, item: ManualItem) -> bool:
 def is_location_name_enabled(world: MultiWorld, player: int, location_name: str) -> bool:
     """Check if a location named 'location_name' has been disabled by a yaml option."""
     location = world.worlds[player].location_name_to_location.get(location_name, {})
-    if location == {}:
+    if not location:
         return False
 
     return is_location_enabled(world, player, location)
