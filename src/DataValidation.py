@@ -276,7 +276,7 @@ class DataValidation():
         
     @staticmethod
     def checkForGameFillerMatchingAnItemName():
-        filler_item = DataValidation.game_table["filler_item_name"] or "Filler"
+        filler_item = DataValidation.game_table["filler_item_name"] if "filler_item_name" in DataValidation.game_table else "Filler"
         items_matching = [item for item in DataValidation.item_table if item["name"] == filler_item]
 
         if len(items_matching) > 0:
