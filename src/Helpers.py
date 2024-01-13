@@ -17,6 +17,7 @@ def get_option_value(world: MultiWorld, player: int, name: str) -> Union[int, di
     return option[player].value
 
 def clamp(value, min, max):
+    """Returns value clamped to the inclusive range of min and max"""
     if value < min:
         return min
     elif value > max:
@@ -51,7 +52,7 @@ def is_item_enabled(world: MultiWorld, player: int, item: ManualItem) -> bool:
     if hook_result is not None:
         return hook_result
 
-    return is_manualobject_enabled(world, player, item)
+    return _is_manualobject_enabled(world, player, item)
 
 def is_location_name_enabled(world: MultiWorld, player: int, location_name: str) -> bool:
     """Check if a location named 'location_name' has been disabled by a yaml option."""
@@ -67,10 +68,12 @@ def is_location_enabled(world: MultiWorld, player: int, location: ManualLocation
     if hook_result is not None:
         return hook_result
 
-    return is_manualobject_enabled(world, player, location)
+    return _is_manualobject_enabled(world, player, location)
 
-def is_manualobject_enabled(world: MultiWorld, player: int, object: any) -> bool:
-    """Check if a Manual Object has any category disabled by a yaml option."""
+def _is_manualobject_enabled(world: MultiWorld, player: int, object: any) -> bool:
+    """Internal method: Check if a Manual Object has any category disabled by a yaml option.
+    \nPlease use the proper is_'item/location'_enabled or is_'item/location'_name_enabled methods instead.
+    """
     enabled = True
     for category in object.get("category", []):
         if not is_category_enabled(world, player, category):
