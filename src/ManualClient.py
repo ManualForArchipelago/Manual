@@ -68,17 +68,6 @@ class ManualContext(SuperContext):
 
         self.location_names_to_id = dict([(value, key) for key, value in self.location_names.items()])
 
-        # if the item name has a number after it, remove it
-        for item_id, name in enumerate(self.item_names):
-            if not isinstance(name, str):
-                continue
-
-            name_parts = name.split(":")
-
-            if len(name_parts) > 1:
-                self.item_names.pop(name)
-                self.item_names[name_parts[0]] = item_id
-
         await self.get_username()
         await self.send_connect()
 
@@ -426,9 +415,8 @@ class ManualContext(SuperContext):
                                         item_data["category"] = ["(No Category)"]
 
                                     if category_name in item_data["category"] and network_item.item not in self.listed_items[category_name]:
-                                        item_name_parts = self.ctx.item_names[network_item.item].split(":")
                                         item_count = len(list(i for i in self.ctx.items_received if i.item == network_item.item))
-                                        item_text = Label(text="%s (%s)" % (item_name_parts[0], item_count),
+                                        item_text = Label(text="%s (%s)" % (item_name, item_count),
                                                     size_hint=(None, None), height=30, width=400, bold=True)
 
                                         category_grid.add_widget(item_text)
