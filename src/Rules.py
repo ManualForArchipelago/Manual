@@ -1,10 +1,12 @@
+from typing import TYPE_CHECKING
 from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from .hooks import Rules
-from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState
 import re
 
+if TYPE_CHECKING:
+    from src import ManualWorld
 
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}
@@ -60,10 +62,21 @@ def evaluate_postfix(expr, location):
     return stack.pop()
 
 
-def set_rules(base: World, world: MultiWorld, player: int):
+def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
+
+        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', area["requires"]):
+            func_name = item[0]
+            func_args = item[1].split(",")
+            func = getattr(Rules, func_name)
+            result = func(base, world, state, player, *func_args)
+            if isinstance(result, bool):
+                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
+            else:
+                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
+
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
@@ -71,8 +84,6 @@ def set_rules(base: World, world: MultiWorld, player: int):
 
             if '|@' in item:
                 require_type = 'category'
-            elif '|$' in item:
-                require_type = 'function'
 
             item_base = item
             item = item.lstrip('|@$').rstrip('|')
@@ -88,15 +99,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
 
             total = 0
 
-            if require_type == 'function':
-                func = getattr(Rules, item_name)
-                if len(item_parts) > 1:
-                    result = func(base, world, state, player, item_parts[1])
-                else:
-                    result = func(base, world, state, player)
-                requires_list = requires_list.replace(item_base, "1" if result else "0")
-                continue
-            elif require_type == 'category':
+            if require_type == 'category':
                 category_items = [item for item in base.item_name_to_item.values() if "category" in item and item_name in item["category"]]
                 if item_count.lower() == 'all':
                     item_count = sum([int(base.item_name_to_item[category_item["name"]]['count']) for category_item in category_items])
