@@ -35,7 +35,7 @@ def infix_to_postfix(expr, location):
     return postfix
 
 
-def evaluate_postfix(expr, location):
+def evaluate_postfix(expr: str, location: str) -> bool:
     stack = []
     try:
         for c in expr:
@@ -66,6 +66,8 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
+        if requires_list == "":
+            return True
 
         for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', area["requires"]):
             func_name = item[0]
