@@ -27,8 +27,6 @@ class DataValidation():
                         # it's just a category, so ignore it
                         if '@' in item:
                             continue
-                        if '$' in item:
-                            continue
 
                         item = item.replace("|", "")
 
