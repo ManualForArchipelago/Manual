@@ -1,6 +1,6 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
 from worlds.AutoWorld import World
-from BaseClasses import MultiWorld
+from BaseClasses import MultiWorld, CollectionState
 
 # Object classes from Manual -- extending AP core -- representing items and locations that are used in generation
 from ..Items import ManualItem
@@ -49,12 +49,12 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     if hasattr(multiworld, "clear_location_cache"):
         multiworld.clear_location_cache()
 
-# The item pool before starting items are processed, in case you want to see the full raw item pool
-def before_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
-    pass
+# The item pool before starting items are processed, in case you want to see the raw item pool at that stage
+def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    return item_pool
 
-# The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
-def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+# The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
+def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
     itemNamesToRemove = [] # List of item names
     
@@ -76,6 +76,10 @@ def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, pl
     # item_to_place = next(i for i in item_pool if i.name == "Item Name")
     # location.place_locked_item(item_to_place)
     # item_pool.remove(item_to_place)
+
+# The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
+def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    return item_pool
 
 # Called before rules for accessing regions and locations are created. Not clear why you'd want this, but it's here.
 def before_set_rules(world: World, multiworld: MultiWorld, player: int):

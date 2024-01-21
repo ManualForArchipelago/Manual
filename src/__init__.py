@@ -22,7 +22,7 @@ from worlds.AutoWorld import World, WebWorld
 
 from .hooks.World import \
     before_create_regions, after_create_regions, \
-    before_create_items, after_create_items, \
+    before_create_items_starting, before_create_items_filler, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
@@ -117,9 +117,9 @@ class ManualWorld(World):
                 if name not in self.multiworld.local_items[self.player].value:
                     self.multiworld.local_items[self.player].value.add(name)
 
-        items_started = []
+        pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 
-        pool = before_create_items(pool, self, self.multiworld, self.player)
+        items_started = []
 
         if starting_items:
             for starting_item_block in starting_items:
@@ -154,8 +154,8 @@ class ManualWorld(World):
                     self.multiworld.push_precollected(starting_item)
                     pool.remove(starting_item)
 
+        pool = before_create_items_filler(pool, self, self.multiworld, self.player)
         pool = self.add_filler_items(pool, traps)
-
         pool = after_create_items(pool, self, self.multiworld, self.player)
 
         # need to put all of the items in the pool so we can have a full state for placement
@@ -299,7 +299,8 @@ class ManualWorld(World):
     ###
 
     def add_filler_items(self, item_pool, traps):
-        extras = len(self.multiworld.get_unfilled_locations(player=self.player)) - len(item_pool) - 1 # subtracting 1 because of Victory; seems right
+        # no longer subtracting 1 because of Victory; this was likely a convenient crutch
+        extras = len(self.multiworld.get_unfilled_locations(player=self.player)) - len(item_pool)
 
         if extras > 0:
             trap_percent = get_option_value(self.multiworld, self.player, "filler_traps")
@@ -316,6 +317,7 @@ class ManualWorld(World):
             for i in range(0, filler_count):
                 extra_item = self.create_item(filler_item_name)
                 item_pool.append(extra_item)
+
         return item_pool
 
     def client_data(self):
@@ -347,7 +349,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 20231206 # YYYYMMDD
+    version = 20240112 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":
