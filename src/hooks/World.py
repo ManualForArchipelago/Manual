@@ -30,7 +30,7 @@ from ..Helpers import is_option_enabled, get_option_value
 
 
 
-# Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included.
+# Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     pass
 
