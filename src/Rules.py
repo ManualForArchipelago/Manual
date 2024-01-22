@@ -1,11 +1,15 @@
+from typing import TYPE_CHECKING
 from worlds.generic.Rules import set_rule
 from .Regions import regionMap
-from worlds.AutoWorld import World
-from BaseClasses import MultiWorld
+from .hooks import Rules
+from BaseClasses import MultiWorld, CollectionState
 from .Helpers import clamp, is_item_enabled
+
 import re
 import math
 
+if TYPE_CHECKING:
+    from src import ManualWorld
 
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}
@@ -34,7 +38,7 @@ def infix_to_postfix(expr, location):
     return postfix
 
 
-def evaluate_postfix(expr, location):
+def evaluate_postfix(expr: str, location: str) -> bool:
     stack = []
     try:
         for c in expr:
@@ -61,7 +65,8 @@ def evaluate_postfix(expr, location):
     return stack.pop()
 
 
-def set_rules(base: World, world: MultiWorld, player: int):
+
+def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
     # this is only called if a player's item_count doesnt exist
     def get_fallback_item_counts():
         if 'fallback' not in base.item_counts:
@@ -71,12 +76,26 @@ def set_rules(base: World, world: MultiWorld, player: int):
                     base.item_counts['fallback'][item['name']] = int(item.get('count', 1))
 
         return base.item_counts.get('fallback')
-
     # this is only called when the area (think, location or region) has a "requires" field that is a string
-    def checkRequireStringForArea(state, area):
+    def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
+
         # fallback if items_counts[player] not present (will not be accurate to hooks item count)
         items_counts = base.item_counts.get(player, get_fallback_item_counts())
+
+        if requires_list == "":
+            return True
+
+        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', area["requires"]):
+            func_name = item[0]
+            func_args = item[1].split(",")
+            func = getattr(Rules, func_name)
+            result = func(base, world, state, player, *func_args)
+            if isinstance(result, bool):
+                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
+            else:
+                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
+
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
@@ -86,11 +105,13 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 require_type = 'category'
 
             item_base = item
-            item = item.replace('|', '').replace('@', '')
+            item = item.lstrip('|@$').rstrip('|')
 
             item_parts = item.split(":")
             item_name = item
             item_count = "1"
+
+
             if len(item_parts) > 1:
                 item_name = item_parts[0]
                 item_count = item_parts[1]
@@ -142,7 +163,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         return (evaluate_postfix(requires_string, area))
 
     # this is only called when the area (think, location or region) has a "requires" field that is a dict
-    def checkRequireDictForArea(state, area):
+    def checkRequireDictForArea(state: CollectionState, area: dict):
         canAccess = True
 
         for item in area["requires"]:
@@ -184,7 +205,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         return canAccess
 
     # handle any type of checking needed, then ferry the check off to a dedicated method for that check
-    def fullLocationOrRegionCheck(state, area):
+    def fullLocationOrRegionCheck(state: CollectionState, area: dict):
         # if it's not a usable object of some sort, default to true
         if not area:
             return True
@@ -204,7 +225,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         used_location_names.extend([l.name for l in world.get_region(region, player).locations])
         if region != "Menu":
             for exitRegion in world.get_region(region, player).exits:
-                def fullRegionCheck(state, region=regionMap[region]):
+                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
                     return fullLocationOrRegionCheck(state, region)
 
                 set_rule(world.get_entrance(exitRegion.name, player), fullRegionCheck)
@@ -219,7 +240,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
         if "requires" in location: # Location has requires, check them alongside the region requires
-            def checkBothLocationAndRegion(state, location=location, region=locationRegion):
+            def checkBothLocationAndRegion(state: CollectionState, location=location, region=locationRegion):
                 locationCheck = fullLocationOrRegionCheck(state, location)
                 regionCheck = True # default to true unless there's a region with requires
 
