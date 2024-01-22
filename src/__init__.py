@@ -91,7 +91,7 @@ class ManualWorld(World):
             if name == filler_item_name: continue
 
             item = self.item_name_to_item[name]
-            item_count = int(item.get("count") or 1)
+            item_count = int(item.get("count", 1))
 
             if item.get("trap"):
                 traps.append(name)
@@ -294,6 +294,12 @@ class ManualWorld(World):
 
         return slot_data
     
+    def generate_output(self, output_directory: str):
+        data = self.client_data()
+        filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
+        with open(os.path.join(output_directory, filename), 'wb') as f:
+            f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
+    
     ###
     # Non-standard AP world methods
     ###
@@ -332,12 +338,9 @@ class ManualWorld(World):
             'categories': category_table
         }
 
-    def generate_output(self, output_directory: str):
-        data = self.client_data()
-        filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
-        with open(os.path.join(output_directory, filename), 'wb') as f:
-            f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
-
+###
+# Non-world client methods
+###
 
 def launch_client(*args):
     from .ManualClient import launch as Main
