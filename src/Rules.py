@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING
 from worlds.generic.Rules import set_rule
 from .Regions import regionMap
-from worlds.AutoWorld import World
-from BaseClasses import MultiWorld
+from .hooks import Rules
+from BaseClasses import MultiWorld, CollectionState
 import re
 
+if TYPE_CHECKING:
+    from src import ManualWorld
 
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}
@@ -32,7 +35,7 @@ def infix_to_postfix(expr, location):
     return postfix
 
 
-def evaluate_postfix(expr, location):
+def evaluate_postfix(expr: str, location: str) -> bool:
     stack = []
     try:
         for c in expr:
@@ -59,10 +62,23 @@ def evaluate_postfix(expr, location):
     return stack.pop()
 
 
-def set_rules(base: World, world: MultiWorld, player: int):
+def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
-    def checkRequireStringForArea(state, area):
+    def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
+        if requires_list == "":
+            return True
+
+        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', area["requires"]):
+            func_name = item[0]
+            func_args = item[1].split(",")
+            func = getattr(Rules, func_name)
+            result = func(base, world, state, player, *func_args)
+            if isinstance(result, bool):
+                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
+            else:
+                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
+
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', area["requires"]):
@@ -72,11 +88,12 @@ def set_rules(base: World, world: MultiWorld, player: int):
                 require_type = 'category'
 
             item_base = item
-            item = item.replace('|', '').replace('@', '')
+            item = item.lstrip('|@$').rstrip('|')
 
             item_parts = item.split(":")
             item_name = item
             item_count = "1"
+
 
             if len(item_parts) > 1:
                 item_name = item_parts[0]
@@ -87,9 +104,9 @@ def set_rules(base: World, world: MultiWorld, player: int):
             if require_type == 'category':
                 category_items = [item for item in base.item_name_to_item.values() if "category" in item and item_name in item["category"]]
                 if item_count.lower() == 'all':
-                    item_count = sum([base.item_name_to_item[category_item["name"]]['count'] for category_item in category_items])
+                    item_count = sum([int(base.item_name_to_item[category_item["name"]]['count']) for category_item in category_items])
                 elif item_count.lower() == 'half':
-                    item_count = sum([base.item_name_to_item[category_item["name"]]['count'] for category_item in category_items]) / 2
+                    item_count = sum([int(base.item_name_to_item[category_item["name"]]['count']) for category_item in category_items]) / 2
                 else:
                     item_count = int(item_count)
 
@@ -100,9 +117,9 @@ def set_rules(base: World, world: MultiWorld, player: int):
                         requires_list = requires_list.replace(item_base, "1")
             elif require_type == 'item':
                 if item_count.lower() == 'all':
-                    item_count = base.item_name_to_item[item_name]['count']
+                    item_count = int(base.item_name_to_item[item_name]['count'])
                 elif item_count.lower() == 'half':
-                    item_count = base.item_name_to_item[item_name]['count'] / 2
+                    item_count = (base.item_name_to_item[item_name]['count']) / 2
                 else:
                     item_count = int(item_count)
 
@@ -121,7 +138,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         return (evaluate_postfix(requires_string, area))
 
     # this is only called when the area (think, location or region) has a "requires" field that is a dict
-    def checkRequireDictForArea(state, area):
+    def checkRequireDictForArea(state: CollectionState, area: dict):
         canAccess = True
 
         for item in area["requires"]:
@@ -163,7 +180,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         return canAccess
 
     # handle any type of checking needed, then ferry the check off to a dedicated method for that check
-    def fullLocationOrRegionCheck(state, area):
+    def fullLocationOrRegionCheck(state: CollectionState, area: dict):
         # if it's not a usable object of some sort, default to true
         if not area:
             return True
@@ -183,7 +200,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         used_location_names.extend([l.name for l in world.get_region(region, player).locations])
         if region != "Menu":
             for exitRegion in world.get_region(region, player).exits:
-                def fullRegionCheck(state, region=regionMap[region]):
+                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
                     return fullLocationOrRegionCheck(state, region)
 
                 set_rule(world.get_entrance(exitRegion.name, player), fullRegionCheck)
@@ -198,7 +215,7 @@ def set_rules(base: World, world: MultiWorld, player: int):
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
         if "requires" in location: # Location has requires, check them alongside the region requires
-            def checkBothLocationAndRegion(state, location=location, region=locationRegion):
+            def checkBothLocationAndRegion(state: CollectionState, location=location, region=locationRegion):
                 locationCheck = fullLocationOrRegionCheck(state, location)
                 regionCheck = True # default to true unless there's a region with requires
 
