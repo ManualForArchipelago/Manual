@@ -62,6 +62,7 @@ class ManualWorld(World):
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
     item_counts = {}
+    start_inventory = {}
 
     location_id_to_name = location_id_to_name
     location_name_to_id = location_name_to_id
@@ -69,8 +70,9 @@ class ManualWorld(World):
     location_name_groups = location_name_groups
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
-        #this is called by UT before rules are called
-        self.item_counts[self.player] = slot_data['item_counts']
+        #this is called by tools like UT
+        self.start_inventory = slot_data['start_inv']
+        pass
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
@@ -123,7 +125,7 @@ class ManualWorld(World):
 
         items_started = []
 
-        if starting_items:
+        if starting_items and not self.start_inventory:
             for starting_item_block in starting_items:
                 # if there's a condition on having a previous item, check for any of them
                 # if not found in items started, this starting item rule shouldn't execute, and check the next one
@@ -155,6 +157,8 @@ class ManualWorld(World):
                     items_started.append(starting_item)
                     self.multiworld.push_precollected(starting_item)
                     pool.remove(starting_item)
+
+        self.start_inventory = {i.name: items_started.count(i) for i in items_started}
 
         pool = before_create_items_filler(pool, self, self.multiworld, self.player)
         pool = self.add_filler_items(pool, traps)
@@ -280,10 +284,6 @@ class ManualWorld(World):
             # remove the item we're about to place from the pool so it isn't placed twice
             self.multiworld.itempool.remove(item_to_place)
 
-        # Generate item_counts here so it could be acessed in after_generate_basic
-        if self.player not in self.item_counts:
-            real_pool = self.multiworld.get_items()
-            self.item_counts[self.player] = {i.name: real_pool.count(i) for i in real_pool if i.player == self.player}
 
         after_generate_basic(self, self.multiworld, self.player)
         # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
@@ -295,7 +295,7 @@ class ManualWorld(World):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
-        slot_data["item_counts"] = self.item_counts.get(self.player)
+        slot_data["start_inv"] = self.start_inventory
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
