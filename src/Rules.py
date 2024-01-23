@@ -9,7 +9,7 @@ import re
 import math
 
 if TYPE_CHECKING:
-    from src import ManualWorld
+    from . import ManualWorld
 
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}

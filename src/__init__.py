@@ -71,7 +71,7 @@ class ManualWorld(World):
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by UT before rules are called
         self.item_counts[self.player] = slot_data['item_counts']
-        
+
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
 
@@ -104,7 +104,7 @@ class ManualWorld(World):
             if "category" in item:
                 if not is_item_enabled(self.multiworld, self.player, item):
                     item_count = 0
-                
+
             if item_count == 0: continue
 
             for i in range(item_count):
@@ -188,7 +188,7 @@ class ManualWorld(World):
         item_object = after_create_item(item_object, self, self.multiworld, self.player)
 
         return item_object
-    
+
     def set_rules(self):
         before_set_rules(self, self.multiworld, self.player)
 
@@ -276,14 +276,14 @@ class ManualWorld(World):
 
             item_to_place = self.random.choice(eligible_items)
             location.place_locked_item(item_to_place)
-            
+
             # remove the item we're about to place from the pool so it isn't placed twice
             self.multiworld.itempool.remove(item_to_place)
-            
+
         # Generate item_counts here so it could be acessed in after_generate_basic
         if self.player not in self.item_counts:
             real_pool = self.multiworld.get_items()
-            self.item_counts[self.player] = {i.name:real_pool.count(i) for i in real_pool if i.player == self.player}
+            self.item_counts[self.player] = {i.name: real_pool.count(i) for i in real_pool if i.player == self.player}
 
         after_generate_basic(self, self.multiworld, self.player)
         # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
@@ -300,13 +300,13 @@ class ManualWorld(World):
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
         return slot_data
-    
+
     def generate_output(self, output_directory: str):
         data = self.client_data()
         filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
         with open(os.path.join(output_directory, filename), 'wb') as f:
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
-    
+
     ###
     # Non-standard AP world methods
     ###
