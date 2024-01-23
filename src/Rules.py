@@ -67,21 +67,16 @@ def evaluate_postfix(expr: str, location: str) -> bool:
 
 
 def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
-    # this is only called if a player's item_count doesnt exist
-    def get_fallback_item_counts():
-        if 'fallback' not in base.item_counts:
-            base.item_counts['fallback'] = {}
-            for item in base.item_name_to_item.values():
-                if is_item_enabled(world,player,item):
-                    base.item_counts['fallback'][item['name']] = int(item.get('count', 1))
-
-        return base.item_counts.get('fallback')
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
+        # Generate item_counts here so it can be access each time this is called
+        if player not in base.item_counts:
+            real_pool = world.get_items()
+            base.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
 
         # fallback if items_counts[player] not present (will not be accurate to hooks item count)
-        items_counts = base.item_counts.get(player, get_fallback_item_counts())
+        items_counts = base.item_counts.get(player)
 
         if requires_list == "":
             return True
