@@ -73,7 +73,6 @@ class ManualWorld(World):
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
-        self.start_inventory = slot_data['start_inv']
         interpret_hooks_slot_data(self, self.player, slot_data)
 
     def create_regions(self):
@@ -127,7 +126,7 @@ class ManualWorld(World):
 
         items_started = []
 
-        if starting_items and not self.start_inventory:
+        if starting_items:
             for starting_item_block in starting_items:
                 # if there's a condition on having a previous item, check for any of them
                 # if not found in items started, this starting item rule shouldn't execute, and check the next one
@@ -297,7 +296,6 @@ class ManualWorld(World):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
-        slot_data["start_inv"] = self.start_inventory
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 

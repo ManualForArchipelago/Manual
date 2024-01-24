@@ -119,7 +119,7 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
                 if item_count.lower() == 'all':
                     item_count = category_items_counts
                 elif item_count.lower() == 'half':
-                    item_count = category_items_counts / 2
+                    item_count = int(category_items_counts / 2)
                 elif item_count.endswith('%') and len(item_count) > 1:
                     percent = clamp(float(item_count[:-1]) / 100, 0, 1)
                     item_count = math.ceil(category_items_counts * percent)
@@ -136,7 +136,7 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
                 if item_count.lower() == 'all':
                     item_count = item_current_count
                 elif item_count.lower() == 'half':
-                    item_count = item_current_count / 2
+                    item_count = int(item_current_count / 2)
                 elif item_count.endswith('%') and len(item_count) > 1:
                     percent = clamp(float(item_count[:-1]) / 100, 0, 1)
                     item_count = math.ceil(item_current_count * percent)
