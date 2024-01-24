@@ -27,6 +27,8 @@ from .hooks.World import \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data
+from .hooks.Data import interpret_hooks_slot_data
+
 
 class ManualWeb(WebWorld):
     tutorials = [Tutorial(
@@ -72,7 +74,7 @@ class ManualWorld(World):
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
         self.start_inventory = slot_data['start_inv']
-        pass
+        interpret_hooks_slot_data(self, self.player, slot_data)
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
