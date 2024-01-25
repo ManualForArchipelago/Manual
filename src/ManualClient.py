@@ -78,7 +78,8 @@ class ManualContext(SuperContext):
         location = self.location_table.get(name)
         if location:
             return location
-        return AutoWorldRegister.world_types[self.game].location_name_to_location[name]
+        # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
+        return AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
 
     def get_location_by_id(self, id):
         name = self.location_names[id]
@@ -88,7 +89,7 @@ class ManualContext(SuperContext):
         item = self.item_table.get(name)
         if item:
             return item
-        return AutoWorldRegister.world_types[self.game].item_name_to_item[name]
+        return AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name})
 
     @property
     def endpoints(self):
@@ -516,8 +517,6 @@ class ManualContext(SuperContext):
             def location_button_callback(self, location_id, button):
                 if button.text not in self.ctx.location_names_to_id:
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
-
-                # location_id = self.ctx.location_names_to_id[button.text]
 
                 if location_id:
                     self.ctx.locations_checked.append(location_id)

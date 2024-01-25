@@ -63,6 +63,7 @@ class ManualWorld(World):
     item_name_to_id = item_name_to_id
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
+
     item_counts = {}
     start_inventory = {}
 
@@ -359,7 +360,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 20240112 # YYYYMMDD
+    version = 20240125 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":
