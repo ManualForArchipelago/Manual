@@ -15,7 +15,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options
-from .Helpers import is_category_enabled, is_option_enabled, get_option_value
+from .Helpers import is_option_enabled, is_item_enabled, get_option_value
 
 from BaseClasses import ItemClassification, Tutorial, Item
 from worlds.AutoWorld import World, WebWorld
@@ -27,6 +27,8 @@ from .hooks.World import \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data
+from .hooks.Data import hook_interpret_slot_data
+
 
 class ManualWeb(WebWorld):
     tutorials = [Tutorial(
@@ -61,11 +63,17 @@ class ManualWorld(World):
     item_name_to_id = item_name_to_id
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
-    
+    item_counts = {}
+    start_inventory = {}
+
     location_id_to_name = location_id_to_name
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
+
+    def interpret_slot_data(self, slot_data: dict[str, any]):
+        #this is called by tools like UT
+        hook_interpret_slot_data(self, self.player, slot_data)
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
@@ -97,12 +105,9 @@ class ManualWorld(World):
                 traps.append(name)
 
             if "category" in item:
-                any_categories_disabled = [cat for cat in item.get("category", []) if not is_category_enabled(self.multiworld, self.player, cat)]
-
-                if len(any_categories_disabled) > 0:
+                if not is_item_enabled(self.multiworld, self.player, item):
                     item_count = 0
-                    break
-                
+
             if item_count == 0: continue
 
             for i in range(item_count):
@@ -154,6 +159,8 @@ class ManualWorld(World):
                     self.multiworld.push_precollected(starting_item)
                     pool.remove(starting_item)
 
+        self.start_inventory = {i.name: items_started.count(i) for i in items_started}
+
         pool = before_create_items_filler(pool, self, self.multiworld, self.player)
         pool = self.add_filler_items(pool, traps)
         pool = after_create_items(pool, self, self.multiworld, self.player)
@@ -186,7 +193,7 @@ class ManualWorld(World):
         item_object = after_create_item(item_object, self, self.multiworld, self.player)
 
         return item_object
-    
+
     def set_rules(self):
         before_set_rules(self, self.multiworld, self.player)
 
@@ -207,9 +214,9 @@ class ManualWorld(World):
             if "dont_place_item" in manual_location:
                 if len(manual_location["dont_place_item"]) == 0:
                     continue
-                
+
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
-            
+
             if "dont_place_item_category" in manual_location:
                 if len(manual_location["dont_place_item_category"]) == 0:
                     continue
@@ -249,9 +256,9 @@ class ManualWorld(World):
             if "dont_place_item" in manual_location:
                 if len(manual_location["dont_place_item"]) == 0:
                     continue
-                
+
                 eligible_items = [item for item in eligible_items if item.name not in manual_location["dont_place_item"]]
-                
+
                 if len(eligible_items) == 0:
                     raise Exception("Could not find a suitable item to place at %s. No items that match placed_items(_category) because of forbidden %s." % (manual_location["name"], ", ".join(manual_location["dont_place_item"])))
 
@@ -260,7 +267,7 @@ class ManualWorld(World):
                     continue
 
                 forbidden_item_names = [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
-                
+
                 eligible_items = [item for item in eligible_items if item.name not in forbidden_item_names]
 
                 if len(eligible_items) == 0:
@@ -274,16 +281,16 @@ class ManualWorld(World):
 
             item_to_place = self.random.choice(eligible_items)
             location.place_locked_item(item_to_place)
-            
+
             # remove the item we're about to place from the pool so it isn't placed twice
             self.multiworld.itempool.remove(item_to_place)
 
-        after_generate_basic(self, self.multiworld, self.player)
 
+        after_generate_basic(self, self.multiworld, self.player)
         # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
 
         # from Utils import visualize_regions
-        # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}.puml")
+        # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
 
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
@@ -293,13 +300,13 @@ class ManualWorld(World):
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
         return slot_data
-    
+
     def generate_output(self, output_directory: str):
         data = self.client_data()
         filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
         with open(os.path.join(output_directory, filename), 'wb') as f:
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
-    
+
     ###
     # Non-standard AP world methods
     ###

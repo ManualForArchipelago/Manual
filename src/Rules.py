@@ -3,10 +3,13 @@ from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from .hooks import Rules
 from BaseClasses import MultiWorld, CollectionState
+from .Helpers import clamp, is_item_enabled
+
 import re
+import math
 
 if TYPE_CHECKING:
-    from src import ManualWorld
+    from . import ManualWorld
 
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}
@@ -62,10 +65,19 @@ def evaluate_postfix(expr: str, location: str) -> bool:
     return stack.pop()
 
 
+
 def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
+        # Generate item_counts here so it can be access each time this is called
+        if player not in base.item_counts:
+            real_pool = world.get_items()
+            base.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
+
+        # fallback if items_counts[player] not present (will not be accurate to hooks item count)
+        items_counts = base.item_counts.get(player)
+
         if requires_list == "":
             return True
 
@@ -103,10 +115,14 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
 
             if require_type == 'category':
                 category_items = [item for item in base.item_name_to_item.values() if "category" in item and item_name in item["category"]]
+                category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
                 if item_count.lower() == 'all':
-                    item_count = sum([int(base.item_name_to_item[category_item["name"]]['count']) for category_item in category_items])
+                    item_count = category_items_counts
                 elif item_count.lower() == 'half':
-                    item_count = sum([int(base.item_name_to_item[category_item["name"]]['count']) for category_item in category_items]) / 2
+                    item_count = int(category_items_counts / 2)
+                elif item_count.endswith('%') and len(item_count) > 1:
+                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
+                    item_count = math.ceil(category_items_counts * percent)
                 else:
                     item_count = int(item_count)
 
@@ -116,10 +132,14 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
                     if total >= item_count:
                         requires_list = requires_list.replace(item_base, "1")
             elif require_type == 'item':
+                item_current_count = items_counts.get(item_name, 0)
                 if item_count.lower() == 'all':
-                    item_count = int(base.item_name_to_item[item_name]['count'])
+                    item_count = item_current_count
                 elif item_count.lower() == 'half':
-                    item_count = (base.item_name_to_item[item_name]['count']) / 2
+                    item_count = int(item_current_count / 2)
+                elif item_count.endswith('%') and len(item_count) > 1:
+                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
+                    item_count = math.ceil(item_current_count * percent)
                 else:
                     item_count = int(item_count)
 
