@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/Anonymous"
+  },
+  "definitions": {
+    "Category": {
+      "type": "string"
+    },
+    "Anonymous": {
+      "type": "object",
+        "properties": {
+            "name": {
+                "description": "The unique name of the item. Do not use () or : in the name",
+                "type": "string"
+            },
+            "progression": {
+                "description": "(Optional) Is this item needed to unlock locations? Defaults to false if not included.",
+                "type": "boolean"
+            },
+            "count": {
+                "description": "(Optional) Number of copy of this item in the pool.",
+                "type": "integer",
+                "minimum": 1,
+                "default": 1
+            },
+            "category": {
+                "description": "(Optional) The category(ies) this item fit in, used in both the client and place_item_category.",
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Category"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+            },
+            "useful": {
+                "description": "(Optional) Is this item usefull to have? Used for items that are not progression but you still want the rando to really use.",
+                "type": "boolean"
+            },
+            "progression_skip_balancing": {
+                "description": "(Optional) Should this item not get included in progression balance swaps. For more info check the discord",
+                "type": "boolean"
+            },
+            "trap": {
+                "description": "(Optional) Is this item a trap? Something the player doesnt want to get.",
+                "type": "boolean"
+            },
+            "early": {
+                "description": "(Optional) Is this item required to be placed early in the game (Sphere 1)",
+                "type": "boolean",
+                "default": true
+            },
+            "local": {
+                "description": "(Optional) Is this item supposed to be only in your locations(true) or anywhere(false)",
+                "type": "boolean",
+                "default": true
+            },
+            "_comment": {
+                "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+                "type":"string"
+            }
+            
+        },
+        "required": ["name"]
+    }
+  }
+}

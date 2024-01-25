@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "patternProperties": {
+        "^.*$": {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "requires": {
+                            "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
+                            "type": [ "array", "string" ],
+                            "items": {
+                                "$ref": "#/definitions/Require"
+                            },
+                            "minItems": 0,
+                            "uniqueItems": true
+                        },
+                        "connects_to": {
+                            "description": "Array of other regions the player can go from this region.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Connects_to"
+                            },
+                            "minItems": 0,
+                            "uniqueItems": true
+                        },
+                        "starting": {
+                            "description": "(Optional) Is this region accessible from the start? Defaults to false if not included.",
+                            "type":"boolean"
+                        },
+                        "_comment": {
+                            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+                            "type":"string"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "definitions": {
+        "Require": {
+            "type": ["object", "string", "array"]
+        },
+        "Connects_to": {
+            "type": "string"
+        }
+    }
+}

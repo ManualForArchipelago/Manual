@@ -1,0 +1,108 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/Location"
+    },
+    "definitions": {
+        "ArrayItems": {
+            "type": "string"
+        },
+        "Category": {
+            "type": "string"
+        },
+        "Require": {
+            "type": ["string","array","object"],
+            "items": {"type": ["string","array","object"]},
+            "properties": {
+                "or": {
+                    "description": "alternate to previous property",
+                    "type": "array",
+                    "items": {
+                        "type":"string",
+                        "description": "Alternate item"
+                    }
+                }
+            }
+        },
+        "Place_item_category": {
+            "type": "string"
+        },
+        "Place_item": {
+            "type": "string"
+        },
+        "Location": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The unique name of the location.",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "(Optional) The name of the Region this location is part of.",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "(Optional) An array of the Category(ies) this location is a part of. Currently, mostly for the Client location grouping.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Category"
+                    },
+                    "uniqueItems": true
+                },
+                "requires": {
+                    "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
+                    "type": [ "array", "string" ],
+                    "items": {
+                        "$ref": "#/definitions/Require"
+                    },
+                    "uniqueItems": true
+                },
+                "place_item_category": {
+                    "description": "(Optional) Specify the category of item that will be placed at this location. (Ignore Logic)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Place_item_category"
+                    },                    
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "place_item": {
+                    "description": "(Optional) Specify the list of item that can be placed at this location (will only randomly choose 1).",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Place_item"
+                    },                    
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "dont_place_item_category": {
+                    "description": "(Optional) Specify the categories of items that will never be placed at this location.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Place_item_category"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "dont_place_item": {
+                    "description": "(Optional) Specify the list of items that cannot be placed at this location.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Place_item"
+                    },                            
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "victory": {
+                    "description": "(Optional) Is this location the goal of this Manual Apworld",
+                    "type": "boolean"
+                },
+                "_comment": {
+                    "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+                    "type":"string"
+                }
+            }
+        }
+    }
+}
