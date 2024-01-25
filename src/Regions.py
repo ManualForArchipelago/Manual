@@ -1,5 +1,5 @@
 from BaseClasses import Entrance, MultiWorld, Region
-from .Helpers import is_category_enabled
+from .Helpers import is_category_enabled, is_location_enabled
 from .Data import region_table
 from .Locations import ManualLocation
 from worlds.AutoWorld import World
@@ -36,13 +36,7 @@ def create_regions(base: World, world: MultiWorld, player: int):
         locations = []
         for location in base.location_table:
             if "region" in location and location["region"] == region:
-                remove = False
-                for category in location.get("category", []):
-                    if not is_category_enabled(world, player, category):
-                        remove = True
-                        break
-
-                if not remove:
+                if is_location_enabled(world, player, location):
                     locations.append(location["name"])
 
         new_region = create_region(base, world, player, region, locations, exit_array)
