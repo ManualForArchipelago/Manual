@@ -1,5 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.regions.schema.json",
+    "description": "Schema for ManualAP regions.json",
     "type": "object",
     "patternProperties": {
         "^.*$": {
@@ -9,7 +11,7 @@
                     "properties": {
                         "requires": {
                             "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
-                            "type": [ "array", "string" ],
+                            "type": [ "string", "array" ],
                             "items": {
                                 "$ref": "#/definitions/Require"
                             },
@@ -40,7 +42,18 @@
     },
     "definitions": {
         "Require": {
-            "type": ["object", "string", "array"]
+            "type": ["string", "array", "object"],
+            "items": {"type": ["string","array","object"]},
+            "properties": {
+                "or": {
+                    "description": "alternate to previous property",
+                    "type": "array",
+                    "items": {
+                        "type":"string",
+                        "description": "Alternate item"
+                    }
+                }
+            }
         },
         "Connects_to": {
             "type": "string"

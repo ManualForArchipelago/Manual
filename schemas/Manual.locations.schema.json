@@ -1,36 +1,12 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.locations.schema.json",
+    "description": "Schema for ManualAP locations.json",
     "type": "array",
     "items": {
         "$ref": "#/definitions/Location"
     },
     "definitions": {
-        "ArrayItems": {
-            "type": "string"
-        },
-        "Category": {
-            "type": "string"
-        },
-        "Require": {
-            "type": ["string","array","object"],
-            "items": {"type": ["string","array","object"]},
-            "properties": {
-                "or": {
-                    "description": "alternate to previous property",
-                    "type": "array",
-                    "items": {
-                        "type":"string",
-                        "description": "Alternate item"
-                    }
-                }
-            }
-        },
-        "Place_item_category": {
-            "type": "string"
-        },
-        "Place_item": {
-            "type": "string"
-        },
         "Location": {
             "type": "object",
             "properties": {
@@ -43,7 +19,7 @@
                     "type": "string"
                 },
                 "category": {
-                    "description": "(Optional) An array of the Category(ies) this location is a part of. Currently, mostly for the Client location grouping.",
+                    "description": "(Optional) An array of the Category(ies) this location is a part of.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Category"
@@ -52,7 +28,7 @@
                 },
                 "requires": {
                     "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
-                    "type": [ "array", "string" ],
+                    "type": [ "string", "array" ],
                     "items": {
                         "$ref": "#/definitions/Require"
                     },
@@ -63,7 +39,7 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Place_item_category"
-                    },                    
+                    },
                     "minItems": 0,
                     "uniqueItems": true
                 },
@@ -72,7 +48,7 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Place_item"
-                    },                    
+                    },
                     "minItems": 0,
                     "uniqueItems": true
                 },
@@ -90,7 +66,7 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Place_item"
-                    },                            
+                    },
                     "minItems": 0,
                     "uniqueItems": true
                 },
@@ -103,6 +79,29 @@
                     "type":"string"
                 }
             }
+        },
+        "Category": {
+            "type": "string"
+        },
+        "Require": {
+            "type": ["string", "array", "object"],
+            "items": {"type": ["string","array","object"]},
+            "properties": {
+                "or": {
+                    "description": "alternate to previous property",
+                    "type": "array",
+                    "items": {
+                        "type":"string",
+                        "description": "Alternate item"
+                    }
+                }
+            }
+        },
+        "Place_item_category": {
+            "type": "string"
+        },
+        "Place_item": {
+            "type": "string"
         }
     }
 }

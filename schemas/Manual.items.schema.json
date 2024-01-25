@@ -1,14 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.items.schema.json",
+  "description": "Schema for ManualAP items.json",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/Anonymous"
+    "$ref": "#/definitions/Item"
   },
   "definitions": {
-    "Category": {
-      "type": "string"
-    },
-    "Anonymous": {
+    "Item": {
       "type": "object",
         "properties": {
             "name": {
@@ -17,16 +16,16 @@
             },
             "progression": {
                 "description": "(Optional) Is this item needed to unlock locations? Defaults to false if not included.",
+                "default": true,
                 "type": "boolean"
             },
             "count": {
                 "description": "(Optional) Number of copy of this item in the pool.",
                 "type": "integer",
-                "minimum": 1,
                 "default": 1
             },
             "category": {
-                "description": "(Optional) The category(ies) this item fit in, used in both the client and place_item_category.",
+                "description": "(Optional) The category(ies) this item fit in",
                 "type": "array",
                 "items": {
                     "$ref": "#/definitions/Category"
@@ -40,14 +39,16 @@
             },
             "progression_skip_balancing": {
                 "description": "(Optional) Should this item not get included in progression balance swaps. For more info check the discord",
-                "type": "boolean"
+                "type": "boolean",
+                "default": true
             },
             "trap": {
                 "description": "(Optional) Is this item a trap? Something the player doesnt want to get.",
-                "type": "boolean"
+                "type": "boolean",
+                "default": true
             },
             "early": {
-                "description": "(Optional) Is this item required to be placed early in the game (Sphere 1)",
+                "description": "(Optional) Is this item required to be placed somewhere accessible from the start (Sphere 1)",
                 "type": "boolean",
                 "default": true
             },
@@ -60,9 +61,12 @@
                 "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
                 "type":"string"
             }
-            
+
         },
         "required": ["name"]
+    },
+    "Category": {
+        "type": "string"
     }
   }
 }

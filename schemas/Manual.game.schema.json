@@ -1,5 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.game.schema.json",
+    "description": "Schema for ManualAP game.json",
     "type": "object",
     "properties": {
         "game": {
@@ -59,7 +61,7 @@
                     "type":"array",
                     "items":{
                         "type":"string"
-                    } 
+                    }
                 },
                 "random": {
                     "description": "(Optional) how many items of this block will be randomly added to inventory. Will add every item in the block if not included",
