@@ -1,18 +1,17 @@
+<!-- omit from toc -->
 # Json Schemas
-
+<!-- omit from toc -->
 ## Table of content
 
-- [Json Schemas](#json-schemas)
-  - [Table of content](#table-of-content)
-  - [Why should I use them](#why-should-i-use-them)
-  - [How to use them](#how-to-use-them)
-    - [Intro](#intro)
-    - [Vscode](#vscode)
-      - [VScode Text Only](#vscode-text-only)
-      - [VScode With Pictures](#vscode-with-pictures)
-    - [Visual Studio](#visual-studio)
+- [Why you should use them](#why-you-should-use-them)
+- [How to use them](#how-to-use-them)
+  - [Intro](#intro)
+  - [Vscode](#vscode)
+    - [VScode Text Only](#vscode-text-only)
+    - [VScode With Pictures](#vscode-with-pictures)
+  - [Visual Studio](#visual-studio)
 
-## Why should I use them
+## Why you should use them
 
 Json schemas tell your Ide (text editor) how a json file should be formated and also include short descriptions of what
 a property is used for.
@@ -37,8 +36,13 @@ or the url of the other schemas that you can find in the catalog.
 
 VsCode doesnt support the catalog directly but you can copy and past it's content in your settings like so:
 
-- [VScode Text Only](#vscode-text-only)
-- [VScode With Pictures](#vscode-with-pictures)
+- [Why you should use them](#why-you-should-use-them)
+- [How to use them](#how-to-use-them)
+  - [Intro](#intro)
+  - [Vscode](#vscode)
+    - [VScode Text Only](#vscode-text-only)
+    - [VScode With Pictures](#vscode-with-pictures)
+  - [Visual Studio](#visual-studio)
 
 #### VScode Text Only
 
