@@ -67,6 +67,7 @@ class ManualContext(SuperContext):
             raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
 
         self.location_names_to_id = dict([(value, key) for key, value in self.location_names.items()])
+        self.item_names_to_id = dict([(value, key) for key, value in self.item_names.items()])
 
         await self.get_username()
         await self.send_connect()
@@ -76,10 +77,11 @@ class ManualContext(SuperContext):
 
     def get_location_by_name(self, name):
         location = self.location_table.get(name)
-        if location:
-            return location
-        # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
-        return AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
+        if not location:
+            # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
+            location = AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
+        location["id"] = self.location_names_to_id.get(name)
+        return location
 
     def get_location_by_id(self, id):
         name = self.location_names[id]
@@ -87,9 +89,14 @@ class ManualContext(SuperContext):
 
     def get_item_by_name(self, name):
         item = self.item_table.get(name)
-        if item:
-            return item
-        return AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name})
+        if not item:
+            item = AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name})
+        item["id"] = self.item_names_to_id.get(name)
+        return item
+
+    def get_item_by_id(self, id):
+        name = self.item_names[id]
+        return self.get_item_by_name(name)
 
     @property
     def endpoints(self):
