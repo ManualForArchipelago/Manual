@@ -408,7 +408,6 @@ class ManualContext(SuperContext):
                                         old_item_text = item.text
                                         item_name = re.sub("\s\(\d+\)$", "", item.text)
                                         item_id = self.ctx.item_names_to_id[item_name]
-                                        item_data = self.ctx.get_item_by_name(item_name)
                                         item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
 
                                         # Update the label quantity
