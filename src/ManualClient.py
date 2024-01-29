@@ -67,6 +67,7 @@ class ManualContext(SuperContext):
             raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
 
         self.location_names_to_id = dict([(value, key) for key, value in self.location_names.items()])
+        self.item_names_to_id = dict([(value, key) for key, value in self.item_names.items()])
 
         await self.get_username()
         await self.send_connect()
@@ -74,12 +75,18 @@ class ManualContext(SuperContext):
     async def connection_closed(self):
         await super(ManualContext, self).connection_closed()
 
+    @property
+    def suggested_game(self) -> str:
+        if self.game:
+            return self.game
+        return Utils.persistent_load().get("client", {}).get("last_manual_game", "Manual_{\"game\" from game.json}_{\"creator\" from game.json}")
+
     def get_location_by_name(self, name):
         location = self.location_table.get(name)
-        if location:
-            return location
-        # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
-        return AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
+        if not location:
+            # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
+            location = AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
+        return location
 
     def get_location_by_id(self, id):
         name = self.location_names[id]
@@ -87,9 +94,13 @@ class ManualContext(SuperContext):
 
     def get_item_by_name(self, name):
         item = self.item_table.get(name)
-        if item:
-            return item
-        return AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name})
+        if not item:
+            item = AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name})
+        return item
+
+    def get_item_by_id(self, id):
+        name = self.item_names[id]
+        return self.get_item_by_name(name)
 
     @property
     def endpoints(self):
@@ -104,9 +115,11 @@ class ManualContext(SuperContext):
     def on_package(self, cmd: str, args: dict):
         super().on_package(cmd, args)
 
-        if cmd in {"Connected"}:
+        if cmd in {"Connected", "DataPackage"}:
             self.ui.build_tracker_and_locations_table()
             self.ui.update_tracker_and_locations_table(update_highlights=True)
+            if cmd == "Connected":
+                Utils.persistent_store("client", "last_manual_game", self.game)
         elif cmd in {"ReceivedItems"}:
             self.ui.update_tracker_and_locations_table(update_highlights=True)
         elif cmd in {"RoomUpdate"}:
@@ -173,7 +186,7 @@ class ManualContext(SuperContext):
 
                 game_bar_label = Label(text="Manual Game ID", size=(150, 30), size_hint_y=None, size_hint_x=None)
                 self.manual_game_layout.add_widget(game_bar_label)
-                self.game_bar_text = TextInput(text=self.ctx.game or "Manual_{\"game\" from game.json}_{\"player\" from game.json}",
+                self.game_bar_text = TextInput(text=self.ctx.suggested_game,
                                                 size_hint_y=None, height=30, multiline=False, write_tab=False)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
@@ -394,8 +407,8 @@ class ManualContext(SuperContext):
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
                                         old_item_text = item.text
                                         item_name = re.sub("\s\(\d+\)$", "", item.text)
-                                        item_data = self.ctx.get_item_by_name(item_name)
-                                        item_count = len(list(i for i in self.ctx.items_received if i.item == item_data["id"]))
+                                        item_id = self.ctx.item_names_to_id[item_name]
+                                        item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
 
                                         # Update the label quantity
                                         item.text="%s (%s)" % (item_name, item_count)
