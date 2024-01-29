@@ -75,6 +75,12 @@ class ManualContext(SuperContext):
     async def connection_closed(self):
         await super(ManualContext, self).connection_closed()
 
+    @property
+    def suggested_game(self) -> str:
+        if self.game:
+            return self.game
+        return Utils.persistent_load().get("client", {}).get("last_manual_game", "Manual_{\"game\" from game.json}_{\"creator\" from game.json}")
+
     def get_location_by_name(self, name):
         location = self.location_table.get(name)
         if not location:
@@ -109,9 +115,11 @@ class ManualContext(SuperContext):
     def on_package(self, cmd: str, args: dict):
         super().on_package(cmd, args)
 
-        if cmd in {"Connected"}:
+        if cmd in {"Connected", "DataPackage"}:
             self.ui.build_tracker_and_locations_table()
             self.ui.update_tracker_and_locations_table(update_highlights=True)
+            if cmd == "Connected":
+                Utils.persistent_store("client", "last_manual_game", self.game)
         elif cmd in {"ReceivedItems"}:
             self.ui.update_tracker_and_locations_table(update_highlights=True)
         elif cmd in {"RoomUpdate"}:
@@ -178,7 +186,7 @@ class ManualContext(SuperContext):
 
                 game_bar_label = Label(text="Manual Game ID", size=(150, 30), size_hint_y=None, size_hint_x=None)
                 self.manual_game_layout.add_widget(game_bar_label)
-                self.game_bar_text = TextInput(text=self.ctx.game or "Manual_{\"game\" from game.json}_{\"player\" from game.json}",
+                self.game_bar_text = TextInput(text=self.ctx.suggested_game,
                                                 size_hint_y=None, height=30, multiline=False, write_tab=False)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
