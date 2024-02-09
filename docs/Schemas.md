@@ -10,6 +10,8 @@
     - [VScode Text Only](#vscode-text-only)
     - [VScode With Pictures](#vscode-with-pictures)
   - [Visual Studio](#visual-studio)
+    - [Visual Studio Text Only](#visual-studio-text-only)
+    - [Visual Studio With Pictures](#visual-studio-with-pictures)
 
 ## Why you should use them
 
@@ -30,19 +32,14 @@ or the url of the other schemas that you can find in the catalog.
 
 - [VsCode](#vscode)
 - [Visual Studio](#visual-studio)
-- others
+- others to be in the future
 
 ### Vscode
 
 VsCode doesnt support the catalog directly but you can copy and past it's content in your settings like so:
 
-- [Why you should use them](#why-you-should-use-them)
-- [How to use them](#how-to-use-them)
-  - [Intro](#intro)
-  - [Vscode](#vscode)
-    - [VScode Text Only](#vscode-text-only)
-    - [VScode With Pictures](#vscode-with-pictures)
-  - [Visual Studio](#visual-studio)
+- [Text Only](#vscode-text-only)
+- [With Pictures](#vscode-with-pictures)
 
 #### VScode Text Only
 
@@ -51,7 +48,7 @@ VsCode doesnt support the catalog directly but you can copy and past it's conten
 3. The Settings.json should open with your cursor on the "json.schemas" property.
 4. Open the [catalog](/schemas/Manual.schema.catalog.json) and copy everything in the "schema" array
 5. Paste it in the "json.schemas" proterty array in settings.json
-6. Make sure your setting.json is valid by adding ',' if required so it looks like this
+6. Make sure your setting.json is valid by adding ',' if required.
 7. Dont forget to save.
 
 That should do it from now on if you open any json file from manual you should get recommended properties when you edit  
@@ -81,9 +78,40 @@ items/locations/regions/etc
 
 ### Visual Studio
 
-Visual Studio only want for Catalogs which make this a bit easier.
+Visual Studio support the catalog directly and only wants catalogs which make this a bit easier.
 
-- text only
-- with pictures
+- [Text Only](#visual-studio-text-only)
+- [With Pictures](#visual-studio-with-pictures)
 
-WIP
+#### Visual Studio Text Only
+
+1. Open your options by clicking on Tools -> Options.
+2. In the search bar at the top of the screen write 'json schema' and on the left click on Text Editor -> JSON -> Schema
+3. Click the button on the top right that looks like a folder with a sun. It will create a new entry in the list.
+4. Open the [catalog](/schemas/Manual.schema.catalog.json) on github and click on the Raw button on the top right of the code block.
+5. Copy the url of the page your browser was redirected to. (it should start with https:// followed by raw.githubusercontent.com/ManualForArchipelago/...)  
+6. Paste the url in the new entry of the schema list
+7. Press ok and restart your Visual Studio.
+
+That should do it from now on if you open any json file from manual you should get recommended properties when you edit  
+items/locations/regions/etc
+
+[Back to intro](#intro)
+
+#### Visual Studio With Pictures
+
+1. Open your options by clicking on Tools -> Options.
+2. In the search bar at the top of the screen write 'json schema' and on the left click on Text Editor -> JSON -> Schema
+3. Click the button on the top right that looks like a folder with a sun. It will create a new entry in the list.
+  ![Screenshot of the Options page and what the button look like](/docs/img/schemas/VisualStudio_settings_search.PNG)
+4. Open the [catalog](/schemas/Manual.schema.catalog.json) on github and click on the Raw button on the top right of the code block.
+  ![Screenshot of where the raw button is on github](/docs/img/schemas/VisualStudio_Catalog_RAW.PNG)
+5. Copy the url of the page your browser was redirected to. (it should start with https:// followed by raw.githubusercontent.com/ManualForArchipelago/...)  
+6. Paste the url in the new entry of the schema list and press Enter to confirm
+  ![Screenshot of the result of following the instruction in settings.json](/docs/img/schemas/VisualStudio_settings_final.PNG)
+7. Press ok and restart your Visual Studio.
+
+That should do it from now on if you open any json file from manual you should get recommended properties when you edit  
+items/locations/regions/etc
+
+[Back to intro](#intro)
