@@ -15,15 +15,15 @@
 
 ## Why you should use them
 
-Json schemas tell your Ide (text editor) how a json file should be formated and also include short descriptions of what
-a property is used for.
+Json schemas tell your Ide (integrated development environment) aka your text editor of choice  
+how a json file should be formated and also include short descriptions of what a property is used for.  
 They also tell your IDE if you have error in how you used the properties (eg. used both "player" and "creator" in game.json)
 
 ## How to use them
 
 ### Intro
 
-Like many things in Coding it depend on your IDE aka your text editor of choice.  
+Like many things in Coding it depend on your IDE.  
 Bellow you will find instructions for the IDE we knew how to import Schemas.  
 More might be added as we find how to use Json schemas with them.
 
@@ -32,7 +32,7 @@ or the url of the other schemas that you can find in the catalog.
 
 - [VsCode](#vscode)
 - [Visual Studio](#visual-studio)
-- others to be in the future
+- others to be added in the future
 
 ### Vscode
 
