@@ -32,6 +32,8 @@ or the url of the other schemas that you can find in the catalog.
 
 - [VsCode](#vscode)
 - [Visual Studio](#visual-studio)
+- [Pycharm: Check official docs](https://www.jetbrains.com/help/pycharm/json.html#ws_json_schema_add_custom)
+  - Uses the content of the catalog
 - others to be added in the future
 
 ### Vscode
