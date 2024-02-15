@@ -261,17 +261,15 @@ class DataValidation():
 
     @staticmethod
     def checkStartingItemsForBadSyntax():
-        if "starting_items" not in DataValidation.game_table:
+        if not (starting_items := DataValidation.game_table.get("starting_items", False)):
             return
-        
-        starting_items = DataValidation.game_table["starting_items"]
 
         for starting_block in starting_items:
             if type(starting_block) is not dict or len(starting_block.keys()) == 0:
                 raise ValidationError("One of your starting item definitions is not a valid dictionary.\n   Each definition must be inside {}, as demonstrated in the Manual documentation.")
                 
-            valid_keys = ["items", "item_categories", "random", "if_previous_item"]
-            invalid_keys = ['"{}"'.format(key) for key in starting_block.keys() if key not in valid_keys]
+            valid_keys = ["items", "item_categories", "random", "if_previous_item", "_comment"] # _comment is provided by schema
+            invalid_keys = [f'"{key}"' for key in starting_block.keys() if key not in valid_keys]
 
             if len(invalid_keys) > 0:
                 raise ValidationError("One of your starting item definitions is invalid and may have unexpected results.\n   The invalid starting item definition specifies the following incorrect keys: {}".format(", ".join(invalid_keys)))
