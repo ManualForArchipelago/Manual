@@ -63,6 +63,7 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 - [Spreadsheet template for world design](resources/resources.md#spreadsheet-template-for-world-design)
 - [Visualizing your logic](resources/resources.md#visualizing-your-logic)
+- [JSON Schemas for World Developers](resources/json-schemas-for-world-devs.md)
 
 ### FAQ
 
