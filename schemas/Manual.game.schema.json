@@ -1,0 +1,78 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.game.schema.json",
+    "description": "Schema for ManualAP game.json",
+    "type": "object",
+    "properties": {
+        "game": {
+            "description": "The name of your game, compatible with capital letters.",
+            "type": "string"
+        },
+        "player": {
+            "description": "Deprecated use 'creator' instead",
+            "type": "string",
+            "deprecated": true
+        },
+        "creator": {
+            "description": "Your Username.",
+            "type": "string"
+        },
+        "filler_item_name": {
+            "description": "Name of the filler items that get placed when there's no more real items to place.",
+            "type": "string"
+        },
+        "starting_items": {
+            "description": "(Optional) Starting inventory",
+            "type":"array",
+            "items":{
+                "$ref": "#/definitions/Sitems"
+            }
+        },
+        "_comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type":"string"
+        }
+    },
+    "required":["game", "filler_item_name"],
+    "oneOf":[
+        {"required":["creator"]},
+        {"required":["player"]}
+    ],
+    "definitions": {
+        "Sitems": {
+            "type":"object",
+            "properties": {
+                "if_previous_item":{
+                    "description": "(Optional) Causes the starting item block to only occur when any of the matching items have already been added to starting inventory by any previous starting item blocks",
+                    "type":"array",
+                    "items":{
+                        "type":"string"
+                    }
+                },
+                "items": {
+                    "description": "(Optional) List of item to pick from. If not included will pick from 'item_categories' if present or from the entire item pool if absent",
+                    "type":"array",
+                    "items":{
+                        "type":"string"
+                    }
+                },
+                "item_categories": {
+                    "description": "(Optional) List of category of items to pick from. If not included will pick from 'items' if present or from the entire item pool if absent",
+                    "type":"array",
+                    "items":{
+                        "type":"string"
+                    }
+                },
+                "random": {
+                    "description": "(Optional) how many items of this block will be randomly added to inventory. Will add every item in the block if not included",
+                    "type":"integer"
+                },
+                "_comment": {
+                    "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+                    "type":"string"
+                }
+            },
+            "minProperties": 1
+        }
+    }
+}
