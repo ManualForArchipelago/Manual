@@ -1,5 +1,5 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, SpecialRange
+from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
@@ -7,7 +7,7 @@ from ..Helpers import is_option_enabled, get_option_value
 
 
 ####################################################################
-# NOTE: At the time that options are created, Manual has no concept of the multiworld or its own world. 
+# NOTE: At the time that options are created, Manual has no concept of the multiworld or its own world.
 #       Options are defined before the world is even created.
 #
 # Example of creating your own option:
