@@ -260,6 +260,23 @@ class DataValidation():
                         raise ValidationError("Item category %s is set as a starting item category, but is misspelled or is not defined on any items." % (category_name))
 
     @staticmethod
+    def checkStartingItemsForBadSyntax():
+        if "starting_items" not in DataValidation.game_table:
+            return
+        
+        starting_items = DataValidation.game_table["starting_items"]
+
+        for starting_block in starting_items:
+            if type(starting_block) is not dict or len(starting_block.keys()) == 0:
+                raise ValidationError("One of your starting item definitions is not a valid dictionary.\n   Each definition must be inside {}, as demonstrated in the Manual documentation.")
+                
+            valid_keys = ["items", "item_categories", "random", "if_previous_item"]
+            invalid_keys = ['"{}"'.format(key) for key in starting_block.keys() if key not in valid_keys]
+
+            if len(invalid_keys) > 0:
+                raise ValidationError("One of your starting item definitions is invalid and may have unexpected results.\n   The invalid starting item definition specifies the following incorrect keys: {}".format(", ".join(invalid_keys)))
+
+    @staticmethod
     def checkForGameBeingInvalidJSON():
         if len(DataValidation.game_table) == 0:
             raise ValidationError("No settings were found in your game.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
