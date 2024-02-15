@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../Archipelago"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**.dll": true,
+			"**.sfc": true,
+			"**.z64": true,
+			"**/__pycache__/**": true,
+			"**/.github/**": true,
+			"**/.vs/**": true,
+			"**Client.py": true,
+			"env/**": true,
+			"file_locks/**": true,
+			"typings/**": true,
+			"WebHostLib/**": true
+		}
+	}
+}
