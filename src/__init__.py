@@ -360,7 +360,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 20240125 # YYYYMMDD
+    version = 20240128 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":
