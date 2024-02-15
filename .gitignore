@@ -1,2 +1,4 @@
 **/__pycache__
-/.vscode
+.vscode/
+.vs/
+/*.code-workspace

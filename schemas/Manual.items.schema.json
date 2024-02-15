@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.items.schema.json",
+  "description": "Schema for ManualAP items.json",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/Item"
+  },
+  "definitions": {
+    "Item": {
+      "type": "object",
+        "properties": {
+            "name": {
+                "description": "The unique name of the item. Do not use () or : in the name",
+                "type": "string"
+            },
+            "progression": {
+                "description": "(Optional) Is this item needed to unlock locations? Defaults to false if not included.",
+                "default": true,
+                "type": "boolean"
+            },
+            "count": {
+                "description": "(Optional) Number of copy of this item in the pool.",
+                "type": "integer",
+                "default": 1
+            },
+            "category": {
+                "description": "(Optional) The category(ies) this item fit in",
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Category"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+            },
+            "useful": {
+                "description": "(Optional) Is this item usefull to have? Used for items that are not progression but you still want the rando to really use.",
+                "type": "boolean"
+            },
+            "progression_skip_balancing": {
+                "description": "(Optional) Should this item not get included in progression balance swaps. For more info check the discord",
+                "type": "boolean",
+                "default": true
+            },
+            "trap": {
+                "description": "(Optional) Is this item a trap? Something the player doesnt want to get.",
+                "type": "boolean",
+                "default": true
+            },
+            "early": {
+                "description": "(Optional) Is this item required to be placed somewhere accessible from the start (Sphere 1)",
+                "type": "boolean",
+                "default": true
+            },
+            "local": {
+                "description": "(Optional) Is this item supposed to be only in your locations(true) or anywhere(false)",
+                "type": "boolean",
+                "default": true
+            },
+            "_comment": {
+                "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+                "type":"string"
+            }
+
+        },
+        "required": ["name"]
+    },
+    "Category": {
+        "type": "string"
+    }
+  }
+}
