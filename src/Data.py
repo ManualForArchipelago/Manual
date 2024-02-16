@@ -82,6 +82,10 @@ except ValidationError as e: validation_errors.append(e)
 try: DataValidation.checkForDuplicateRegionNames()
 except ValidationError as e: validation_errors.append(e)
 
+# check that starting items are actually valid starting item definitions
+try: DataValidation.checkStartingItemsForBadSyntax()
+except ValidationError as e: validation_errors.append(e)
+
 # check that starting items and starting item categories actually exist in the items json
 try: DataValidation.checkStartingItemsForValidItemsAndCategories()
 except ValidationError as e: validation_errors.append(e)
