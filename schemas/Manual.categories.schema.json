@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/Schemas/schemas/Manual.categories.schema.json",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.categories.schema.json",
     "description": "Schema for ManualAP categories.json",
     "type": "object",
     "patternProperties": {
