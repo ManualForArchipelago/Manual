@@ -115,13 +115,11 @@ class ManualWorld(World):
                 new_item = self.create_item(name)
                 pool.append(new_item)
 
-            if item.get("early") and item.get("local"): # both
-                self.multiworld.local_early_items[self.player][name] = item_count
-            elif item.get("early"): # only early
+            if item.get("early"): # only early
                 self.multiworld.early_items[self.player][name] = item_count
-            elif item.get("local"): # only local
+            if item.get("local"): # only local
                 if name not in self.multiworld.local_items[self.player].value:
-                    self.multiworld.local_items[self.player].value.add(name)
+                    self.options.local_items.value.add(name)
 
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 

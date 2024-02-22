@@ -10,11 +10,11 @@ def is_option_enabled(world: MultiWorld, player: int, name: str) -> bool:
     return get_option_value(world, player, name) > 0
 
 def get_option_value(world: MultiWorld, player: int, name: str) -> Union[int, dict]:
-    option = getattr(world, name, None)
+    option = getattr(world.worlds[player].options, name, None)
     if option is None:
         return 0
 
-    return option[player].value
+    return option.value
 
 def clamp(value, min, max):
     """Returns value clamped to the inclusive range of min and max"""
