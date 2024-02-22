@@ -5,6 +5,8 @@ The Manual Builder is a web-based tool that lets you add lists of items and loca
 
 You can find the Manual Builder here: https://manualforarchipelago.github.io/ManualBuilder/
 
+![Manual Builder screenshot 1](../img/resources/manual-builder-screenshot1.png)
+
 The Builder tends to lag behind official features a bit so, once you're nicely acclimated to the Manual world creation process, you'll want to take a look at our [Syntax Reference and Examples](../README.md#syntax-reference-and-examples) section for next steps!
 
 ## Reporting Bugs or Requesting Features
