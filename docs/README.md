@@ -60,8 +60,9 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 ### Resources
 
-- [Spreadsheet template for world design](resources/resources.md#spreadsheet-template-for-world-design)
-- [Visualizing your logic](resources/resources.md#visualizing-your-logic)
+- [Manual Builder](resources/manual-builder.md)
+- [Spreadsheet Templates for World Design](resources/spreadsheet-template-for-world-design.md)
+- [Visualizing Your World Logic](resources/visualizing-your-world-logic.md)
 - [JSON Schemas for World Developers](resources/json-schemas-for-world-devs.md)
 
 ### FAQ
