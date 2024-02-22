@@ -90,6 +90,17 @@ except ValidationError as e: validation_errors.append(e)
 try: DataValidation.checkStartingItemsForValidItemsAndCategories()
 except ValidationError as e: validation_errors.append(e)
 
+# check that placed items are actually valid place item definitions
+try: DataValidation.checkPlacedItemsAndCategoriesForBadSyntax()
+except ValidationError as e: validation_errors.append(e)
+
+# check placed item and item categories for valid options for each
+try: DataValidation.checkPlacedItemsForValidItems()
+except ValidationError as e: validation_errors.append(e)
+
+try: DataValidation.checkPlacedItemCategoriesForValidItemCategories()
+except ValidationError as e: validation_errors.append(e)
+
 # check that the game's default filler item name doesn't match an item name that they defined in their items
 try: DataValidation.checkForGameFillerMatchingAnItemName()
 except ValidationError as e: validation_errors.append(e)

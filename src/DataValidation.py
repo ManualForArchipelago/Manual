@@ -275,6 +275,46 @@ class DataValidation():
                 raise ValidationError("One of your starting item definitions is invalid and may have unexpected results.\n   The invalid starting item definition specifies the following incorrect keys: {}".format(", ".join(invalid_keys)))
 
     @staticmethod
+    def checkPlacedItemsAndCategoriesForBadSyntax():
+        for location in DataValidation.location_table:
+            if not (place_item := location.get("place_item", False)) and not (place_item_category := location.get("place_item_category", False)):
+                continue
+        
+            if place_item and type(place_item) is not list:
+                raise ValidationError("One of your location has an incorrectly formatted place_item.\n   The items, even just one, must be inside [].")
+        
+            if place_item_category and type(place_item_category) is not list:
+                raise ValidationError("One of your location has an incorrectly formatted place_item_category.\n   The categories, even just one, must be inside [].")
+    
+    @staticmethod
+    def checkPlacedItemsForValidItems():
+        for location in DataValidation.location_table:
+            if not (place_item := location.get("place_item", False)):
+                continue
+
+            # don't bother checking for valid items if the syntax is wrong
+            if type(place_item) is not list:
+                continue
+
+            for item_name in place_item:
+                if not item_name in [item["name"] for item in DataValidation.item_table]:
+                    raise ValidationError("Item %s is placed (using place_item) on a location, but is misspelled or is not defined." % (item_name))  
+    
+    @staticmethod
+    def checkPlacedItemCategoriesForValidItemCategories():
+        for location in DataValidation.location_table:
+            if not (place_item_category := location.get("place_item_category", False)):
+                continue
+
+            # don't bother checking for valid item categories if the syntax is wrong
+            if type(place_item_category) is not list:
+                continue
+
+            for category_name in place_item_category:
+                if len([item for item in DataValidation.item_table if "category" in item and category_name in item["category"]]) == 0:
+                    raise ValidationError("Item category %s is placed (using place_item_category) on a location, but is misspelled or is not defined." % (category_name))  
+
+    @staticmethod
     def checkForGameBeingInvalidJSON():
         if len(DataValidation.game_table) == 0:
             raise ValidationError("No settings were found in your game.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
