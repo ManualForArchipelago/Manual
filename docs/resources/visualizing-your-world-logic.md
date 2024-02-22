@@ -5,6 +5,8 @@ There's a wonderful tool in Archipelago (written by el_) that allows viewing all
 
 (To make use of this feature, you'll want to get a UML viewer like PlantUML.)
 
+![](../img/resources/visualize-regions-uml-example.png)
+
 Until Manual officially supports using it, there's a workaround to use it if you don't mind looking at a tiny amount of code:
 
 1. Extract/unzip your apworld into a folder in your worlds folder, as if you were going to make changes to it.
