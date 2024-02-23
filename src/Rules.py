@@ -116,7 +116,9 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
             if require_type == 'category':
                 category_items = [item for item in base.item_name_to_item.values() if "category" in item and item_name in item["category"]]
                 category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
-                if item_count.lower() == 'all':
+                if category_items_counts == 0:
+                    item_count = 0
+                elif item_count.lower() == 'all':
                     item_count = category_items_counts
                 elif item_count.lower() == 'half':
                     item_count = int(category_items_counts / 2)
@@ -133,7 +135,9 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
                         requires_list = requires_list.replace(item_base, "1")
             elif require_type == 'item':
                 item_current_count = items_counts.get(item_name, 0)
-                if item_count.lower() == 'all':
+                if item_current_count == 0:
+                    item_count = 0
+                elif item_count.lower() == 'all':
                     item_count = item_current_count
                 elif item_count.lower() == 'half':
                     item_count = int(item_current_count / 2)
