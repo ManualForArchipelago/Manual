@@ -1,5 +1,5 @@
-from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, SpecialRange
-
+from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, PerGameCommonOptions
+from dataclasses import make_dataclass
 from .hooks.Options import before_options_defined, after_options_defined
 from .Data import category_table
 
@@ -21,3 +21,4 @@ for category in category_table:
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
 
 manual_options = after_options_defined(manual_options)
+manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))
