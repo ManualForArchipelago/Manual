@@ -14,7 +14,7 @@ from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_nam
 from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
-from .Options import manual_options
+from .Options import manual_options_data
 from .Helpers import is_option_enabled, is_item_enabled, get_option_value
 
 from BaseClasses import ItemClassification, Tutorial, Item
@@ -50,7 +50,7 @@ class ManualWorld(World):
     game: str = game_name
     web = ManualWeb()
 
-    option_definitions = manual_options
+    options_dataclass = manual_options_data
     data_version = 2
     required_client_version = (0, 3, 4)
 
