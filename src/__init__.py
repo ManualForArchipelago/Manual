@@ -27,7 +27,7 @@ from .hooks.World import \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
-    before_fill_slot_data, after_fill_slot_data
+    before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
 
 
@@ -373,6 +373,10 @@ class ManualWorld(World):
         filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
         with open(os.path.join(output_directory, filename), 'wb') as f:
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
+
+    @classmethod
+    def stage_write_spoiler(cls, world, spoiler_handle):
+        before_write_spoiler(world, spoiler_handle)
 
     ###
     # Non-standard AP world methods

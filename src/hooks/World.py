@@ -38,9 +38,9 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     # Use this hook to remove locations from the world
     locationNamesToRemove = [] # List of location names
-    
+
     # Add your code here to calculate which locations to remove
-    
+
     for region in multiworld.regions:
         if region.player == player:
             for location in list(region.locations):
@@ -57,20 +57,20 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
     itemNamesToRemove = [] # List of item names
-    
+
     # Add your code here to calculate which items to remove.
-    # 
+    #
     # Because multiple copies of an item can exist, you need to add an item name
     # to the list multiple times if you want to remove multiple copies of it.
-    
+
     for itemName in itemNamesToRemove:
         item = next(i for i in item_pool if i.name == itemName)
         item_pool.remove(item)
-    
+
     return item_pool
-    
+
     # Some other useful hook options:
-    
+
     ## Place an item at a specific location
     # location = next(l for l in multiworld.get_unfilled_locations(player=player) if l.name == "Location Name")
     # item_to_place = next(i for i in item_pool if i.name == "Item Name")
@@ -88,17 +88,17 @@ def before_set_rules(world: World, multiworld: MultiWorld, player: int):
 # Called after rules for accessing regions and locations are created, in case you want to see or modify that information.
 def after_set_rules(world: World, multiworld: MultiWorld, player: int):
     # Use this hook to modify the access rules for a given location
-    
+
     def Example_Rule(state: CollectionState) -> bool:
-        # Calculated rules take a CollectionState object and return a boolean 
+        # Calculated rules take a CollectionState object and return a boolean
         # True if the player can access the location
         # CollectionState is defined in BaseClasses
         return True
-    
+
     ## Common functions:
     # location = world.get_location(location_name, player)
     # location.access_rule = Example_Rule
-    
+
     ## Combine rules:
     # old_rule = location.access_rule
     # location.access_rule = lambda state: old_rule(state) and Example_Rule(state)
@@ -128,3 +128,7 @@ def before_fill_slot_data(slot_data: dict, world: World, multiworld: MultiWorld,
 # This is called after slot data is set and provides the slot data at the time, in case you want to check and modify it after Manual is done with it
 def after_fill_slot_data(slot_data: dict, world: World, multiworld: MultiWorld, player: int) -> dict:
     return slot_data
+
+# This is called right at the end, in case you want to write stuff to the spoiler log
+def before_write_spoiler(world: World, spoiler_handle) -> None:
+    pass
