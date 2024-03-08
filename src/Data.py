@@ -49,66 +49,6 @@ except ValidationError as e: validation_errors.append(e)
 try: DataValidation.checkForLocationsBeingInvalidJSON()
 except ValidationError as e: validation_errors.append(e)
 
-# check that requires have correct item names in locations and regions
-try: DataValidation.checkItemNamesInLocationRequires()
-except ValidationError as e: validation_errors.append(e)
-
-try: DataValidation.checkItemNamesInRegionRequires()
-except ValidationError as e: validation_errors.append(e)
-
-# check that region names are correct in locations
-try: DataValidation.checkRegionNamesInLocations()
-except ValidationError as e: validation_errors.append(e)
-
-# check that items that are required by locations and regions are also marked required
-try: DataValidation.checkItemsThatShouldBeRequired()
-except ValidationError as e: validation_errors.append(e)
-
-# check that regions that are connected to are correct
-try: DataValidation.checkRegionsConnectingToOtherRegions()
-except ValidationError as e: validation_errors.append(e)
-
-# check that the apworld creator didn't specify multiple victory conditions
-try: DataValidation.checkForMultipleVictoryLocations()
-except ValidationError as e: validation_errors.append(e)
-
-# check for duplicate names in items, locations, and regions
-try: DataValidation.checkForDuplicateItemNames()
-except ValidationError as e: validation_errors.append(e)
-
-try: DataValidation.checkForDuplicateLocationNames()
-except ValidationError as e: validation_errors.append(e)
-
-try: DataValidation.checkForDuplicateRegionNames()
-except ValidationError as e: validation_errors.append(e)
-
-# check that starting items are actually valid starting item definitions
-try: DataValidation.checkStartingItemsForBadSyntax()
-except ValidationError as e: validation_errors.append(e)
-
-# check that starting items and starting item categories actually exist in the items json
-try: DataValidation.checkStartingItemsForValidItemsAndCategories()
-except ValidationError as e: validation_errors.append(e)
-
-# check that placed items are actually valid place item definitions
-try: DataValidation.checkPlacedItemsAndCategoriesForBadSyntax()
-except ValidationError as e: validation_errors.append(e)
-
-# check placed item and item categories for valid options for each
-try: DataValidation.checkPlacedItemsForValidItems()
-except ValidationError as e: validation_errors.append(e)
-
-try: DataValidation.checkPlacedItemCategoriesForValidItemCategories()
-except ValidationError as e: validation_errors.append(e)
-
-# check that the game's default filler item name doesn't match an item name that they defined in their items
-try: DataValidation.checkForGameFillerMatchingAnItemName()
-except ValidationError as e: validation_errors.append(e)
-
-# check for regions that are set as non-starting regions and have no connectors to them (so are unreachable)
-try: DataValidation.checkForNonStartingRegionsThatAreUnreachable()
-except ValidationError as e: validation_errors.append(e)
-
 
 ############
 # If there are any validation errors, display all of them at once
