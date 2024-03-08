@@ -40,9 +40,9 @@ location_table.append({
     # "category": custom_victory_location["category"] if "category" in custom_victory_location else []
 })
 
-location_id_to_name = {}
-location_name_to_location = {}
-location_name_groups = {}
+location_id_to_name: dict[int, str] = {}
+location_name_to_location: dict[str, dict] = {}
+location_name_groups: dict[str, list[str]] = {}
 
 for item in location_table:
     location_id_to_name[item["id"]] = item["name"]
