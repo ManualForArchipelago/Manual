@@ -10,7 +10,7 @@ from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
-from .DataValidation import DataValidation, ValidationError
+from .DataValidation import runGenerationDataValidation
 
 from .Regions import create_regions
 from .Items import ManualItem
@@ -79,69 +79,7 @@ class ManualWorld(World):
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
-        validation_errors = []
-
-        # check that requires have correct item names in locations and regions
-        try: DataValidation.checkItemNamesInLocationRequires()
-        except ValidationError as e: validation_errors.append(e)
-
-        try: DataValidation.checkItemNamesInRegionRequires()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that region names are correct in locations
-        try: DataValidation.checkRegionNamesInLocations()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that items that are required by locations and regions are also marked required
-        try: DataValidation.checkItemsThatShouldBeRequired()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that regions that are connected to are correct
-        try: DataValidation.checkRegionsConnectingToOtherRegions()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that the apworld creator didn't specify multiple victory conditions
-        try: DataValidation.checkForMultipleVictoryLocations()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check for duplicate names in items, locations, and regions
-        try: DataValidation.checkForDuplicateItemNames()
-        except ValidationError as e: validation_errors.append(e)
-
-        try: DataValidation.checkForDuplicateLocationNames()
-        except ValidationError as e: validation_errors.append(e)
-
-        try: DataValidation.checkForDuplicateRegionNames()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that starting items are actually valid starting item definitions
-        try: DataValidation.checkStartingItemsForBadSyntax()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that starting items and starting item categories actually exist in the items json
-        try: DataValidation.checkStartingItemsForValidItemsAndCategories()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that placed items are actually valid place item definitions
-        try: DataValidation.checkPlacedItemsAndCategoriesForBadSyntax()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check placed item and item categories for valid options for each
-        try: DataValidation.checkPlacedItemsForValidItems()
-        except ValidationError as e: validation_errors.append(e)
-
-        try: DataValidation.checkPlacedItemCategoriesForValidItemCategories()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check that the game's default filler item name doesn't match an item name that they defined in their items
-        try: DataValidation.checkForGameFillerMatchingAnItemName()
-        except ValidationError as e: validation_errors.append(e)
-
-        # check for regions that are set as non-starting regions and have no connectors to them (so are unreachable)
-        try: DataValidation.checkForNonStartingRegionsThatAreUnreachable()
-        except ValidationError as e: validation_errors.append(e)
-        if len(validation_errors) > 0:
-            raise Exception("\nValidationError(s): \n\n%s\n\n" % ("\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
+        runGenerationDataValidation()
 
 
     def create_regions(self):
