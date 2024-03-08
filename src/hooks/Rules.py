@@ -35,7 +35,7 @@ def OptOne(base: World, world: MultiWorld, state: CollectionState, player: int, 
     if item == "":
         return "" #Skip this function if item is left blank
     if not items_counts:
-        items_counts = _getItem_counts(base, world, player)
+        items_counts = base.get_item_counts()
 
     require_type = 'item'
 
@@ -71,7 +71,7 @@ def OptAll(base: World, world: MultiWorld, state: CollectionState, player: int, 
     """Returns an entire require string with counts adjusted to Real Item Count"""
     requires_list = requires
 
-    items_counts = _getItem_counts(base, world, player)
+    items_counts = base.get_item_counts()
 
     functions = {}
     if requires_list == "":
@@ -90,9 +90,3 @@ def OptAll(base: World, world: MultiWorld, state: CollectionState, player: int, 
         requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
     return requires_list
 
-def _getItem_counts(base: World, world: MultiWorld, player: int):
-    """Private method that returns the players real item count"""
-    if player not in base.item_counts:
-        real_pool = world.get_items()
-        base.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
-    return base.item_counts.get(player)

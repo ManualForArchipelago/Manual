@@ -64,8 +64,6 @@ def evaluate_postfix(expr: str, location: str) -> bool:
         raise KeyError("Invalid logic format for location/region {}.".format(location))
     return stack.pop()
 
-
-
 def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
@@ -76,7 +74,7 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
             base.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
 
         # fallback if items_counts[player] not present (will not be accurate to hooks item count)
-        items_counts = base.item_counts.get(player)
+        items_counts = base.get_item_counts()
 
         if requires_list == "":
             return True

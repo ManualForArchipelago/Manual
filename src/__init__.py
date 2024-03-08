@@ -332,6 +332,15 @@ class ManualWorld(World):
 
         return item_pool
 
+    def get_item_counts(self, player: Optional[int] = None, reset: bool = False) -> dict:
+        """returns the player real item count"""
+        if player == None:
+            player = self.player
+        if player not in self.item_counts or reset:
+            real_pool = self.multiworld.get_items()
+            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
+        return self.item_counts.get(player)
+
     def client_data(self):
         return {
             "game": self.game,
