@@ -81,7 +81,7 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
         if requires_list == "":
             return True
 
-        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', area["requires"]):
+        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
             func_name = item[0]
             func_args = item[1].split(",")
             func = getattr(Rules, func_name)
@@ -93,7 +93,7 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
 
 
         # parse user written statement into list of each item
-        for item in re.findall(r'\|[^|]+\|', area["requires"]):
+        for item in re.findall(r'\|[^|]+\|', requires_list):
             require_type = 'item'
 
             if '|@' in item:
