@@ -130,5 +130,5 @@ def after_fill_slot_data(slot_data: dict, world: World, multiworld: MultiWorld, 
     return slot_data
 
 # This is called right at the end, in case you want to write stuff to the spoiler log
-def before_write_spoiler(world: World, spoiler_handle) -> None:
+def before_write_spoiler(world: World, multiworld: MultiWorld, spoiler_handle) -> None:
     pass

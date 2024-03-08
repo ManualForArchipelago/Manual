@@ -313,8 +313,8 @@ class ManualWorld(World):
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
 
     @classmethod
-    def stage_write_spoiler(cls, world, spoiler_handle):
-        before_write_spoiler(world, spoiler_handle)
+    def stage_write_spoiler(cls, multiworld, spoiler_handle):
+        before_write_spoiler(self, multiworld, spoiler_handle)
 
     ###
     # Non-standard AP world methods
