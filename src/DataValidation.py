@@ -139,7 +139,7 @@ class DataValidation():
     @staticmethod
     def checkRegionNamesInLocations():
         for location in DataValidation.location_table:
-            if "region" not in location:
+            if "region" not in location or location["region"] in ["Menu", "Manual"]:
                 continue
 
             region_exists = len([name for name in DataValidation.region_table if name == location["region"]]) > 0
@@ -330,14 +330,6 @@ class DataValidation():
             raise ValidationError("No locations were found in your locations.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
 
     @staticmethod
-    def checkForGameFillerMatchingAnItemName():
-        filler_item = DataValidation.game_table["filler_item_name"] if "filler_item_name" in DataValidation.game_table else "Filler"
-        items_matching = [item for item in DataValidation.item_table if item["name"] == filler_item]
-
-        if len(items_matching) > 0:
-            raise ValidationError("Your game's filler item name ('%s') matches an item you defined in your items.json. Item names must be unique, including the default filler item." % (filler_item))
-
-    @staticmethod
     def checkForNonStartingRegionsThatAreUnreachable():
         using_starting_regions = len([region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region] and not DataValidation.region_table[region]["starting"]]) > 0
 
@@ -408,10 +400,6 @@ def runGenerationDataValidation() -> None:
     except ValidationError as e: validation_errors.append(e)
 
     try: DataValidation.checkPlacedItemCategoriesForValidItemCategories()
-    except ValidationError as e: validation_errors.append(e)
-
-    # check that the game's default filler item name doesn't match an item name that they defined in their items
-    try: DataValidation.checkForGameFillerMatchingAnItemName()
     except ValidationError as e: validation_errors.append(e)
 
     # check for regions that are set as non-starting regions and have no connectors to them (so are unreachable)
