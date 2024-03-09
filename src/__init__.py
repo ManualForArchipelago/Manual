@@ -10,6 +10,7 @@ from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
+from .DataValidation import runGenerationDataValidation
 
 from .Regions import create_regions
 from .Items import ManualItem
@@ -26,7 +27,7 @@ from .hooks.World import \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
-    before_fill_slot_data, after_fill_slot_data
+    before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
 
 
@@ -75,6 +76,11 @@ class ManualWorld(World):
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
         hook_interpret_slot_data(self, self.player, slot_data)
+
+    @classmethod
+    def stage_assert_generate(cls, multiworld) -> None:
+        runGenerationDataValidation()
+
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
@@ -305,6 +311,9 @@ class ManualWorld(World):
         filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
         with open(os.path.join(output_directory, filename), 'wb') as f:
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
+
+    def write_spoiler(self, spoiler_handle):
+        before_write_spoiler(self, self.multiworld, spoiler_handle)
 
     ###
     # Non-standard AP world methods
