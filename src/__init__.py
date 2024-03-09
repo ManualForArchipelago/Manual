@@ -312,9 +312,8 @@ class ManualWorld(World):
         with open(os.path.join(output_directory, filename), 'wb') as f:
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
 
-    @classmethod
-    def stage_write_spoiler(cls, multiworld, spoiler_handle):
-        before_write_spoiler(self, multiworld, spoiler_handle)
+    def write_spoiler(self, spoiler_handle):
+        before_write_spoiler(self, self.multiworld, spoiler_handle)
 
     ###
     # Non-standard AP world methods
