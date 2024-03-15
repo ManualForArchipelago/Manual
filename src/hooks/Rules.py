@@ -31,6 +31,7 @@ def requiresMelee(world: World, mw: MultiWorld, state: CollectionState, player: 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
 # OptOne check if the passed item (with or without ||) is enabled, then return |item:count| where count is clamped to the maximum number of said item
 # Eg. requires: "{OptOne(|ItemThatMightBeDisabled|)} and |other items|"
+# become this if the item is disabled -> "|ItemThatMightBeDisabled:0| and |other items|"
 def OptOne(base: World, world: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
     """Returns item with count adjusted to Real Item Count"""
     if item == "":
@@ -69,6 +70,7 @@ def OptOne(base: World, world: MultiWorld, state: CollectionState, player: int, 
 # OptAll check the passed require string and loop every item to check if they're enabled,
 # then returns the require string with counts ajusted using OptOne
 # eg. requires: "{OptAll(|ItemThatMightBeDisabled| and |@itemCategoryWithCountThatMightBeModifedViaHook:10|)} and |other items|"
+# become this if the item is disabled -> "|ItemThatMightBeDisabled:0| and |@itemCategoryWithCountThatMightBeModifedViaHook:2| and |other items|"
 def OptAll(base: World, world: MultiWorld, state: CollectionState, player: int, requires: str):
     """Returns an entire require string with counts adjusted to Real Item Count"""
     requires_list = requires
