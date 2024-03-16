@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import pkgutil
 
@@ -55,6 +56,6 @@ except ValidationError as e: validation_errors.append(e)
 ############
 
 if len(validation_errors) > 0:
-    print("\nValidationError(s): \n\n%s\n\n" % ("\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
+    logging.error("\nValidationError(s): \n\n%s\n\n" % ("\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
     print("\n\nYou can close this window.\n")
     keeping_terminal_open = input("If you are running from a terminal, press Ctrl-C followed by ENTER to break execution.")

@@ -360,7 +360,7 @@ class ManualWorld(World):
                 elif useful:
                     popped = useful.pop()
                 else:
-                    print("Warning: Could not remove enough non-progression items from the pool.")
+                    logging.warning("Could not remove enough non-progression items from the pool.")
                     break
                 item_pool.remove(popped)
 
