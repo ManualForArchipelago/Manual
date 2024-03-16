@@ -169,7 +169,7 @@ class ManualWorld(World):
         self.start_inventory = {i.name: items_started.count(i) for i in items_started}
 
         pool = before_create_items_filler(pool, self, self.multiworld, self.player)
-        pool = self.add_filler_items(pool, traps)
+        pool = self.adjust_filler_items(pool, traps)
         pool = after_create_items(pool, self, self.multiworld, self.player)
 
         # need to put all of the items in the pool so we can have a full state for placement
