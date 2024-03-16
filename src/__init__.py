@@ -3,6 +3,7 @@ import os
 import json
 from typing import Callable, Optional
 
+import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
@@ -320,7 +321,10 @@ class ManualWorld(World):
     ###
 
     def add_filler_items(self, item_pool, traps):
-        # no longer subtracting 1 because of Victory; this was likely a convenient crutch
+        Utils.deprecate("Use adjust_filler_items instead.")
+        return self.adjust_filler_items(item_pool, traps)
+
+    def adjust_filler_items(self, item_pool, traps):
         extras = len(self.multiworld.get_unfilled_locations(player=self.player)) - len(item_pool)
 
         if extras > 0:
@@ -331,13 +335,33 @@ class ManualWorld(World):
             trap_count = extras * trap_percent // 100
             filler_count = extras - trap_count
 
-            for i in range(0, trap_count):
+            for _ in range(0, trap_count):
                 extra_item = self.create_item(self.random.choice(traps))
                 item_pool.append(extra_item)
 
-            for i in range(0, filler_count):
+            for _ in range(0, filler_count):
                 extra_item = self.create_item(filler_item_name)
                 item_pool.append(extra_item)
+        elif extras < 0:
+            print(f"Warning: {self.game} has more items than locations. {abs(extras)} useless items will be removed at random.")
+            fillers = [item for item in item_pool if item.classification == ItemClassification.filler]
+            traps = [item for item in item_pool if item.classification == ItemClassification.trap]
+            useful = [item for item in item_pool if item.classification == ItemClassification.useful]
+            self.random.shuffle(fillers)
+            self.random.shuffle(traps)
+            self.random.shuffle(useful)
+            for _ in range(0, abs(extras)):
+                popped = None
+                if fillers:
+                    popped = fillers.pop()
+                elif traps:
+                    popped = traps.pop()
+                elif useful:
+                    popped = useful.pop()
+                else:
+                    print("Warning: Could not remove enough non-progression items from the pool.")
+                    break
+                item_pool.remove(popped)
 
         return item_pool
 
