@@ -6,7 +6,7 @@ from BaseClasses import MultiWorld, CollectionState
 import re
 
 # Sometimes you have a requirement that is just too messy or repetitive to write out with boolean logic.
-# Define a function here, and you can use it in a requires string with (function_name()}.
+# Define a function here, and you can use it in a requires string with {function_name()}.
 def overfishedAnywhere(world: World, mw: MultiWorld, state: CollectionState, player: int):
     """Has the player collected all fish from any fishing log?"""
     for cat, items in world.item_name_groups:
@@ -30,6 +30,8 @@ def requiresMelee(world: World, mw: MultiWorld, state: CollectionState, player: 
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
 # OptOne check if the passed item (with or without ||) is enabled, then return |item:count| where count is clamped to the maximum number of said item
+# Eg. requires: "{OptOne(|ItemThatMightBeDisabled|)} and |other items|"
+# become this if the item is disabled -> "|ItemThatMightBeDisabled:0| and |other items|"
 def OptOne(base: World, world: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
     """Returns item with count adjusted to Real Item Count"""
     if item == "":
@@ -46,27 +48,29 @@ def OptOne(base: World, world: MultiWorld, state: CollectionState, player: int, 
 
     item_parts = item.split(":")
     item_name = item
-    item_count = 1
+    item_count = '1'
 
     if len(item_parts) > 1:
         item_name = item_parts[0]
         item_count = item_parts[1]
 
     if require_type == 'category':
-        if isinstance(item_count, int):
+        if item_count.isnumeric():
             #Only loop if we can use the result to clamp
             category_items = [item for item in base.item_name_to_item.values() if "category" in item and item_name in item["category"]]
             category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
-            item_count = clamp(item_count, 0, category_items_counts)
+            item_count = clamp(int(item_count), 0, category_items_counts)
         return f"|@{item_name}:{item_count}|"
     elif require_type == 'item':
-        if isinstance(item_count, int):
+        if item_count.isnumeric():
             item_current_count = items_counts.get(item_name, 0)
-            item_count = clamp(item_count, 0, item_current_count)
+            item_count = clamp(int(item_count), 0, item_current_count)
         return f"|{item_name}:{item_count}|"
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
 # then returns the require string with counts ajusted using OptOne
+# eg. requires: "{OptAll(|ItemThatMightBeDisabled| and |@itemCategoryWithCountThatMightBeModifedViaHook:10|)} and |other items|"
+# become this if the item is disabled -> "|ItemThatMightBeDisabled:0| and |@itemCategoryWithCountThatMightBeModifedViaHook:2| and |other items|"
 def OptAll(base: World, world: MultiWorld, state: CollectionState, player: int, requires: str):
     """Returns an entire require string with counts adjusted to Real Item Count"""
     requires_list = requires
