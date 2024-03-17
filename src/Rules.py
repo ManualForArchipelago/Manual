@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from worlds.generic.Rules import set_rule
+from worlds.generic.Rules import set_rule, add_rule
 from .Regions import regionMap
 from .hooks import Rules
 from BaseClasses import MultiWorld, CollectionState
@@ -221,7 +221,12 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
                 def fullRegionCheck(state: CollectionState, region=regionMap[region]):
                     return fullLocationOrRegionCheck(state, region)
 
-                set_rule(world.get_entrance(exitRegion.name, player), fullRegionCheck)
+                add_rule(world.get_entrance(exitRegion.name, player), fullRegionCheck)
+            entrance_rules = regionMap[region].get("entrance_rules", [])
+            for e in entrance_rules:
+                entrance = world.get_entrance(f'{e}To{region}', player)
+                add_rule(entrance, lambda state, rule={"requires": entrance_rules[e]}: fullLocationOrRegionCheck(state, rule))
+
 
     # Location access rules
     for location in base.location_table:
