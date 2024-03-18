@@ -8,7 +8,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 
 from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
 
@@ -87,7 +87,7 @@ class ManualWorld(World):
 
         create_regions(self, self.multiworld, self.player)
 
-        location_game_complete = self.multiworld.get_location("__Manual Game Complete__", self.player)
+        location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
 
         location_game_complete.place_locked_item(
