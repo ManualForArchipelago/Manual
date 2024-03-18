@@ -344,7 +344,7 @@ class ManualWorld(World):
                 extra_item = self.create_item(filler_item_name)
                 item_pool.append(extra_item)
         elif extras < 0:
-            logging.warning(f"{self.game} has more items than locations. {abs(extras)} useless items will be removed at random.")
+            logging.warning(f"{self.game} has more items than locations. {abs(extras)} non-progression items will be removed at random.")
             fillers = [item for item in item_pool if item.classification == ItemClassification.filler]
             traps = [item for item in item_pool if item.classification == ItemClassification.trap]
             useful = [item for item in item_pool if item.classification == ItemClassification.useful]
