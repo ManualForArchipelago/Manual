@@ -11,6 +11,10 @@ class FillerTrapPercent(Range):
 
 manual_options = before_options_defined({})
 
+if len(victory_names) > 1:
+    goal = {'option_' + v: i for i, v in enumerate(victory_names)}
+    manual_options['goal'] = type('goal', (Choice,), goal)
+
 manual_options["filler_traps"] = FillerTrapPercent
 
 for category in category_table:
@@ -20,10 +24,6 @@ for category in category_table:
         if option_name not in manual_options:
             manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
-
-if len(victory_names) > 1:
-    goal = {'option_' + v: i for i, v in enumerate(victory_names)}
-    manual_options['goal'] = type('goal', (Choice,), goal)
 
 manual_options = after_options_defined(manual_options)
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))
