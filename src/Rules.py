@@ -82,6 +82,8 @@ def set_rules(base: "ManualWorld", world: MultiWorld, player: int):
         for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
             func_name = item[0]
             func_args = item[1].split(",")
+            if func_args == ['']:
+                func_args.pop()
             func = getattr(Rules, func_name)
             result = func(base, world, state, player, *func_args)
             if isinstance(result, bool):
