@@ -35,7 +35,6 @@ try:
     from .hooks.World import ut_enabled
 except Exception as e:
     ut_enabled = False
-    print(e)
 
 
 class ManualWeb(WebWorld):
