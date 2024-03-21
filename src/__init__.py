@@ -31,6 +31,11 @@ from .hooks.World import \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
+try:
+    from .hooks.World import ut_enabled
+except Exception as e:
+    ut_enabled = False
+    print(e)
 
 
 class ManualWeb(WebWorld):
@@ -386,6 +391,15 @@ class ManualWorld(World):
             'regions': region_table,
             'categories': category_table
         }
+    
+    # for the universal tracker, doesn't get called in standard gen
+    @staticmethod
+    def return_slot_data(slot_data):
+        # returning slot_data so it regens, giving it back in multiworld.re_gen_passthrough
+        return slot_data
+    
+    if ut_enabled:
+        interpret_slot_data = return_slot_data
 
 ###
 # Non-world client methods
