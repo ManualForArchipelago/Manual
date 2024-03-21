@@ -21,7 +21,7 @@ regionMap["Manual"] = {
 
 regionMap = before_region_table_processed(regionMap)
 
-def create_regions(base: World, world: MultiWorld, player: int):
+def create_regions(world: World, multiworld: MultiWorld, player: int):
     # Create regions and assign locations to each region
     for region in regionMap:
         if "connects_to" not in regionMap[region]:
@@ -34,32 +34,32 @@ def create_regions(base: World, world: MultiWorld, player: int):
             exit_array = None
 
         locations = []
-        for location in base.location_table:
+        for location in world.location_table:
             if "region" in location and location["region"] == region:
-                if is_location_enabled(world, player, location):
+                if is_location_enabled(multiworld, player, location):
                     locations.append(location["name"])
 
-        new_region = create_region(base, world, player, region, locations, exit_array)
-        world.regions += [new_region]
+        new_region = create_region(world, multiworld, player, region, locations, exit_array)
+        multiworld.regions += [new_region]
 
-    menu = create_region(base, world, player, "Menu", None, ["Manual"])
-    world.regions += [menu]
-    menuConn = world.get_entrance("MenuToManual", player)
-    menuConn.connect(world.get_region("Manual", player))
+    menu = create_region(world, multiworld, player, "Menu", None, ["Manual"])
+    multiworld.regions += [menu]
+    menuConn = multiworld.get_entrance("MenuToManual", player)
+    menuConn.connect(multiworld.get_region("Manual", player))
 
     # Link regions together
     for region in regionMap:
         if "connects_to" in regionMap[region] and regionMap[region]["connects_to"]:
             for linkedRegion in regionMap[region]["connects_to"]:
-                connection = world.get_entrance(getConnectionName(region, linkedRegion), player)
-                connection.connect(world.get_region(linkedRegion, player))
+                connection = multiworld.get_entrance(getConnectionName(region, linkedRegion), player)
+                connection.connect(multiworld.get_region(linkedRegion, player))
 
-def create_region(base: World, world: MultiWorld, player: int, name: str, locations=None, exits=None):
-    ret = Region(name, player, world)
+def create_region(world: World, multiworld: MultiWorld, player: int, name: str, locations=None, exits=None):
+    ret = Region(name, player, multiworld)
 
     if locations:
         for location in locations:
-            loc_id = base.location_name_to_id.get(location, 0)
+            loc_id = world.location_name_to_id.get(location, 0)
             locationObj = ManualLocation(player, location, loc_id, ret)
             ret.locations.append(locationObj)
     if exits:
