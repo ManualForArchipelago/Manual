@@ -36,6 +36,9 @@ from ..Helpers import is_option_enabled, get_option_value
 
 # ut_enabled = True
 
+# You can see if the current generation is a universal tracker "fake" generation with:
+# if hasattr(multiworld, "re_gen_passthrough")
+
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     pass
