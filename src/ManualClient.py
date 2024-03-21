@@ -1,5 +1,5 @@
 from __future__ import annotations
-from worlds import AutoWorldRegister
+from worlds import AutoWorldRegister, network_data_package
 import json
 
 import asyncio, re
@@ -66,8 +66,9 @@ class ManualContext(SuperContext):
         if not self.location_table and not self.item_table and AutoWorldRegister.world_types.get(self.game) is None:
             raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
 
-        self.location_names_to_id = dict([(value, key) for key, value in self.location_names.items()])
-        self.item_names_to_id = dict([(value, key) for key, value in self.item_names.items()])
+        data_package = network_data_package["games"].get(self.game, {})
+
+        self.update_ids(data_package)
 
         await self.get_username()
         await self.send_connect()
@@ -101,6 +102,16 @@ class ManualContext(SuperContext):
     def get_item_by_id(self, id):
         name = self.item_names[id]
         return self.get_item_by_name(name)
+
+    def update_ids(self, data_package) -> None:
+        self.location_names_to_id = data_package['location_name_to_id']
+        self.item_names_to_id = data_package['item_name_to_id']
+
+    def update_data_package(self, data_package: dict):
+        super().update_data_package(data_package)
+        for game, game_data in data_package["games"].items():
+            if game == self.game:
+                self.update_ids(game_data)
 
     @property
     def endpoints(self):
