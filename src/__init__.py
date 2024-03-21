@@ -79,11 +79,14 @@ class ManualWorld(World):
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
 
+        regen = False
         for key, value in slot_data.items():
             if key in self.options_dataclass.type_hints:
                 getattr(self.options, key).value = value
+                regen = True
 
-        hook_interpret_slot_data(self, self.player, slot_data)
+        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        return regen
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
