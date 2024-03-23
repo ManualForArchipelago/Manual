@@ -21,8 +21,3 @@ def after_load_region_file(region_table: dict) -> dict:
 # called after the categories.json file has been loaded
 def after_load_category_file(category_table: dict) -> dict:
     return category_table
-
-# called when an external tool (eg Univeral Tracker) ask for slot data to be read
-# use this if you want to restore more data
-def hook_interpret_slot_data(world, player: int, slot_data: dict[str, any]):
-    pass
