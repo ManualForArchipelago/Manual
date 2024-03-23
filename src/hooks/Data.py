@@ -24,5 +24,6 @@ def after_load_category_file(category_table: dict) -> dict:
 
 # called when an external tool (eg Univeral Tracker) ask for slot data to be read
 # use this if you want to restore more data
-def hook_interpret_slot_data(world, player: int, slot_data: dict[str, any]):
-    pass
+# return True if you want to trigger a regeneration if you changed anything
+def hook_interpret_slot_data(world, player: int, slot_data: dict[str, any]) -> bool:
+    return False
