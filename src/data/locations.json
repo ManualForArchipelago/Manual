@@ -304,5 +304,17 @@
             "She-Hulk",
             "Taskmaster"
         ]
+    },
+    {
+        "name": "Marvel%",
+        "victory": true,
+        "category": ["All Characters Complete!"],
+        "requires": "|@Right Side:all|"
+    },
+    {
+        "name": "Capcom%",
+        "victory": true,
+        "category": ["All Characters Complete!"],
+        "requires": "|@Left Side:all|"
     }
 ]
