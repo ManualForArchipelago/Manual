@@ -33,6 +33,10 @@ class DataValidation():
                         item_parts = item.split(":")
                         item_name = item
 
+                        # it's just a location, so ignore it
+                        if re.match(r'^\[.*\]$',item_name):
+                            continue
+
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
