@@ -9,7 +9,7 @@ from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
 from .Data import item_table, location_table, region_table, category_table
-from .Game import game_name, filler_item_name, starting_items
+from .Game import game_name, filler_item_name, starting_items, set_world_doc, set_world_webworld
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
@@ -50,8 +50,9 @@ class ManualWorld(World):
     The key component to including these games is some level of manual restriction. Since the items are not actually withheld from the player,
     the player must manually refrain from using these gathered items until the tracker shows that they have been acquired or sent.
     """
+    __doc__ = set_world_doc(__doc__)
     game: str = game_name
-    web = ManualWeb()
+    web = set_world_webworld(ManualWeb())
 
     options_dataclass = manual_options_data
     data_version = 2
@@ -368,7 +369,7 @@ class ManualWorld(World):
 
     def get_item_counts(self, player: Optional[int] = None, reset: bool = False) -> dict[str, int]:
         """returns the player real item count"""
-        if player == None:
+        if player is None:
             player = self.player
         if not self.item_counts.get(player, {}) or reset:
             real_pool = self.multiworld.get_items()
