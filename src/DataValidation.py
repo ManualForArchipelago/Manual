@@ -9,6 +9,7 @@ class DataValidation():
     game_table = {}
     item_table = []
     location_table = []
+    location_names = []
     region_table = {}
 
 
@@ -35,6 +36,9 @@ class DataValidation():
 
                         # it's just a location, so ignore it
                         if re.match(r'^\[.*\]$',item_name):
+                            loc_name = item_name.replace("[","").replace("]","")
+                            if loc_name not in DataValidation.location_names:
+                                raise ValidationError("Location %s is required by location %s but is misspelled or does not exist." % (loc_name, location["name"]))
                             continue
 
                         if len(item_parts) > 1:

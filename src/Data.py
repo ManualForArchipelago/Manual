@@ -36,6 +36,7 @@ category_table = after_load_category_file(category_table)
 DataValidation.game_table = game_table
 DataValidation.item_table = item_table
 DataValidation.location_table = location_table
+DataValidation.location_names = [loc["name"] for loc in location_table]
 DataValidation.region_table = region_table
 
 validation_errors = []
