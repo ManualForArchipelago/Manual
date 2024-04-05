@@ -30,13 +30,13 @@ for index in range(0, len(game_table["player"])):
     starting_index += (ord(game_table["player"][index:index+1]) * 1000)
 
 def set_world_doc(base_doc: str):
-    if game_table.get("docs", {}).get("apworld_description", ""):
-        base_doc = game_table["docs"]["apworld_description"]
+    if game_table.get("documentation", {}).get("apworld_description", ""):
+        base_doc = game_table["documentation"]["apworld_description"]
     return hook_set_world_description(base_doc)
 
 def set_world_webworld(web: WebWorld) -> WebWorld:
-    if game_table.get("docs", {}).get("web", {}):
-        Web_Config = game_table["docs"]["web"]
+    if game_table.get("documentation", {}).get("web", {}):
+        Web_Config = game_table["documentation"]["web"]
 
         web.theme = Web_Config.get("theme", web.theme)
         web.game_info_languages = Web_Config.get("game_info_languages", web.game_info_languages)
