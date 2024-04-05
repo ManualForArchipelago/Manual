@@ -1,8 +1,10 @@
 
 from BaseClasses import Tutorial
 from worlds.AutoWorld import World, WebWorld
-from .hooks.Docs import hook_set_world_description, hook_set_world_webworld
+from .hooks.Meta import hook_set_world_description, hook_set_world_webworld
 from .Data import meta_table
+
+enable_puml = meta_table.get("enable_puml", False)
 
 def set_world_doc(base_doc: str):
     if meta_table.get("docs", {}).get("apworld_description", []):

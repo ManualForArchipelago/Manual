@@ -1,5 +1,6 @@
 {
     "_Comment": "remove the _ before a non-comment tag to enable it",
+    "enable_puml": false,
     "Docs": {
         "_For more info check": "for more info check https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#docstrings",
         "apworld_description": [

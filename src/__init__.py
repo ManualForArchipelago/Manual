@@ -8,9 +8,9 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
-from .Data import item_table, location_table, region_table, category_table
+from .Data import item_table, location_table, region_table, category_table, meta_table
 from .Game import game_name, filler_item_name, starting_items
-from .Meta import set_world_doc, set_world_webworld
+from .Meta import set_world_doc, set_world_webworld, enable_puml
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
@@ -296,10 +296,11 @@ class ManualWorld(World):
 
 
         after_generate_basic(self, self.multiworld, self.player)
-        # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
 
-        # from Utils import visualize_regions
-        # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
+        # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
+        if enable_puml:
+            from Utils import visualize_regions
+            visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
 
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
