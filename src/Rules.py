@@ -231,6 +231,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             continue
 
         locFromWorld = multiworld.get_location(location["name"], player)
+        # if location.get("CreateEvent"):
+        #     EventLoc = multiworld.get_location(f"[{location["name"]}]", player)
+        EventLoc = multiworld.get_location(f"[{location['name']}]", player)
 
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
@@ -245,16 +248,19 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 return locationCheck and regionCheck
 
             set_rule(locFromWorld, checkBothLocationAndRegion)
+            set_rule(EventLoc, checkBothLocationAndRegion)
         elif "region" in location: # Only region access required, check the location's region's requires
             def fullRegionCheck(state, region=locationRegion):
                 return fullLocationOrRegionCheck(state, region)
 
             set_rule(locFromWorld, fullRegionCheck)
+            set_rule(EventLoc, fullRegionCheck)
         else: # No location region and no location requires? It's accessible.
             def allRegionsAccessible(state):
                 return True
 
             set_rule(locFromWorld, allRegionsAccessible)
+            set_rule(EventLoc, allRegionsAccessible)
 
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
