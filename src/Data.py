@@ -25,6 +25,7 @@ item_table = load_data_file('items.json')
 location_table = load_data_file('locations.json')
 region_table = load_data_file('regions.json')
 category_table = load_data_file('categories.json') or {}
+meta_table = load_data_file('meta.json') or {}
 
 # hooks
 item_table = after_load_item_file(item_table)

@@ -1,7 +1,4 @@
 from .Data import game_table
-from .hooks.Docs import hook_set_world_description, hook_set_world_webworld
-from BaseClasses import Tutorial
-from worlds.AutoWorld import World, WebWorld
 
 if 'creator' in game_table:
     game_table['player'] = game_table['creator']
@@ -28,32 +25,3 @@ if len(game_table["game"]) > 3:
 
 for index in range(0, len(game_table["player"])):
     starting_index += (ord(game_table["player"][index:index+1]) * 1000)
-
-def set_world_doc(base_doc: str):
-    if game_table.get("documentation", {}).get("apworld_description", ""):
-        base_doc = game_table["documentation"]["apworld_description"]
-    return hook_set_world_description(base_doc)
-
-def set_world_webworld(web: WebWorld) -> WebWorld:
-    if game_table.get("documentation", {}).get("web", {}):
-        Web_Config = game_table["documentation"]["web"]
-
-        web.theme = Web_Config.get("theme", web.theme)
-        web.game_info_languages = Web_Config.get("game_info_languages", web.game_info_languages)
-        web.options_presets = Web_Config.get("options_presets", web.options_presets)
-        web.options_page = Web_Config.get("options_page", web.options_page)
-        web.bug_report_page = Web_Config.get("bug_report_page", web.bug_report_page)
-
-        if Web_Config.get("tutorials", []):
-            tutorials = []
-            for tutorial in Web_Config.get("tutorials", []):
-                tutorials.append(Tutorial(
-                    tutorial.get("name", "Multiworld Setup Guide"),
-                    tutorial.get("description", "A guide to setting up manual game integration for Archipelago multiworld games."),
-                    tutorial.get("language", "English"),
-                    tutorial.get("file_name", "setup_en.md"),
-                    tutorial.get("link", "setup/en"),
-                    tutorial.get("authors", [game_table.get("creator", game_table.get("player", "Unknown"))])
-                ))
-            web.tutorials = tutorials
-    return hook_set_world_webworld(web)
