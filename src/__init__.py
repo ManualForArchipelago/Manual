@@ -21,6 +21,7 @@ from .Options import manual_options_data
 from .Helpers import is_option_enabled, is_item_enabled, get_option_value
 
 from BaseClasses import ItemClassification, Tutorial, Item
+from Options import PerGameCommonOptions
 from worlds.AutoWorld import World, WebWorld
 
 from .hooks.World import \
@@ -77,7 +78,15 @@ class ManualWorld(World):
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
-        hook_interpret_slot_data(self, self.player, slot_data)
+
+        regen = False
+        for key, value in slot_data.items():
+            if key in self.options_dataclass.type_hints:
+                getattr(self.options, key).value = value
+                regen = True
+
+        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        return regen
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
@@ -303,6 +312,11 @@ class ManualWorld(World):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
+        common_options = set(PerGameCommonOptions.type_hints.keys())
+        for option_key, _ in self.options_dataclass.type_hints.items():
+            if option_key in common_options:
+                continue
+            slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
