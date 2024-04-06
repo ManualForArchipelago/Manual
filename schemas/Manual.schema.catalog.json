@@ -30,7 +30,13 @@
         "description": "categories.json schema file for the manual Archipelago Apworld",
         "fileMatch": [ "**/manual_*/data/categories.json" ],
         "url": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.categories.schema.json"
+    },
+    {
+        "name": "Manual meta.json",
+        "description": "meta.json schema file for the manual Archipelago Apworld",
+        "fileMatch": [ "**/manual_*/data/meta.json" ],
+        "url": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.meta.schema.json"
     }
   ],
-  "version": 1.0
+  "version": 20240405.01
 }
