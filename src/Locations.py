@@ -10,7 +10,7 @@ location_table = before_location_table_processed(location_table)
 ######################
 
 count = starting_index + 500 # 500 each for items and locations
-victory_names = []
+victory_names: list[str] = []
 
 # add sequential generated ids to the lists
 for key, _ in enumerate(location_table):
@@ -29,8 +29,8 @@ if not victory_names:
     location_table.append({
         "id": count + 1,
         "name": "__Manual Game Complete__",
-        "region": custom_victory_location["region"] if "region" in custom_victory_location else "Manual",
-        "requires": custom_victory_location["requires"] if "requires" in custom_victory_location else []
+        "region": "Manual",
+        "requires": []
         # "category": custom_victory_location["category"] if "category" in custom_victory_location else []
     })
     victory_names.append("__Manual Game Complete__")
