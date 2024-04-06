@@ -1,10 +1,16 @@
 
 from BaseClasses import Tutorial
 from worlds.AutoWorld import World, WebWorld
-from .hooks.Meta import hook_set_world_description, hook_set_world_webworld
+from .hooks.Data import hook_early_modify_world_properties
 from .Data import meta_table
 
 enable_region_diagram = meta_table.get("enable_region_diagram", False)
+
+def set_world_attributes(world_properties: dict) -> dict:
+    world_properties['description'] = set_world_doc(world_properties.get('description'))
+    world_properties['webworld'] = set_world_webworld(world_properties.get('webworld'))
+    world_properties = hook_early_modify_world_properties(world_properties)
+    return world_properties
 
 def set_world_doc(base_doc: str):
     if meta_table.get("docs", {}).get("apworld_description", []):
@@ -12,7 +18,7 @@ def set_world_doc(base_doc: str):
         for line in meta_table["docs"]["apworld_description"]:
             fullstring += "\n" + line
         base_doc = fullstring
-    return hook_set_world_description(base_doc)
+    return base_doc
 
 def set_world_webworld(web: WebWorld) -> WebWorld:
     if meta_table.get("docs", {}).get("web", {}):
@@ -39,4 +45,4 @@ def set_world_webworld(web: WebWorld) -> WebWorld:
                     tutorial.get("authors", [meta_table.get("creator", meta_table.get("player", "Unknown"))])
                 ))
             web.tutorials = tutorials
-    return hook_set_world_webworld(web)
+    return web

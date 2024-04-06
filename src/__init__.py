@@ -10,8 +10,8 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 
 from .Data import item_table, location_table, region_table, category_table, meta_table
 from .Game import game_name, filler_item_name, starting_items
-from .Meta import set_world_doc, set_world_webworld, enable_region_diagram
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
+from .Meta import set_world_attributes, enable_region_diagram
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
 
@@ -51,9 +51,8 @@ class ManualWorld(World):
     The key component to including these games is some level of manual restriction. Since the items are not actually withheld from the player,
     the player must manually refrain from using these gathered items until the tracker shows that they have been acquired or sent.
     """
-    __doc__ = set_world_doc(__doc__)
     game: str = game_name
-    web = set_world_webworld(ManualWeb())
+    web = ManualWeb()
 
     options_dataclass = manual_options_data
     data_version = 2
@@ -76,6 +75,14 @@ class ManualWorld(World):
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
+
+    creator_modified_settings = set_world_attributes({
+        "description": __doc__,
+        "webworld": web
+    })
+    __doc__ = creator_modified_settings['description']
+    web = creator_modified_settings['webworld']
+    creator_modified_settings = None
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
