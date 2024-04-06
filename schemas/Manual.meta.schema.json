@@ -5,7 +5,7 @@
     "type": "object",
     "properties": {
         "_comment": {"$ref": "#/definitions/comment"},
-        "enable_puml": {
+        "enable_region_diagram": {
             "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
             "type": "boolean"
         },
@@ -14,7 +14,6 @@
             "type": "object",
             "properties": {
                 "_comment": {"$ref": "#/definitions/comment"},
-                "_Comment": {"$ref": "#/definitions/comment"},
                 "apworld_description": {
                     "description": "An array of every line of text describing your apworld. \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#docstrings",
                     "type": "array",
@@ -28,7 +27,6 @@
                     "$comment": "I took the description of properties from the WebWorld Class",
                     "properties": {
                         "_comment": {"$ref": "#/definitions/comment"},
-                        "_Comment": {"$ref": "#/definitions/comment"},
                         "options_page": {
                             "description": "(Optional) a settings page. Can be a link to a specific page or external tool.",
                             "type": ["boolean", "string"]
@@ -95,7 +93,6 @@
             "type":"object",
             "properties": {
                 "_comment": {"$ref": "#/definitions/comment"},
-                "_Comment": {"$ref": "#/definitions/comment"},
                 "name": {
                     "description": "Name of this tutorial.",
                     "type":"string"
