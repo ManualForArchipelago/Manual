@@ -1,10 +1,11 @@
 {
-    "_comment": "remove the _ before a non-comment/info propertie to enable it",
-    "_comment2": "For more info use json schemas to get a description and allowed value for every properties",
-    "_comment3": "https://github.com/ManualForArchipelago/Manual/blob/main/docs/resources/json-schemas-for-world-devs.md",
+    "_comment": [ "remove the _ before a non-comment/info propertie to enable it",
+    "For more info use json schemas to get a description and allowed value for every properties",
+    "https://github.com/ManualForArchipelago/Manual/blob/main/docs/resources/json-schemas-for-world-devs.md"],
     "docs": {
-        "_comment": "For more info on the possible documentation properties check schema and/or",
-        "_comment2": "https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#webworld-class",
+        "_comment": [ "For more info on the possible documentation properties check schema and/or the github",
+            "https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#webworld-class"
+        ],
         "apworld_description": [
             "Manual games allow you to set custom check locations and custom item names that will be rolled into a multiworld.",
             "This allows any variety of game -- PC, console, board games, Microsoft Word memes... really anything -- to be part of a multiworld randomizer.",

@@ -86,7 +86,11 @@
     "definitions": {
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-            "type":"string"
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
         },
         "tutorial": {
             "description": "Class to build website tutorial pages from a .md file in the world's /docs folder",

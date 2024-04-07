@@ -23,10 +23,7 @@
                             "minItems": 1,
                             "uniqueItems": true
                         },
-                        "_comment": {
-                            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-                            "type":"string"
-                        }
+                        "_comment": {"$ref": "#/definitions/comment"}
                     }
                 }
             ]
@@ -38,6 +35,14 @@
         },
         "Connects_to": {
             "type": "string"
+        },
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
         }
     }
 }
