@@ -2,6 +2,8 @@ from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, Te
 from dataclasses import make_dataclass
 from .hooks.Options import before_options_defined, after_options_defined
 from .Data import category_table
+from .Locations import victory_names
+from .Items import item_table
 
 
 class FillerTrapPercent(Range):
@@ -10,7 +12,13 @@ class FillerTrapPercent(Range):
 
 manual_options = before_options_defined({})
 
-manual_options["filler_traps"] = FillerTrapPercent
+if len(victory_names) > 1:
+    goal = {'option_' + v: i for i, v in enumerate(victory_names)}
+    manual_options['goal'] = type('goal', (Choice,), goal)
+    manual_options['goal'].__doc__ = "Choose your victory condition."
+
+if any(item.get('trap') for item in item_table):
+    manual_options["filler_traps"] = FillerTrapPercent
 
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):

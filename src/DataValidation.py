@@ -207,13 +207,6 @@ class DataValidation():
                     raise ValidationError("Region %s connects to a region %s, which is misspelled or does not exist." % (region_name, connecting_region))
 
     @staticmethod
-    def checkForMultipleVictoryLocations():
-        victory_count = len([location["name"] for location in DataValidation.location_table if "victory" in location and location["victory"]])
-
-        if victory_count > 1:
-            raise ValidationError("There are %s victory locations defined, but there should only be 1." % (str(victory_count)))
-
-    @staticmethod
     def checkForDuplicateItemNames():
         for item in DataValidation.item_table:
             name_count = len([i for i in DataValidation.item_table if i["name"] == item["name"]])
@@ -367,10 +360,6 @@ def runGenerationDataValidation() -> None:
 
     # check that regions that are connected to are correct
     try: DataValidation.checkRegionsConnectingToOtherRegions()
-    except ValidationError as e: validation_errors.append(e)
-
-    # check that the apworld creator didn't specify multiple victory conditions
-    try: DataValidation.checkForMultipleVictoryLocations()
     except ValidationError as e: validation_errors.append(e)
 
     # check for duplicate names in items, locations, and regions
