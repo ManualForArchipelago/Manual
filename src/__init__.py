@@ -11,7 +11,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 from .Data import item_table, location_table, region_table, category_table, meta_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import set_world_attributes, enable_region_diagram
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
 
@@ -22,6 +22,7 @@ from .Options import manual_options_data
 from .Helpers import is_option_enabled, is_item_enabled, get_option_value
 
 from BaseClasses import ItemClassification, Tutorial, Item
+from Options import PerGameCommonOptions
 from worlds.AutoWorld import World, WebWorld
 
 from .hooks.World import \
@@ -86,7 +87,15 @@ class ManualWorld(World):
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
-        hook_interpret_slot_data(self, self.player, slot_data)
+
+        regen = False
+        for key, value in slot_data.items():
+            if key in self.options_dataclass.type_hints:
+                getattr(self.options, key).value = value
+                regen = True
+
+        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        return regen
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
@@ -98,8 +107,11 @@ class ManualWorld(World):
 
         create_regions(self, self.multiworld, self.player)
 
-        location_game_complete = self.multiworld.get_location("__Manual Game Complete__", self.player)
+        location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
+
+        for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
+            unused_goal.parent_region.locations.remove(unused_goal)
 
         location_game_complete.place_locked_item(
             ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
@@ -313,6 +325,11 @@ class ManualWorld(World):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
+        common_options = set(PerGameCommonOptions.type_hints.keys())
+        for option_key, _ in self.options_dataclass.type_hints.items():
+            if option_key in common_options:
+                continue
+            slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
