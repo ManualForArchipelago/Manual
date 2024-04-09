@@ -1,6 +1,6 @@
 from typing import Optional
 from worlds.AutoWorld import World
-from ..Helpers import clamp
+from ..Helpers import clamp, get_items_with_value
 from BaseClasses import MultiWorld, CollectionState
 
 import re
@@ -28,55 +28,40 @@ def requiresMelee(world: World, multiworld: MultiWorld, state: CollectionState, 
     """Returns a requires string that checks if the player has unlocked the tank."""
     return "|Figher Level:15| or |Black Belt Level:15| or |Thief Level:15|"
 
+# ItemValue when passed a string like this: 'valueName:int' and having items with "value": {"valueName": Number of typeName this item is worth}
+# it will check if the player has collect at least 'int' valueName worth of items
+# eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items
 def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, args: str):
     """Has the player reached a certain number of X value"""
 
     args_list = args.split(":")
-
     if not len(args_list) == 2 or not args_list[1].isnumeric():
         raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args_list[0]}:12)'")
-    args_list[1] = int(args_list[1])
+    args_list[0] = args_list[0].lower().strip()
+    args_list[1] = int(args_list[1].strip())
 
-    if not hasattr(world, 'custom_item_values'):
-        #im making a cache so the future loops are not triggered every time
-        world.custom_item_values = {}
+    if not hasattr(world, 'item_values_cache'): #Cache made for optimization purposes
+        world.item_values_cache = {}
 
-    state_player = f"{player}_state"
-    current_player = f"{player}_current"
-    if not world.custom_item_values.get(state_player, {}): # First Time
-        world.custom_item_values[state_player] = {}
-        world.custom_item_values[current_player] = {}
+    if not world.item_values_cache.get(player, {}):
+        world.item_values_cache[player] = {
+            'state': {},
+            'count': {},
+            }
 
-    if args_list[0] not in world.custom_item_values.get(current_player, {}).keys() or world.custom_item_values[state_player] != dict(state.prog_items[player]):
-        #First Time or if state changed since last check
-        existing_item_values = _GetItemsWithValue(world, multiworld, args_list[0])
+    if (args_list[0] not in world.item_values_cache[player].get('count', {}).keys()
+            or world.item_values_cache[player].get('state') != dict(state.prog_items[player])):
+        #Run First Time or if state changed since last check
+        existing_item_values = get_items_with_value(world, multiworld, args_list[0])
         total_Count = 0
         for name, value in existing_item_values.items():
             count = state.count(name, player)
             if count > 0:
                 total_Count += count * value
-        world.custom_item_values[current_player][args_list[0]] = total_Count
-        world.custom_item_values[state_player] = dict(state.prog_items[player]) #save the current gotten items to check later if its the same
-    return world.custom_item_values[current_player][args_list[0]] >= args_list[1]
+        world.item_values_cache[player]['count'][args_list[0]] = total_Count
+        world.item_values_cache[player]['state'] = dict(state.prog_items[player]) #save the current gotten items to check later if its the same
+    return world.item_values_cache[player]['count'][args_list[0]] >= args_list[1]
 
-def _GetItemsWithValue(world: World, multiworld: MultiWorld, items_value_to_get: str, player: Optional[int] = None, force: bool = False) -> dict[str, int]:
-    if player is None:
-        player = world.player
-
-    if not hasattr(world, 'custom_item_values'):
-        #I left a Copy here of the check if you decide to call _GetItemsWithValue before ItemValue
-        world.custom_item_values = {}
-
-    if not world.custom_item_values.get(player):
-        world.custom_item_values[player] = {}
-
-    if items_value_to_get not in world.custom_item_values.get(player, {}).keys() or force:
-        real_pool = multiworld.get_items()
-        item_with_values = {i.name: world.item_name_to_item[i.name]['value'].get(items_value_to_get)
-                            for i in real_pool if i.player == player and i.code is not None
-                            and world.item_name_to_item.get(i.name, {}).get('value', {}).get(items_value_to_get)}
-        world.custom_item_values[player][items_value_to_get] = item_with_values
-    return world.custom_item_values[player].get(items_value_to_get)
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
 # OptOne check if the passed item (with or without ||) is enabled, then return |item:count| where count is clamped to the maximum number of said item
@@ -143,4 +128,3 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
     for function in functions:
         requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
     return requires_list
-
