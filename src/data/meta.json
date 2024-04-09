@@ -15,7 +15,7 @@
         "web": {
             "_comment": "for more info check github https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#webworld-class",
             "theme": "grass",
-            "bug_report_page": "https://discord.gg/ZAq5G7aXHy",
+            "bug_report_page": "https://discord.gg/T5bcsVHByx",
             "tutorials": [
                 {
                     "name": "Multiworld Setup Guide",
