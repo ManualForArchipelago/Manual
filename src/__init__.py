@@ -10,7 +10,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 
 from .Data import item_table, location_table, region_table, category_table, meta_table
 from .Game import game_name, filler_item_name, starting_items
-from .Meta import set_world_doc, set_world_webworld, enable_region_diagram
+from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
@@ -34,27 +34,10 @@ from .hooks.World import \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
 
-
-class ManualWeb(WebWorld):
-    tutorials = [Tutorial(
-        "Multiworld Setup Guide",
-        "A guide to setting up manual game integration for Archipelago multiworld games.",
-        "English",
-        "setup_en.md",
-        "setup/en",
-        ["Fuzzy"]
-    )]
-
 class ManualWorld(World):
-    """
-    Manual games allow you to set custom check locations and custom item names that will be rolled into a multiworld.
-    This allows any variety of game -- PC, console, board games, Microsoft Word memes... really anything -- to be part of a multiworld randomizer.
-    The key component to including these games is some level of manual restriction. Since the items are not actually withheld from the player,
-    the player must manually refrain from using these gathered items until the tracker shows that they have been acquired or sent.
-    """
-    __doc__ = set_world_doc(__doc__)
+    __doc__ = world_description
     game: str = game_name
-    web = set_world_webworld(ManualWeb())
+    web = world_webworld
 
     options_dataclass = manual_options_data
     data_version = 2
