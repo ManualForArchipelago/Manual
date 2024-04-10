@@ -75,6 +75,7 @@ class ManualWorld(World):
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
+    victory_names = victory_names
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
@@ -418,7 +419,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_03_21 # YYYYMMDD
+    version = 2024_04_10 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":
