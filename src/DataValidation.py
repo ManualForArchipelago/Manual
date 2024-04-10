@@ -158,6 +158,8 @@ class DataValidation():
             if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
                 continue
 
+            checkValue = ("value" in item and item["value"])
+
             # check location requires for the presence of item name
             for location in DataValidation.location_table:
                 if "requires" not in location:
@@ -170,6 +172,11 @@ class DataValidation():
                 if isinstance(location_requires, str):
                     if '|{}|'.format(item["name"]) in location_requires:
                         raise ValidationError("Item %s is required by location %s, but the item is not marked as progression." % (item["name"], location["name"]))
+                    if checkValue and 'ItemValue' in location_requires:
+                        for value in re.findall(r'\{ItemValue\(([^:]*)\:[^)]+\)\}', location_requires):
+                            if value in item["value"].keys():
+                                raise ValidationError(f"Item {item['name']} has a value for the '{value}' value required by location '{location['name']}', but the item is not marked as progression.")
+
                 else:
                     if item["name"] in location_requires:
                         raise ValidationError("Item %s is required by location %s, but the item is not marked as progression." % (item["name"], location["name"]))
@@ -188,6 +195,11 @@ class DataValidation():
                 if isinstance(region_requires, str):
                     if '|{}|'.format(item["name"]) in region_requires:
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
+                    if checkValue and 'ItemValue' in location_requires:
+                        for value in re.findall(r'\{ItemValue\(([^:]*)\:[^)]+\)\}', location_requires):
+                            if value in item["value"].keys():
+                                raise ValidationError(f"Item {item['name']} has a value for the '{value}' value required by region '{region_name}', but the item is not marked as progression.")
+
                 else:
                     if item["name"] in region_requires:
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
