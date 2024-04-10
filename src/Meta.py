@@ -1,16 +1,9 @@
 
 from BaseClasses import Tutorial
 from worlds.AutoWorld import World, WebWorld
-from .hooks.Data import hook_early_modify_world_properties
 from .Data import meta_table
 
 enable_region_diagram = meta_table.get("enable_region_diagram", False)
-
-def set_world_attributes(world_properties: dict) -> dict:
-    world_properties['description'] = set_world_doc(world_properties.get('description'))
-    world_properties['webworld'] = set_world_webworld(world_properties.get('webworld'))
-    world_properties = hook_early_modify_world_properties(world_properties)
-    return world_properties
 
 def set_world_doc(base_doc: str):
     if meta_table.get("docs", {}).get("apworld_description", []):

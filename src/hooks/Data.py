@@ -25,16 +25,10 @@ def after_load_region_file(region_table: dict) -> dict:
 def after_load_category_file(category_table: dict) -> dict:
     return category_table
 
-# called after the meta.json file has been loaded
+# called after the meta.json file has been loaded and just before the properties of the apworld are defined. You can use this hook to change what is displayed on the webhost
+# for more info check https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#webworld-class
 def after_load_meta_file(meta_table: dict) -> dict:
     return meta_table
-
-# called just after the properties of the apworld are defined. You can use this hook to change what is displayed on the webhost
-# world_properties['description'] contains the long description of this apworld
-# world_properties['webworld'] contains the webworld of this apworld
-# for more info check https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#webworld-class
-def hook_early_modify_world_properties(world_properties: dict) -> dict:
-    return world_properties
 
 # called when an external tool (eg Univeral Tracker) ask for slot data to be read
 # use this if you want to restore more data
