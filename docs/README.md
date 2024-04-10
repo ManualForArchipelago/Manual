@@ -12,11 +12,10 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 - [Overview](manual/overview.md)
 - [How does it work?](manual/how-it-works.md)
-  
+
 ### How to play a Manual?
 
 - [Get the apworld](play/get-apworld.md)
-- [Get the Manual client](play/get-client.md)
 - [How to connect the Manual client](play/connect-client.md)
 
 ### How to design a Manual?
