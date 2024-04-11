@@ -196,14 +196,67 @@ class DataValidation():
                 if isinstance(region_requires, str):
                     if '|{}|'.format(item["name"]) in region_requires:
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
-                    if itemValues and 'ItemValue' in location_requires:
-                        for value in re.findall(r'\{ItemValue\(([^:]*)\:[^)]+\)\}', location_requires):
+                    if itemValues and 'ItemValue' in region_requires:
+                        for value in re.findall(r'\{ItemValue\(([^:]*)\:[^)]+\)\}', region_requires):
                             if value.lower().strip() in [i.lower().strip() for i in item["value"].keys()]:
                                 raise ValidationError(f"Item {item['name']} has a value for the '{value}' value required by region '{region_name}', but the item is not marked as progression.")
 
                 else:
                     if item["name"] in region_requires:
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
+
+    @staticmethod
+    def checkIfEnoughItemsForValue():
+        values_available = {}
+        values_requested = {}
+
+        # get all the available values with total count
+        for item in DataValidation.item_table:
+            for key, count in item.get("value", {}).items():
+                if not values_available.get(key.lower().strip()):
+                    values_available[key] = 0
+                values_available[key] += int(count)
+
+        # find the biggest values required by locations
+        for location in DataValidation.location_table:
+            if "requires" not in location:
+                continue
+
+            # convert to json so we don't have to guess the data type
+            location_requires = json.dumps(location["requires"])
+
+            if isinstance(location_requires, str) and 'ItemValue' in location_requires:
+                for result in re.findall(r'\{ItemValue\(([^:]*)\:([^)]+)\)\}', location_requires):
+                    value = result[0].lower().strip()
+                    count = int(result[1])
+                    if not values_requested.get(value):
+                        values_requested[value] = count
+                    else:
+                        values_requested[value] = max(values_requested[value], count)
+
+        # check region requires for the presence of item name
+        for region_name in DataValidation.region_table:
+            region = DataValidation.region_table[region_name]
+
+            if "requires" not in region:
+                continue
+
+            # convert to json so we don't have to guess the data type
+            region_requires = json.dumps(region["requires"])
+
+            if isinstance(region_requires, str) and 'ItemValue' in region_requires:
+                for result in re.findall(r'\{ItemValue\(([^:]*)\:([^)]+)\)\}', region_requires):
+                    value = result[0].lower().strip()
+                    count = int(result[1])
+                    if not values_requested.get(value):
+                        values_requested[value] = count
+                    else:
+                        values_requested[value] = max(values_requested[value], count)
+
+        # compare whats available vs requested
+        for value, count in values_requested:
+            if values_available.get(value, 0) < count:
+                raise ValidationError(f"there's not enough item of value '{value}' to fulfill the required {count} {value}. Only a total worth of {values_available.get(value, 0)} {value} can be found.")
 
     @staticmethod
     def checkRegionsConnectingToOtherRegions():
@@ -369,6 +422,10 @@ def runGenerationDataValidation() -> None:
 
     # check that items that are required by locations and regions are also marked required
     try: DataValidation.checkItemsThatShouldBeRequired()
+    except ValidationError as e: validation_errors.append(e)
+
+    # check if there's enough Items with values to get to every location requesting it
+    try: DataValidation.checkIfEnoughItemsForValue()
     except ValidationError as e: validation_errors.append(e)
 
     # check that regions that are connected to are correct
