@@ -101,6 +101,8 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
     if player is None:
         player = world.player
 
+    value = value.lower().strip()
+
     if not hasattr(world, 'item_values'): #Cache of just the item values
         world.item_values = {}
 
