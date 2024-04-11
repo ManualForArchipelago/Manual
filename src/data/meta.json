@@ -34,5 +34,7 @@
                 }
             }
         }
-    }
+    },
+    "_Comment":"Enable the generation of puml diagram of your apworld region and locations for debug purposes",
+    "enable_region_diagram": false
 }

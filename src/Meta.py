@@ -16,9 +16,9 @@ class ManualWeb(WebWorld):
         ["Fuzzy"]
     )]
 
-#################################################
+######################################
 # Convert meta.json data to properties
-#################################################
+######################################
 def set_world_description(base_doc: str) -> str:
     if isinstance(meta_table["docs"]["apworld_description"], str):
         base_doc = meta_table["docs"]["apworld_description"]
@@ -68,4 +68,4 @@ world_description: str = set_world_description("""
     """)
 world_webworld: ManualWeb = set_world_webworld(ManualWeb())
 
-enable_region_diagram = meta_table.get("enable_region_diagram", False)
+enable_region_diagram = bool(meta_table.get("enable_region_diagram", False))
