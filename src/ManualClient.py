@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 from worlds import AutoWorldRegister, network_data_package
 import json
 
@@ -17,7 +18,8 @@ from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProc
 
 tracker_loaded = False
 try:
-    from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
+    from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext, TrackerCommandProcessor
+    ClientCommandProcessor = TrackerCommandProcessor
     tracker_loaded = True
 except ModuleNotFoundError:
     from CommonClient import CommonContext as SuperContext
@@ -41,12 +43,15 @@ class ManualContext(SuperContext):
     category_table = {}
 
     tracker_reachable_locations = []
+    tracker_reachable_events = []
 
     def __init__(self, server_address, password, game, player_name) -> None:
         super(ManualContext, self).__init__(server_address, password)
 
         if tracker_loaded:
             super().set_callback(self.on_tracker_updated) # Universal Tracker takes this func and calls it when updateTracker is called
+            if hasattr(self, "set_events_callback"):
+                super().set_events_callback(self.on_tracker_events) # Universal Tracker takes this func and calls it when events are calculated
 
         self.send_index: int = 0
         self.syncing = False
@@ -63,12 +68,20 @@ class ManualContext(SuperContext):
 
         self.game = self.ui.game_bar_text.text
 
-        if not self.location_table and not self.item_table and AutoWorldRegister.world_types.get(self.game) is None:
+        world = AutoWorldRegister.world_types.get(self.game)
+        if not self.location_table and not self.item_table and world is None:
             raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
 
         data_package = network_data_package["games"].get(self.game, {})
 
         self.update_ids(data_package)
+
+        if world is not None and hasattr(world, "victory_names"):
+            self.victory_names = world.victory_names
+            self.goal_location = self.get_location_by_name(world.victory_names[0])
+        else:
+            self.victory_names = ["__Manual Game Complete__"]
+            self.goal_location = self.get_location_by_name("__Manual Game Complete__")
 
         await self.get_username()
         await self.send_connect()
@@ -82,14 +95,14 @@ class ManualContext(SuperContext):
             return self.game
         return Utils.persistent_load().get("client", {}).get("last_manual_game", "Manual_{\"game\" from game.json}_{\"creator\" from game.json}")
 
-    def get_location_by_name(self, name):
+    def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
         if not location:
             # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
             location = AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
         return location
 
-    def get_location_by_id(self, id):
+    def get_location_by_id(self, id) -> dict[str, Any]:
         name = self.location_names[id]
         return self.get_location_by_name(name)
 
@@ -127,10 +140,15 @@ class ManualContext(SuperContext):
         super().on_package(cmd, args)
 
         if cmd in {"Connected", "DataPackage"}:
-            self.ui.build_tracker_and_locations_table()
-            self.ui.update_tracker_and_locations_table(update_highlights=True)
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
+                goal = args["slot_data"].get("goal")
+                if goal and goal < len(self.victory_names):
+                    self.goal_location = self.get_location_by_name(self.victory_names[goal])
+                logger.info(f"Slot data: {args['slot_data']}")
+
+            self.ui.build_tracker_and_locations_table()
+            self.ui.update_tracker_and_locations_table(update_highlights=True)
         elif cmd in {"ReceivedItems"}:
             self.ui.update_tracker_and_locations_table(update_highlights=True)
         elif cmd in {"RoomUpdate"}:
@@ -139,6 +157,11 @@ class ManualContext(SuperContext):
     def on_tracker_updated(self, reachable_locations: list[str]):
         self.tracker_reachable_locations = reachable_locations
         self.ui.update_tracker_and_locations_table(update_highlights=True)
+
+    def on_tracker_events(self, events: list[str]):
+        self.tracker_reachable_events = events
+        if events:
+            self.ui.update_tracker_and_locations_table(update_highlights=True)
 
     def run_gui(self):
         """Import kivy UI system and start running it as self.ui_task."""
@@ -166,7 +189,7 @@ class ManualContext(SuperContext):
             pass
 
         class TreeViewButton(Button, TreeViewNode):
-            pass
+            victory: bool = False
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
@@ -309,7 +332,8 @@ class ManualContext(SuperContext):
                     else: # leave it in the generic category
                         self.listed_locations["(No Category)"].append(location_id)
 
-                victory_location =  self.ctx.get_location_by_name("__Manual Game Complete__")
+                victory_location =  self.ctx.goal_location
+                victory_categories = set()
 
                 if "category" in victory_location and len(victory_location["category"]) > 0:
                     for category in victory_location["category"]:
@@ -318,6 +342,10 @@ class ManualContext(SuperContext):
 
                         if category not in self.listed_locations:
                             self.listed_locations[category] = []
+                            victory_categories.add(category)
+
+                if not victory_categories:
+                    victory_categories.add("(No Category)")
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -345,11 +373,10 @@ class ManualContext(SuperContext):
                     raise Exception("The apworld for %s is too outdated for this client. Please update it." % (self.ctx.game))
 
                 for location_category in sorted(self.listed_locations.keys()):
-                    victory_location_data = self.ctx.get_location_by_name("__Manual Game Complete__")
                     locations_in_category = len(self.listed_locations[location_category])
 
-                    if ("category" in victory_location_data and location_category in victory_location_data["category"]) or \
-                        ("category" not in victory_location_data and location_category == "(No Category)"):
+                    if ("category" in victory_location and location_category in victory_location["category"]) or \
+                        ("category" not in victory_location and location_category == "(No Category)"):
                         locations_in_category += 1
 
                     category_tree = locations_panel.add_node(
@@ -369,10 +396,11 @@ class ManualContext(SuperContext):
                     # if this is the category that Victory is in, display the Victory button
                     # if ("category" in victory_location_data and location_category in victory_location_data["category"]) or \
                     #     ("category" not in victory_location_data and location_category == "(No Category)"):
-                    if (location_category == "(No Category)"):
-
+                    if location_category in victory_categories:
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
-                        location_button = TreeViewButton(text="VICTORY! (seed finished)", size_hint=(None, None), height=30, width=400)
+                        victory_text = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
+                        location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=30, width=400)
+                        location_button.victory = True
                         location_button.bind(on_press=self.victory_button_callback)
                         category_layout.add_widget(location_button)
 
@@ -408,7 +436,7 @@ class ManualContext(SuperContext):
                             if type(category_label) is TreeViewLabel and type(category_scrollview) is TreeViewScrollView:
                                 category_grid = category_scrollview.children[0] # GridLayout
 
-                                category_name = re.sub("\s\(\d+\)$", "", category_label.text)
+                                category_name = re.sub(r"\s\(\d+\)$", "", category_label.text)
                                 category_count = 0
                                 category_unique_name_count = 0
 
@@ -417,7 +445,7 @@ class ManualContext(SuperContext):
                                      if type(item) is Label:
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
                                         old_item_text = item.text
-                                        item_name = re.sub("\s\(\d+\)$", "", item.text)
+                                        item_name = re.sub(r"\s\(\d+\)$", "", item.text)
                                         item_id = self.ctx.item_names_to_id[item_name]
                                         item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
 
@@ -458,7 +486,7 @@ class ManualContext(SuperContext):
                             if scrollview_height < 10:
                                 scrollview_height = 50
 
-                            category_name = re.sub("\s\(\d+\)$", "", category_label.text)
+                            category_name = re.sub(r"\s\(\d+\)$", "", category_label.text)
                             category_label.text = "%s (%s)" % (category_name, category_count)
 
                             if update_highlights:
@@ -486,7 +514,7 @@ class ManualContext(SuperContext):
                             if type(category_label) is TreeViewLabel and type(category_scrollview) is TreeViewScrollView:
                                 category_grid = category_scrollview.children[0] # GridLayout
 
-                                category_name = re.sub("\s\(\d+\/?(\d+)?\)$", "", category_label.text)
+                                category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
                                 category_count = 0
                                 reachable_count = 0
 
@@ -498,7 +526,9 @@ class ManualContext(SuperContext):
                                         # should only be true for the victory location button, which has different text
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
                                             category_count += 1
-
+                                            if location_button.victory and "__Victory__" in self.ctx.tracker_reachable_events:
+                                                location_button.background_color=[2/255, 242/255, 42/255, 1]
+                                                reachable_count += 1
                                             continue
 
                                         location = self.ctx.get_location_by_name(location_button.text)
@@ -534,7 +564,7 @@ class ManualContext(SuperContext):
                                 if tracker_loaded:
                                     count_text = "{}/{}".format(reachable_count, category_count)
 
-                                category_name = re.sub("\s\(\d+\/?(\d+)?\)$", "", category_label.text)
+                                category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
                                 category_label.text = "%s (%s)" % (category_name, count_text)
                                 category_scrollview.size=(Window.width / 2, scrollview_height)
 
