@@ -57,6 +57,20 @@
                 "type": "boolean",
                 "default": true
             },
+            "value": {
+                "description": "(Optional) A dictonary of values this item has in the format {\"name\": int,\"otherName\": int} \nUsed with the {ItemValue(Name: int)} in location requires \neg. \"value\": {\"coins\":10} mean this item is worth 10 coins",
+                "type": "object",
+                "patternProperties": {
+                    "^.+$": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "description": "A value that this item has must be 'name':integer \neg. \"coins\": 10"
+                            }
+                        ]
+                    }
+                }
+            },
             "_comment": {
                 "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
                 "type":"string"
