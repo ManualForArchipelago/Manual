@@ -64,12 +64,11 @@ def create_region(world: World, multiworld: MultiWorld, player: int, name: str, 
             loc_id = world.location_name_to_id.get(location, 0)
             locationObj = ManualLocation(player, location, loc_id, ret)
             ret.locations.append(locationObj)
-            if location in DataValidation.location_events_table:
-                eventLocationObj = ManualLocation(player,"["+location+"]",None,ret)
-                eventLocationObj.show_in_spoiler = False
-                eventItemOjb = ManualItem("["+location+"]",ItemClassification.progression, None, player)
-                eventLocationObj.place_locked_item(eventItemOjb)
-                ret.locations.append(eventLocationObj)
+            eventLocationObj = ManualLocation(player,"__LOCATION_"+location,None,ret)
+            eventLocationObj.show_in_spoiler = False
+            eventItemOjb = ManualItem("__LOCATION_"+location,ItemClassification.progression, None, player)
+            eventLocationObj.place_locked_item(eventItemOjb)
+            ret.locations.append(eventLocationObj)
     if exits:
         for exit in exits:
             ret.exits.append(Entrance(player, getConnectionName(name, exit), ret))

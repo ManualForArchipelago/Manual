@@ -9,7 +9,6 @@ class DataValidation():
     game_table = {}
     item_table = []
     location_table = []
-    location_events_table = []
     location_names = []
     region_table = {}
 
@@ -38,18 +37,16 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        if re.match(r'^\[.*\]$',item_name):
-                            loc_name = item_name.replace("[","").replace("]","")
-                            if loc_name not in DataValidation.location_names:
-                                raise ValidationError("Location %s is required by location %s but is misspelled or does not exist." % (loc_name, location["name"]))
-                            if loc_name not in DataValidation.location_events_table:
-                                DataValidation.location_events_table.append(loc_name)
-                            continue
+
 
                         item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
+                for loc in re.findall(r'\[[^\]]+\]',location["requires"]): #[location name]
+                    loc_name = loc.replace("[","").replace("]","")
+                    if loc_name not in DataValidation.location_names:
+                        raise ValidationError("Location %s is required by location %s but is misspelled or does not exist." % (loc_name, location["name"]))
 
             else:  # item access is in dict form
                 for item in location["requires"]:
@@ -71,8 +68,6 @@ class DataValidation():
                                 loc_name = or_item_name.replace("[","").replace("]","")
                                 if loc_name not in DataValidation.location_names:
                                     raise ValidationError("Location %s is required by location %s but is misspelled or does not exist." % (or_item_name, location["name"]))
-                                if loc_name not in DataValidation.location_events_table:
-                                    DataValidation.location_events_table.append(loc_name)
                                 continue
 
                             item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == or_item_name]) > 0
@@ -90,8 +85,6 @@ class DataValidation():
                             loc_name = item_name.replace("[","").replace("]","")
                             if loc_name not in DataValidation.location_names:
                                 raise ValidationError("Location %s is required by location %s but is misspelled or does not exist." % (loc_name, location["name"]))
-                            if loc_name not in DataValidation.location_events_table:
-                                DataValidation.location_events_table.append(loc_name)
                             continue
 
                         item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
@@ -125,18 +118,14 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        if re.match(r'^\[.*\]$',item_name):
-                            loc_name = item_name.replace("[","").replace("]","")
-                            if loc_name not in DataValidation.location_names:
-                                raise ValidationError("Location %s is required by region %s but is misspelled or does not exist." % (loc_name, region_name))
-                            if loc_name not in DataValidation.location_events_table:
-                                DataValidation.location_events_table.append(loc_name)
-                            continue
-
                         item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
+                for loc in re.findall(r'\[[^\]]+\]',region["requires"]): #[location name]
+                    loc_name = loc.replace("[","").replace("]","")
+                    if loc_name not in DataValidation.location_names:
+                        raise ValidationError("Location %s is required by region %s but is misspelled or does not exist." % (loc_name, region_name))
 
             else:  # item access is in dict form
                 for item in region["requires"]:
@@ -158,9 +147,6 @@ class DataValidation():
                                 loc_name = or_item_name.replace("[","").replace("]","")
                                 if loc_name not in DataValidation.location_names:
                                     raise ValidationError("Location %s is required by region %s but is misspelled or does not exist." % (loc_name, region_name))
-                            if loc_name not in DataValidation.location_events_table:
-                                DataValidation.location_events_table.append(loc_name)
-
                             item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == or_item_name]) > 0
 
                             if not item_exists:
@@ -176,8 +162,6 @@ class DataValidation():
                             loc_name = item_name.replace("[","").replace("]","")
                             if loc_name not in DataValidation.location_names:
                                 raise ValidationError("Location %s is required by region %s but is misspelled or does not exist." % (loc_name, region_name))
-                            if loc_name not in DataValidation.location_events_table:
-                                DataValidation.location_events_table.append(loc_name)
                             continue
 
                         item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0

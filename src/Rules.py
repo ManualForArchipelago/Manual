@@ -92,6 +92,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             else:
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
 
+        for loc in re.findall(r'\[[^\]]+\]',requires_list):
+            loc_name = "|__LOCATION_"+loc.lstrip('[').rstrip(']')+"|"
+            requires_list = requires_list.replace(loc,loc_name)
+
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', requires_list):
@@ -234,9 +238,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         locFromWorld = multiworld.get_location(location["name"], player)
         # if location.get("CreateEvent"):
         #     EventLoc = multiworld.get_location(f"[{location["name"]}]", player)
-        EventLoc = None
-        if location['name'] in DataValidation.location_events_table:
-            EventLoc = multiworld.get_location(f"[{location['name']}]", player)
+        EventLoc = multiworld.get_location(f"__LOCATION_{location['name']}", player)
 
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
