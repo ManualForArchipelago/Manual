@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from worlds.generic.Rules import set_rule
+from .DataValidation import DataValidation
 from .Regions import regionMap
 from .hooks import Rules
 from BaseClasses import MultiWorld, CollectionState
@@ -90,6 +91,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
             else:
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
+
+        for loc in re.findall(r'\[[^\]]+\]',requires_list):
+            loc_name = "|__LOCATION_"+loc.lstrip('[').rstrip(']')+"|"
+            requires_list = requires_list.replace(loc,loc_name)
 
 
         # parse user written statement into list of each item
@@ -231,6 +236,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             continue
 
         locFromWorld = multiworld.get_location(location["name"], player)
+        # if location.get("CreateEvent"):
+        #     EventLoc = multiworld.get_location(f"[{location["name"]}]", player)
+        EventLoc = multiworld.get_location(f"__LOCATION_{location['name']}", player)
 
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
@@ -245,16 +253,22 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 return locationCheck and regionCheck
 
             set_rule(locFromWorld, checkBothLocationAndRegion)
+            if EventLoc:
+                set_rule(EventLoc, checkBothLocationAndRegion)
         elif "region" in location: # Only region access required, check the location's region's requires
             def fullRegionCheck(state, region=locationRegion):
                 return fullLocationOrRegionCheck(state, region)
 
             set_rule(locFromWorld, fullRegionCheck)
+            if EventLoc:
+                set_rule(EventLoc, fullRegionCheck)
         else: # No location region and no location requires? It's accessible.
             def allRegionsAccessible(state):
                 return True
 
             set_rule(locFromWorld, allRegionsAccessible)
+            if EventLoc:
+                set_rule(EventLoc, allRegionsAccessible)
 
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
