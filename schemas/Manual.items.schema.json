@@ -57,16 +57,21 @@
                 "type": "boolean",
                 "default": true
             },
-            "_comment": {
-                "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-                "type":"string"
-            }
+            "_comment": {"$ref": "#/definitions/comment"}
 
         },
         "required": ["name"]
     },
     "Category": {
         "type": "string"
+    },
+    "comment": {
+        "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+        "type": ["string", "array"],
+        "items": {
+            "description": "A line of comment",
+            "type":"string"
+        }
     }
   }
 }

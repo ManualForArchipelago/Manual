@@ -8,8 +8,9 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
-from .Data import item_table, location_table, region_table, category_table
+from .Data import item_table, location_table, region_table, category_table, meta_table
 from .Game import game_name, filler_item_name, starting_items
+from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation
@@ -33,26 +34,10 @@ from .hooks.World import \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
 
-
-class ManualWeb(WebWorld):
-    tutorials = [Tutorial(
-        "Multiworld Setup Guide",
-        "A guide to setting up manual game integration for Archipelago multiworld games.",
-        "English",
-        "setup_en.md",
-        "setup/en",
-        ["Fuzzy"]
-    )]
-
 class ManualWorld(World):
-    """
-    Manual games allow you to set custom check locations and custom item names that will be rolled into a multiworld.
-    This allows any variety of game -- PC, console, board games, Microsoft Word memes... really anything -- to be part of a multiworld randomizer.
-    The key component to including these games is some level of manual restriction. Since the items are not actually withheld from the player,
-    the player must manually refrain from using these gathered items until the tracker shows that they have been acquired or sent.
-    """
+    __doc__ = world_description
     game: str = game_name
-    web = ManualWeb()
+    web = world_webworld
 
     options_dataclass = manual_options_data
     data_version = 2
@@ -307,10 +292,11 @@ class ManualWorld(World):
 
 
         after_generate_basic(self, self.multiworld, self.player)
-        # Uncomment these to generate a diagram of your manual.  Only works on 0.4.4+
 
-        # from Utils import visualize_regions
-        # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
+        # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
+        if enable_region_diagram:
+            from Utils import visualize_regions
+            visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
 
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
@@ -386,7 +372,7 @@ class ManualWorld(World):
 
     def get_item_counts(self, player: Optional[int] = None, reset: bool = False) -> dict[str, int]:
         """returns the player real item count"""
-        if player == None:
+        if player is None:
             player = self.player
         if not self.item_counts.get(player, {}) or reset:
             real_pool = self.multiworld.get_items()
