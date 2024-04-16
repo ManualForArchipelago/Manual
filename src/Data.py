@@ -6,8 +6,10 @@ import pkgutil
 from .DataValidation import DataValidation, ValidationError
 
 from .hooks.Data import \
+    after_load_game_file, \
     after_load_item_file, after_load_location_file, \
-    after_load_region_file, after_load_category_file
+    after_load_region_file, after_load_category_file, \
+    after_load_meta_file
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
@@ -25,12 +27,15 @@ item_table = load_data_file('items.json')
 location_table = load_data_file('locations.json')
 region_table = load_data_file('regions.json')
 category_table = load_data_file('categories.json') or {}
+meta_table = load_data_file('meta.json') or {}
 
 # hooks
+game_table = after_load_game_file(game_table)
 item_table = after_load_item_file(item_table)
 location_table = after_load_location_file(location_table)
 region_table = after_load_region_file(region_table)
 category_table = after_load_category_file(category_table)
+meta_table = after_load_meta_file(meta_table)
 
 # seed all of the tables for validation
 DataValidation.game_table = game_table

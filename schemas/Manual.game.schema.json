@@ -28,10 +28,7 @@
                 "$ref": "#/definitions/Sitems"
             }
         },
-        "_comment": {
-            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-            "type":"string"
-        }
+        "_comment": {"$ref": "#/definitions/comment"}
     },
     "required":["game", "filler_item_name"],
     "oneOf":[
@@ -39,6 +36,14 @@
         {"required":["player"]}
     ],
     "definitions": {
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
+        },
         "Sitems": {
             "type":"object",
             "properties": {
@@ -67,10 +72,7 @@
                     "description": "(Optional) how many items of this block will be randomly added to inventory. Will add every item in the block if not included",
                     "type":"integer"
                 },
-                "_comment": {
-                    "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-                    "type":"string"
-                }
+                "_comment": {"$ref": "#/definitions/comment"}
             },
             "minProperties": 1
         }
