@@ -110,9 +110,6 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
         world.item_values[player] = {}
 
     if value not in world.item_values.get(player, {}).keys() or force:
-        # item_with_values = {i.name: world.item_name_to_item[i.name]['value'].get(items_value_to_get)
-        #                     for i in get_items_for_player(multiworld, player) if i.player == player and i.code is not None
-        #                     and world.item_name_to_item.get(i.name, {}).get('value', {}).get(items_value_to_get)}
         item_with_values = {i.name: world.item_name_to_item[i.name]['value'].get(value, 0)
                             for i in get_items_for_player(multiworld, player) if i.code is not None
                             and i.name in world.item_name_groups.get(f'has_{value}_value', [])}

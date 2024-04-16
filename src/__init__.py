@@ -386,7 +386,7 @@ class ManualWorld(World):
             'player_id': self.player,
             'items': self.item_name_to_item,
             'locations': self.location_name_to_location,
-            # todo: extract connections out of mutliworld.get_regions() instead, in case hooks have modified the regions.
+            # todo: extract connections out of multiworld.get_regions() instead, in case hooks have modified the regions.
             'regions': region_table,
             'categories': category_table
         }
