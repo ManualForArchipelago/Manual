@@ -101,6 +101,12 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
     if player is None:
         player = world.player
 
+    player_items = get_items_for_player(multiworld, player)
+    # Just a small check to prevent caching {} if items don't exist yet
+    if not player_items:
+        #raise Exception("get_items_with_value shouldn't be called before items are created.")
+        return {value: -1}
+
     value = value.lower().strip()
 
     if not hasattr(world, 'item_values'): #Cache of just the item values
@@ -111,7 +117,7 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
 
     if value not in world.item_values.get(player, {}).keys() or force:
         item_with_values = {i.name: world.item_name_to_item[i.name]['value'].get(value, 0)
-                            for i in get_items_for_player(multiworld, player) if i.code is not None
+                            for i in player_items if i.code is not None
                             and i.name in world.item_name_groups.get(f'has_{value}_value', [])}
         world.item_values[player][value] = item_with_values
     return world.item_values[player].get(value)
