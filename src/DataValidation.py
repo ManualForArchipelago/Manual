@@ -158,9 +158,6 @@ class DataValidation():
             if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
                 continue
 
-            # Check if the item has values and save the keys in lowercase
-            itemValues = [i.lower().strip() for i in item.get("value", {}).keys()]
-
             # check location requires for the presence of item name
             for location in DataValidation.location_table:
                 if "requires" not in location:
@@ -173,11 +170,6 @@ class DataValidation():
                 if isinstance(location_requires, str):
                     if '|{}|'.format(item["name"]) in location_requires:
                         raise ValidationError("Item %s is required by location %s, but the item is not marked as progression." % (item["name"], location["name"]))
-                    if itemValues and 'ItemValue' in location_requires:
-                        for value in re.findall(r'\{ItemValue\(([^:]*)\:[^)]+\)\}', location_requires):
-                            if value.lower().strip() in itemValues:
-                                raise ValidationError(f"Item {item['name']} has a value for the '{value}' value required by location '{location['name']}', but the item is not marked as progression.")
-
                 else:
                     if item["name"] in location_requires:
                         raise ValidationError("Item %s is required by location %s, but the item is not marked as progression." % (item["name"], location["name"]))
@@ -196,11 +188,6 @@ class DataValidation():
                 if isinstance(region_requires, str):
                     if '|{}|'.format(item["name"]) in region_requires:
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
-                    if itemValues and 'ItemValue' in region_requires:
-                        for value in re.findall(r'\{ItemValue\(([^:]*)\:[^)]+\)\}', region_requires):
-                            if value.lower().strip() in [i.lower().strip() for i in item["value"].keys()]:
-                                raise ValidationError(f"Item {item['name']} has a value for the '{value}' value required by region '{region_name}', but the item is not marked as progression.")
-
                 else:
                     if item["name"] in region_requires:
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
@@ -212,6 +199,14 @@ class DataValidation():
 
         # get all the available values with total count
         for item in DataValidation.item_table:
+            # if the item is already progression, no need to check
+            if not "progression" in item or not item["progression"]:
+                continue
+
+            # progression_skip_balancing is also progression, so no check needed
+            if not "progression_skip_balancing" in item or not item["progression_skip_balancing"]:
+                continue
+
             for key, count in item.get("value", {}).items():
                 if not values_available.get(key.lower().strip()):
                     values_available[key] = 0
@@ -256,7 +251,7 @@ class DataValidation():
         # compare whats available vs requested
         for value, count in values_requested:
             if values_available.get(value, 0) < count:
-                raise ValidationError(f"there's not enough item of value '{value}' to fulfill the required {count} {value}. Only a total worth of {values_available.get(value, 0)} {value} can be found.")
+                raise ValidationError(f"there's not enough progression items of value '{value}' to fulfill the required {count} {value}. Only a total worth of {values_available.get(value, 0)} {value} can be found.")
 
     @staticmethod
     def checkRegionsConnectingToOtherRegions():
