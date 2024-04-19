@@ -74,6 +74,10 @@
                     "description": "(Optional) Is this location the goal of this Manual Apworld",
                     "type": "boolean"
                 },
+                "prehint": {
+                    "description": "(Optional) Prehint this location.",
+                    "type": "boolean"
+                }
                 "_comment": {"$ref": "#/definitions/comment"}
             }
         },
