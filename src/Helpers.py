@@ -104,7 +104,6 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
     player_items = get_items_for_player(multiworld, player)
     # Just a small check to prevent caching {} if items don't exist yet
     if not player_items:
-        #raise Exception("get_items_with_value shouldn't be called before items are created.")
         return {value: -1}
 
     value = value.lower().strip()
