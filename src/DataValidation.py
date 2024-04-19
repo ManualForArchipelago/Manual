@@ -197,22 +197,7 @@ class DataValidation():
         values_available = {}
         values_requested = {}
 
-        # get all the available values with total count
-        for item in DataValidation.item_table:
-            # if the item is already progression, no need to check
-            if not "progression" in item or not item["progression"]:
-                continue
-
-            # progression_skip_balancing is also progression, so no check needed
-            if not "progression_skip_balancing" in item or not item["progression_skip_balancing"]:
-                continue
-
-            for key, count in item.get("value", {}).items():
-                if not values_available.get(key.lower().strip()):
-                    values_available[key] = 0
-                values_available[key] += int(count)
-
-        # find the biggest values required by locations
+        # First find the biggest values required by locations
         for location in DataValidation.location_table:
             if "requires" not in location:
                 continue
@@ -228,8 +213,7 @@ class DataValidation():
                         values_requested[value] = count
                     else:
                         values_requested[value] = max(values_requested[value], count)
-
-        # check region requires for the presence of item name
+        # Second, check region requires for the presence of item name
         for region_name in DataValidation.region_table:
             region = DataValidation.region_table[region_name]
 
@@ -248,10 +232,28 @@ class DataValidation():
                     else:
                         values_requested[value] = max(values_requested[value], count)
 
-        # compare whats available vs requested
-        for value, count in values_requested:
-            if values_available.get(value, 0) < count:
-                raise ValidationError(f"there's not enough progression items of value '{value}' to fulfill the required {count} {value}. Only a total worth of {values_available.get(value, 0)} {value} can be found.")
+        # then if something is requested, we loop items
+        if values_requested:
+
+            # get all the available values with total count
+            for item in DataValidation.item_table:
+                # if the item is already progression, no need to check
+                if not item.get("progression") and not item.get("progression_skip_balancing"):
+                    continue
+
+                item_count = item.get('count', None)
+                if item_count is None: #check with none because 0 == false
+                    item_count = '1'
+
+                for key, count in item.get("value", {}).items():
+                    if not values_available.get(key.lower().strip()):
+                        values_available[key] = 0
+                    values_available[key] += int(count) * int(item_count)
+
+            # compare whats available vs requested
+            for value, count in values_requested:
+                if values_available.get(value, 0) < count:
+                    raise ValidationError(f"there's not enough progression items of value '{value}' to fulfill the required {count} {value}. Only a total worth of {values_available.get(value, 0)} {value} can be found.")
 
     @staticmethod
     def checkRegionsConnectingToOtherRegions():
