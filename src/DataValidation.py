@@ -251,9 +251,12 @@ class DataValidation():
                     values_available[key] += int(count) * int(item_count)
 
             # compare whats available vs requested
-            for value, count in values_requested:
+            errors = []
+            for value, count in values_requested.items():
                 if values_available.get(value, 0) < count:
-                    raise ValidationError(f"there's not enough progression items of value '{value}' to fulfill the required {count} {value}. Only a total worth of {values_available.get(value, 0)} {value} can be found.")
+                    errors.append(f"       '{value}': {values_available.get(value, 0)} out of the {count} {value} worth of progression items required can be found.")
+            if errors:
+                raise ValidationError("There are not enough progression items for the following values: \n" + "\n".join(errors))
 
     @staticmethod
     def checkRegionsConnectingToOtherRegions():
