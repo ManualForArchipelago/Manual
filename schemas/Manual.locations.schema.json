@@ -77,7 +77,7 @@
                 "prehint": {
                     "description": "(Optional) Prehint this location.",
                     "type": "boolean"
-                }
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             }
         },
