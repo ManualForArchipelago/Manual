@@ -24,7 +24,7 @@
                     "file_name": "setup_en.md",
                     "link": "setup/en",
                     "_authors": ["Fuzzy"],
-                    "_comment": "if you dont include the authors it will use creator from game.json"
+                    "_comment": "if you don't include the authors it will use creator from game.json"
                 }
             ],
             "_options_presets": {
