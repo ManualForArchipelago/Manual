@@ -254,7 +254,7 @@ class DataValidation():
             errors = []
             for value, count in values_requested.items():
                 if values_available.get(value, 0) < count:
-                    errors.append(f"       '{value}': {values_available.get(value, 0)} out of the {count} {value} worth of progression items required can be found.")
+                    errors.append(f"   '{value}': {values_available.get(value, 0)} out of the {count} {value} worth of progression items required can be found.")
             if errors:
                 raise ValidationError("There are not enough progression items for the following values: \n" + "\n".join(errors))
 
@@ -294,7 +294,7 @@ class DataValidation():
                             found_count += items_value[item.name]
 
                 if found_count < val_count:
-                    errors.append(f"       '{value}': {found_count} out of the {val_count} {value} worth of progression items required can be found.")
+                    errors.append(f"   '{value}': {found_count} out of the {val_count} {value} worth of progression items required can be found.")
             if errors:
                 raise ValidationError("There are not enough progression items for the following value(s): \n" + "\n".join(errors))
 
