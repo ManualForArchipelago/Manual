@@ -13,7 +13,7 @@ from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
-from .DataValidation import runGenerationDataValidation
+from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
 from .Regions import create_regions
 from .Items import ManualItem
@@ -297,6 +297,10 @@ class ManualWorld(World):
         if enable_region_diagram:
             from Utils import visualize_regions
             visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
+
+    def pre_fill(self):
+        # DataValidation after all the hooks are done but before fill
+        runPreFillDataValidation(self, self.multiworld)
 
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)

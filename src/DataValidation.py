@@ -1,6 +1,9 @@
 import logging
 import re
 import json
+from worlds.AutoWorld import World
+from BaseClasses import MultiWorld, ItemClassification
+
 
 class ValidationError(Exception):
     pass
@@ -193,6 +196,18 @@ class DataValidation():
                         raise ValidationError("Item %s is required by region %s, but the item is not marked as progression." % (item["name"], region_name))
 
     @staticmethod
+    def _requireItemValueRegex(values_requested: dict[str, int], requires) -> dict[str, int]:
+        if isinstance(requires, str) and 'ItemValue' in requires:
+            for result in re.findall(r'\{ItemValue\(([^:]*)\:([^)]+)\)\}', requires):
+                value = result[0].lower().strip()
+                count = int(result[1])
+                if not values_requested.get(value):
+                    values_requested[value] = count
+                else:
+                    values_requested[value] = max(values_requested[value], count)
+        return values_requested
+
+    @staticmethod
     def checkIfEnoughItemsForValue():
         values_available = {}
         values_requested = {}
@@ -205,14 +220,7 @@ class DataValidation():
             # convert to json so we don't have to guess the data type
             location_requires = json.dumps(location["requires"])
 
-            if isinstance(location_requires, str) and 'ItemValue' in location_requires:
-                for result in re.findall(r'\{ItemValue\(([^:]*)\:([^)]+)\)\}', location_requires):
-                    value = result[0].lower().strip()
-                    count = int(result[1])
-                    if not values_requested.get(value):
-                        values_requested[value] = count
-                    else:
-                        values_requested[value] = max(values_requested[value], count)
+            DataValidation._requireItemValueRegex(values_requested, location_requires)
         # Second, check region requires for the presence of item name
         for region_name in DataValidation.region_table:
             region = DataValidation.region_table[region_name]
@@ -223,15 +231,7 @@ class DataValidation():
             # convert to json so we don't have to guess the data type
             region_requires = json.dumps(region["requires"])
 
-            if isinstance(region_requires, str) and 'ItemValue' in region_requires:
-                for result in re.findall(r'\{ItemValue\(([^:]*)\:([^)]+)\)\}', region_requires):
-                    value = result[0].lower().strip()
-                    count = int(result[1])
-                    if not values_requested.get(value):
-                        values_requested[value] = count
-                    else:
-                        values_requested[value] = max(values_requested[value], count)
-
+            DataValidation._requireItemValueRegex(values_requested, region_requires)
         # then if something is requested, we loop items
         if values_requested:
 
@@ -257,6 +257,47 @@ class DataValidation():
                     errors.append(f"       '{value}': {values_available.get(value, 0)} out of the {count} {value} worth of progression items required can be found.")
             if errors:
                 raise ValidationError("There are not enough progression items for the following values: \n" + "\n".join(errors))
+
+    @staticmethod
+    def preFillCheckIfEnoughItemsForValue(world: World, multiworld: MultiWorld):
+        from .Helpers import get_items_with_value, get_items_for_player
+        player = world.player
+        values_requested = {}
+
+        for region in multiworld.regions:
+            if region.player != player:
+                continue
+            if region.name == "Manual" or region.name == "Menu":
+                continue
+
+            Manualregion = DataValidation.region_table[region.name]
+            if "requires" in Manualregion and Manualregion["requires"]:
+                region_requires = json.dumps(Manualregion["requires"])
+
+                DataValidation._requireItemValueRegex(values_requested, region_requires)
+
+            for location in region.locations:
+                ManualLocation = world.location_name_to_location.get(location.name, {})
+                if "requires" in ManualLocation and ManualLocation["requires"]:
+                    DataValidation._requireItemValueRegex(values_requested, ManualLocation["requires"])
+
+        # compare whats available vs requested
+        errors = []
+        existing_items = [item for item in get_items_for_player(multiworld, player) if item.code is not None and
+                    item.classification == ItemClassification.progression or item.classification == ItemClassification.progression_skip_balancing]
+
+        for value, val_count in values_requested.items():
+            items_value = get_items_with_value(world, multiworld, value, player, True)
+            found_count = 0
+            if items_value:
+                for item in existing_items:
+                    if item.name in items_value:
+                        found_count += items_value[item.name]
+
+            if found_count < val_count:
+                errors.append(f"       '{value}': {found_count} out of the {val_count} {value} worth of progression items required can be found.")
+        if errors:
+            raise ValidationError("There are not enough progression items for the following value(s): \n" + "\n".join(errors))
 
     @staticmethod
     def checkRegionsConnectingToOtherRegions():
@@ -404,6 +445,15 @@ class DataValidation():
                 raise ValidationError("The region '%s' is set as a non-starting region, but has no regions that connect to it. It will be inaccessible." % nonstarter)
 
 
+def runPreFillDataValidation(world: World, multiworld: MultiWorld):
+    validation_errors = []
+
+    # check if there is enough items with values
+    try: DataValidation.preFillCheckIfEnoughItemsForValue(world, multiworld)
+    except ValidationError as e: validation_errors.append(e)
+
+    if validation_errors:
+        raise Exception(f"\nValidationError(s) for pre_fill of player {world.player}: \n\n{"\n".join([' - ' + str(validation_error) for validation_error in validation_errors])}\n\n")
 
 # Called during stage_assert_generate
 def runGenerationDataValidation() -> None:
