@@ -193,7 +193,8 @@
     { 
         "name": "Beat the Game - Spider-Man", 
         "category": ["Unlocked Teams", "Right Side"],
-        "requires": "|Spider-Man|"
+        "requires": "|Spider-Man|",
+        "prehint": true
     },
     { 
         "name": "Beat the Game - Sentinel", 
