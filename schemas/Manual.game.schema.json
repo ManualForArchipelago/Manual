@@ -29,7 +29,7 @@
             }
         },
         "death_link": {
-            "description": "(Optional) Does your game have support Deathlink?",
+            "description": "(Optional) Does your game support Deathlink?",
             "type": "boolean"
         },
         "_comment": {"$ref": "#/definitions/comment"}
