@@ -14,8 +14,18 @@ manual_options = before_options_defined({})
 
 if len(victory_names) > 1:
     goal = {'option_' + v: i for i, v in enumerate(victory_names)}
+    docstring = "Choose your victory condition."
+    defaultvalue = 0
+    if manual_options.get('goal'): 
+    #Grab existing Goal option and make alias out of it's values
+        for alias, value in manual_options.get('goal').options.items():
+            goal[f"alias_{alias}"] = value
+        docstring = manual_options.get('goal').__doc__
+        defaultvalue = manual_options.get('goal').default
     manual_options['goal'] = type('goal', (Choice,), goal)
-    manual_options['goal'].__doc__ = "Choose your victory condition."
+    manual_options['goal'].__doc__ = docstring
+    manual_options['goal'].default = defaultvalue
+
 
 if any(item.get('trap') for item in item_table):
     manual_options["filler_traps"] = FillerTrapPercent
