@@ -1,5 +1,7 @@
 from __future__ import annotations
+import time
 from typing import Any
+import typing
 from worlds import AutoWorldRegister, network_data_package
 import json
 
@@ -45,6 +47,10 @@ class ManualContext(SuperContext):
     tracker_reachable_locations = []
     tracker_reachable_events = []
 
+    set_deathlink = False
+    last_death_link = 0
+    deathlink_out = False
+
     def __init__(self, server_address, password, game, player_name) -> None:
         super(ManualContext, self).__init__(server_address, password)
 
@@ -55,7 +61,6 @@ class ManualContext(SuperContext):
 
         self.send_index: int = 0
         self.syncing = False
-        self.awaiting_bridge = False
         self.game = game
         self.username = player_name
 
@@ -145,6 +150,10 @@ class ManualContext(SuperContext):
                 goal = args["slot_data"].get("goal")
                 if goal and goal < len(self.victory_names):
                     self.goal_location = self.get_location_by_name(self.victory_names[goal])
+                if args['slot_data'].get('death_link'):
+                    self.ui.enable_death_link()
+                    self.set_deathlink = True
+                    self.last_death_link = 0
                 logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -154,6 +163,12 @@ class ManualContext(SuperContext):
         elif cmd in {"RoomUpdate"}:
             self.ui.update_tracker_and_locations_table(update_highlights=False)
 
+    def on_deathlink(self, data: typing.Dict[str, typing.Any]) -> None:
+        super().on_deathlink(data)
+        self.ui.death_link_button.text = f"Death Link: {data['source']}"
+        self.ui.death_link_button.background_color = [1, 0, 0, 1]
+        
+        
     def on_tracker_updated(self, reachable_locations: list[str]):
         self.tracker_reachable_locations = reachable_locations
         self.ui.update_tracker_and_locations_table(update_highlights=True)
@@ -264,6 +279,23 @@ class ManualContext(SuperContext):
                         return
 
                     index += 1
+
+            def enable_death_link(self):
+                if not hasattr(self, "death_link_button"):
+                    self.death_link_button = Button(text="Death Link: Primed",
+                                                size_hint_x=None, width=150)
+                    self.connect_layout.add_widget(self.death_link_button)
+                    self.death_link_button.bind(on_press=self.send_death_link)
+
+            def send_death_link(self, *args):
+                if self.ctx.last_death_link:
+                    self.ctx.last_death_link = 0
+                    self.death_link_button.text = "Death Link: Primed"
+                    self.death_link_button.background_color = [1, 1, 1, 1]
+                else:
+                    self.ctx.deathlink_out = True
+                    self.death_link_button.text = "Death Link: Sent"
+                    self.death_link_button.background_color = [0, 1, 0, 1]
 
             def update_hints(self):
                 super().update_hints()
@@ -599,6 +631,15 @@ async def game_watcher_manual(ctx: ManualContext):
                 sync_msg.append({"cmd": "LocationChecks", "locations": list(ctx.locations_checked)})
             await ctx.send_msgs(sync_msg)
             ctx.syncing = False
+
+        if ctx.set_deathlink:
+            ctx.set_deathlink = False
+            await ctx.update_death_link(True)
+
+        if ctx.deathlink_out:
+            ctx.deathlink_out = False
+            await ctx.send_death()
+
         sending = []
         victory = ("__Victory__" in ctx.items_received)
         ctx.locations_checked = sending
