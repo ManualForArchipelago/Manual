@@ -3,11 +3,18 @@
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.categories.schema.json",
     "description": "Schema for ManualAP categories.json",
     "type": "object",
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        }
+    },
     "patternProperties": {
-        "^.*$": {
+        "^[^$].*$": {
             "anyOf": [
                 {
                     "type": "object",
+                    "description": "Name of the category",
                     "properties": {
                         "hidden": {
                             "description": "(Optional) Should this category be Hidden in the client?",

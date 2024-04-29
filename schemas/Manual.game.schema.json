@@ -4,6 +4,10 @@
     "description": "Schema for ManualAP game.json",
     "type": "object",
     "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
         "game": {
             "description": "The name of your game, compatible with capital letters.",
             "type": "string"
