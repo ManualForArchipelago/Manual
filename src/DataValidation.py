@@ -268,18 +268,18 @@ class DataValidation():
             if region.player != player:
                 continue
 
-            Manualregion = DataValidation.region_table.get(region.name, {})
-            if "requires" in Manualregion and Manualregion["requires"]:
-                region_requires = json.dumps(Manualregion["requires"])
+            manualregion = DataValidation.region_table.get(region.name, {})
+            if "requires" in manualregion and manualregion["requires"]:
+                region_requires = json.dumps(manualregion["requires"])
 
                 DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, region_requires)
 
             for location in region.locations:
-                ManualLocation = world.location_name_to_location.get(location.name, {})
-                if "requires" in ManualLocation and ManualLocation["requires"]:
-                    DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, ManualLocation["requires"])
+                manualLocation = world.location_name_to_location.get(location.name, {})
+                if "requires" in manualLocation and manualLocation["requires"]:
+                    DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, manualLocation["requires"])
 
-        # compare whats available vs requested but only if there'S anything requested
+        # compare whats available vs requested but only if there's anything requested
         if values_requested:
             errors = []
             existing_items = [item for item in get_items_for_player(multiworld, player) if item.code is not None and
