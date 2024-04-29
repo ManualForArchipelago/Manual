@@ -270,7 +270,10 @@ class DataValidation():
     @staticmethod
     def checkPlacedItemsAndCategoriesForBadSyntax():
         for location in DataValidation.location_table:
-            if not (place_item := location.get("place_item", False)) and not (place_item_category := location.get("place_item_category", False)):
+            if not (place_item := location.get("place_item", False)):
+                continue
+
+            if not (place_item_category := location.get("place_item_category", False)):
                 continue
 
             if place_item and type(place_item) is not list:
