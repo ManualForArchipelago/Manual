@@ -102,14 +102,14 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             item_base = item
             item = item.lstrip('|@$').rstrip('|')
 
-            item_parts = item.split(":")
+            item_parts = item.split(":")  # type: list[str]
             item_name = item
             item_count = "1"
 
 
             if len(item_parts) > 1:
-                item_name = item_parts[0]
-                item_count = item_parts[1]
+                item_name = item_parts[0].strip()
+                item_count = item_parts[1].strip()
 
             total = 0
 
@@ -124,7 +124,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     percent = clamp(float(item_count[:-1]) / 100, 0, 1)
                     item_count = math.ceil(category_items_counts * percent)
                 else:
-                    item_count = int(item_count)
+                    try:
+                        item_count = int(item_count)
+                    except ValueError as e:
+                        raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
 
                 for category_item in category_items:
                     total += state.count(category_item["name"], player)
