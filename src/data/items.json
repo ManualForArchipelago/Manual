@@ -7,6 +7,7 @@
                 "Characters",
                 "Left Side"
             ],
+            "value": {"star": 5, "coins": 3},
             "progression": true
         },
         {
@@ -15,6 +16,7 @@
                 "Characters",
                 "Right Side"
             ],
+            "value": {"star": 5},
             "progression": true
         },
         {

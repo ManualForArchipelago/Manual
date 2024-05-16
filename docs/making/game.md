@@ -3,7 +3,7 @@
 Game.json contains the most fundamental details about your Manual Game, the details about the game itself.
 
 At its most basic, it needs the name of the game, and name of the creator (you).
-It also contains the name of the auto-generated filler item, and details about Starting Inventory (see below for more details)
+It also contains the name of the auto-generated filler item, and details about [Starting Inventory](#starting-inventory) and whether [Deathlink](#death-link) is enabled.
 
 ```json
 {
@@ -84,5 +84,19 @@ This works like the first one, except with categories instead of items. There's 
 ```
 Lastly, this gives you three completely random items.
 
+## Death Link
+
+Enabling Deathlink is very simple.  Just add `"death_link": true` to your game.json, and you'll get a yaml setting and fancy button in the client.
+
+```json
+{
+    "game": "Snolf",
+    "creator": "YourNameHere",
+    "filler_item_name": "Gold Rings",
+    "death_link": true
+}
+```
+
+If you turn this on, make sure you have a clear (and documented) understanding of what a death is, when players should send one, and what it means to receive it.
 
 Next: Add your [items](/docs/making/items.md)

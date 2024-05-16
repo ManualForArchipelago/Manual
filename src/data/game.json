@@ -23,5 +23,6 @@
         {
             "random": 3
         }
-    ]
+    ],
+    "death_link": false
 }

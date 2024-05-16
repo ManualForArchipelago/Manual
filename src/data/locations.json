@@ -20,7 +20,7 @@
         {
             "name": "Beat the Game - Jill",
             "category": ["Unlocked Teams", "Left Side"],
-            "requires": "|Jill|"
+            "requires": "|Jill| and {ItemValue(star:5)}"
         },
         {
             "name": "Beat the Game - Shuma-Gorath",
@@ -319,7 +319,12 @@
             "victory": true,
             "category": ["All Characters Complete!"],
             "requires": "|@Left Side:all|"
+        },
+        {
+            "name": "Stars%",
+            "victory": true,
+            "category": ["All Characters Complete!"],
+            "requires": "{ItemValue(star:10)}"
         }
     ]
 }
-
