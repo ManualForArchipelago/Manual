@@ -1,4 +1,5 @@
 {
+    "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
     "game": "UltimateMarvelVsCapcom3",
     "creator": "ManualTeam",
 
@@ -22,5 +23,6 @@
         {
             "random": 3
         }
-    ]
+    ],
+    "death_link": false
 }
