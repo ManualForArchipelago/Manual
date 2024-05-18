@@ -4,6 +4,7 @@ from .hooks.Options import before_options_defined, after_options_defined
 from .Data import category_table
 from .Locations import victory_names
 from .Items import item_table
+import logging
 
 
 class FillerTrapPercent(Range):
@@ -14,18 +15,11 @@ manual_options = before_options_defined({})
 
 if len(victory_names) > 1:
     goal = {'option_' + v: i for i, v in enumerate(victory_names)}
-    docstring = "Choose your victory condition."
-    defaultvalue = 0
-    # Check for existing Goal option and make alias out of it's values if possible
+    # Check for existing Goal option
     if manual_options.get('goal'):
-        if issubclass(manual_options['goal'], Choice):
-            for alias, value in manual_options['goal'].options.items():
-                goal[f"alias_{alias}"] = value
-            defaultvalue = manual_options['goal'].default
-        docstring = manual_options['goal'].__doc__ or docstring
+        logging.warn("Existing Goal option found, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
     manual_options['goal'] = type('goal', (Choice,), goal)
-    manual_options['goal'].__doc__ = docstring
-    manual_options['goal'].default = defaultvalue
+    manual_options['goal'].__doc__ = "Choose your victory condition."
 
 
 if any(item.get('trap') for item in item_table):
