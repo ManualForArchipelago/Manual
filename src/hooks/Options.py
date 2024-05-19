@@ -45,7 +45,7 @@ def after_options_defined(options: dict) -> dict:
 
     # your_goal_class = Goal #Your Goal class here
     # generated_goal = options.get('goal', {})
-    # if generated_goal and issubclass(your_goal_class, Choice) and not issubclass(generated_goal, Goal):
+    # if generated_goal and issubclass(your_goal_class, Choice) and not issubclass(generated_goal, your_goal_class):
     #     goals = {'option_' + i: v for i, v in generated_goal.options.items() if i != 'default'}
     #     for option, value in your_goal_class.options.items():
     #         if option == 'default':
