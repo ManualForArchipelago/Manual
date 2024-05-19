@@ -231,14 +231,17 @@ class ManualWorld(World):
         locations_with_placements = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_placements.keys()]
         for location in locations_with_placements:
             manual_location = manual_locations_with_placements[location.name]
+            eligible_items = []
             eligible_item_names = []
             forbidden_item_names = []
             place_messages = []
             forbid_messages = []
+
             #First we get possible items names
             if manual_location.get("place_item"):
                 eligible_item_names += manual_location["place_item"]
                 place_messages.append('", "'.join(manual_location["place_item"]))
+
             if manual_location.get("place_item_category"):
                 eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
                 place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
@@ -256,7 +259,9 @@ class ManualWorld(World):
             if forbidden_item_names:
                 eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
 
-            eligible_items = [item for item in self.multiworld.itempool if item.player == self.player and item.name in eligible_item_names]
+            if eligible_item_names:
+                eligible_items = [item for item in self.multiworld.itempool if item.player == self.player and item.name in eligible_item_names]
+
             if len(eligible_items) == 0:
                 nl = "\n"
                 if forbidden_item_names:
