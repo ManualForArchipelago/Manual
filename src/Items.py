@@ -42,6 +42,12 @@ for item in item_table:
             item_name_groups[c] = []
         item_name_groups[c].append(item_name)
 
+    for v in item.get("value", {}).keys():
+        group_name = f"has_{v.lower().strip()}_value"
+        if group_name not in item_name_groups:
+            item_name_groups[group_name] = []
+        item_name_groups[group_name].append(item_name)
+
 item_id_to_name[None] = "__Victory__"
 item_name_to_id = {name: id for id, name in item_id_to_name.items()}
 

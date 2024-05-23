@@ -1,4 +1,6 @@
-from BaseClasses import MultiWorld
+from BaseClasses import MultiWorld, Item
+from typing import Optional, List
+from worlds.AutoWorld import World
 from .Data import category_table
 from .Items import ManualItem
 from .Locations import ManualLocation
@@ -86,3 +88,35 @@ def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: any) -
             break
 
     return enabled
+
+def get_items_for_player(multiworld: MultiWorld, player: int) -> List[Item]:
+    """Return list of items of a player including placed items"""
+    return [i for i in multiworld.get_items() if i.player == player]
+
+def get_items_with_value(world: World, multiworld: MultiWorld, value: str, player: Optional[int] = None, force: bool = False) -> dict[str, int]:
+    """Return a dict of every items with a specific value type present in their respective 'value' dict\n
+    Output in the format 'Item Name': 'value count'\n
+    Keep a cache of the result and wont redo unless 'force == True'
+    """
+    if player is None:
+        player = world.player
+
+    player_items = get_items_for_player(multiworld, player)
+    # Just a small check to prevent caching {} if items don't exist yet
+    if not player_items:
+        return {value: -1}
+
+    value = value.lower().strip()
+
+    if not hasattr(world, 'item_values'): #Cache of just the item values
+        world.item_values = {}
+
+    if not world.item_values.get(player):
+        world.item_values[player] = {}
+
+    if value not in world.item_values.get(player, {}).keys() or force:
+        item_with_values = {i.name: world.item_name_to_item[i.name]['value'].get(value, 0)
+                            for i in player_items if i.code is not None
+                            and i.name in world.item_name_groups.get(f'has_{value}_value', [])}
+        world.item_values[player][value] = item_with_values
+    return world.item_values[player].get(value)
