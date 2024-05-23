@@ -1,0 +1,160 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json",
+    "description": "Schema for ManualAP options.json",
+    "type": "object",
+    "items": {
+        "$ref": "#/definitions/Option"
+    },
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
+        "data": {
+            "description": "dict of options for this apworld",
+            "type": "object",
+            "patternProperties": {
+                "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
+                "^.*$": {"$ref": "#/definitions/Option"}
+            }
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
+    },
+    "definitions": {
+        "Option": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "description": "The name shown on the webhost.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "long description of what this option is for(is shown on hover on the webhost)",
+                    "type": ["array", "string"],
+                    "items": {"type": "string"}
+                },
+                "type": {
+                    "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
+                    "type": "string",
+                    "enum": ["FreeText", "Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange", "$undefined"],
+                    "default": "Toggle"
+                },
+                "_comment": {"$ref": "#/definitions/comment"}
+            },
+            "required": ["type"],
+            "if": {"properties": { "type": {"const": "$undefined"}}},
+            "then": {"const": "'type' must not be undefined"},
+            "else": {
+                "if": {"properties": { "type": {"const": "Choice"}}},
+                "then": {
+                    "description": "Like Choice but the player can define their own values",
+                    "properties": {
+                        "values": {"$ref": "#/definitions/ChoiceValue"},
+                        "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                        "default": {"$ref": "#/definitions/DefaultInt"}
+                    },
+                    "required": ["values"]
+                },
+                "else": {
+                    "if": {"properties": { "type": {"const": "TextChoice"}}},
+                    "then": {
+                        "description": "Like Choice but the player can define their own values",
+                        "properties": {
+                            "values": {"$ref": "#/definitions/ChoiceValue"},
+                            "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                            "default": {"$ref": "#/definitions/DefaultInt"}
+                        },
+                        "required": ["values"]
+                    },
+                    "else": {
+                        "if": {"properties": { "type": {"const": "Range"}}},
+                        "then": {
+                            "description": "Allow the player to specify a value between 'start' and 'end'",
+                            "properties": {
+                                "start": {"$ref": "#/definitions/rangeStart"},
+                                "end": {"$ref": "#/definitions/rangeEnd"},
+                                "default": {"$ref": "#/definitions/DefaultInt"}
+                            },
+                            "required": ["start", "end"]},
+                        "else": {
+                            "if": {"properties": { "type": {"const": "NamedRange"}}},
+                            "then": {"description": "Like a Range, but with a Special dict of lowercase string:int values",
+                                "properties": {
+                                    "start": {"$ref": "#/definitions/rangeStart"},
+                                    "end": {"$ref": "#/definitions/rangeEnd"},
+                                    "default": {"$ref": "#/definitions/DefaultInt"},
+                                    "special_range_names":{"$ref": "#/definitions/special_range_names"}
+                                },
+                                "required": ["start", "end"]
+                            },
+                            "else": {
+                                "if": {"properties": { "type": {"const": "Toggle"}}},
+                                "then": {"description": "A simple boolean, the default value is False. Use DefaultOnToggle instead for True"},
+                                "else":{
+                                    "if": {"properties": { "type": {"const": "DefaultOnToggle"}}},
+                                    "then": {"description": "A simple boolean, the default value is True. Use Toggle instead for False"},
+                                    "else":{
+                                        "if": {"properties": { "type": {"const": "FreeText"}}},
+                                        "then": {"description": "This Option will return a Player's chosen String"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "rangeStart": {
+            "type": "integer",
+            "description": "The lowest Value for this range"
+        },
+        "rangeEnd": {
+            "type":"integer",
+            "description": "The Highest Value for this range"
+        },
+        "special_range_names": {
+            "description": "A Special Dict in the format 'name':int of named values for this range",
+            "type":"object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "A named numerical value",
+                    "type": "integer"
+                    }
+            }
+        },
+        "ChoiceValue": {
+            "description": "A dict of possible values in the format 'name':int \nthe default option is, by default the one with 0 as value",
+            "type":"object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "An int value this option can have",
+                    "type": "integer"
+                }
+            },
+            "minProperties": 1
+        },
+        "ChoiceAlias": {
+            "description": "A dict of possible values in the format 'name':int/the name of a value from 'values'",
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "An alias for a value declared in 'values'",
+                    "type": ["integer", "string"]
+                }
+            }
+        },
+        "DefaultInt": {
+            "description": "the default integer value of this option",
+            "type": "integer"
+        },
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
+        }
+    }
+}

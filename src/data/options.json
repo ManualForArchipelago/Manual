@@ -1,0 +1,17 @@
+{
+    "$schema": "../../schemas/Manual.options.schema.json",
+    "_comment": "Add a _ before an option name to comment it out and it wont be added to the apworld",
+    "data": {
+        "example":{
+            "type": "Choice",
+            "values": {
+                "start":0
+             },
+            "default": 0
+        },
+        "_commented_out":{
+            "type": "DefaultOnToggle"
+        }
+    }
+
+}
