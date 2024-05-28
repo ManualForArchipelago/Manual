@@ -98,7 +98,8 @@ class ManualContext(SuperContext):
     def suggested_game(self) -> str:
         if self.game:
             return self.game
-        return Utils.persistent_load().get("client", {}).get("last_manual_game", "Manual_{\"game\" from game.json}_{\"creator\" from game.json}")
+        from .Game import game_name  # This will at least give us the name of a manual they've installed
+        return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
 
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
@@ -205,6 +206,7 @@ class ManualContext(SuperContext):
 
         class TreeViewButton(Button, TreeViewNode):
             victory: bool = False
+            id: int = None
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
@@ -423,6 +425,7 @@ class ManualContext(SuperContext):
                     for location_id in self.listed_locations[location_category]:
                         location_button = TreeViewButton(text=self.ctx.location_names[location_id], size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_press=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
+                        location_button.id = location_id
                         category_layout.add_widget(location_button)
 
                     # if this is the category that Victory is in, display the Victory button
@@ -563,9 +566,7 @@ class ManualContext(SuperContext):
                                                 reachable_count += 1
                                             continue
 
-                                        location = self.ctx.get_location_by_name(location_button.text)
-
-                                        if ("victory" not in location or not location["victory"]) and location["id"] not in self.ctx.missing_locations:
+                                        if location_button.id and location_button.id not in self.ctx.missing_locations:
                                             import logging
 
                                             logging.info("location button being removed: " + location_button.text)
