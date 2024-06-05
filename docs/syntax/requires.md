@@ -73,7 +73,7 @@ Now that we know how to require multiple of an item, we can revise our Boss 2 ex
     "name": "Boss 2",
     "requires": "|Heart:5| and (|Sword| or |Spear| or |Club|) and (|Double Jump| or |Dash| or |Slide|)"
 }
-```
+> ```
 
 In addition to specific item counts, you can also specify a broad relative amount like "all of this item" or "half of this item", or even percentages of that item versus the total in the pool. We'll demonstrate those briefly below as well.
 
