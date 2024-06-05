@@ -1,6 +1,7 @@
 # Requires for Locations and Regions
 
 _Let's start with the bad:_
+
 If you don't put requires on your locations and/or regions, every location in your world will be in sphere 0. As in, any multiworld you play in will expect you to complete your entire world as soon as the multi starts.
 
 So it's really important to have requires! But what are they?
@@ -29,7 +30,7 @@ For example, from the example above about Link to the Past and Thieves Town in t
   - The former essentially evaluates to "Hammer and either Power Glove or Titan's Mitt", while the latter is very explicit about what the logic should be and evaluates correctly.
   - There's no theoretical limit to how many parentheses you can use, but try to not get past the practical limit of how many sets of parentheses you can reliably keep track of.
 
-#### Additional Examples
+### Additional Examples of Boolean Logic
 
 Boss 1 Requires Ladder and Gloves, OR Sword and Shield, OR Bow and Quiver and Arrow (separate items): a simple case of various successful item sets. It's a few sets of ANDs separated by ORs.
 ```json
@@ -67,7 +68,7 @@ The key is a short suffix added to the end of any required item name separated b
 Now that we know how to require multiple of an item, we can revise our Boss 2 example from above to make the boss a little easier to handle in-logic:
 
 > Boss 2 simply requires **FIVE hearts**, a way to strike it (Sword, Spear or Club) and a way to dodge it (Double Jump, Dash or Slide): we're looking at different sets, and picking one item from which. It's many ORs inside a big set of ANDs.
-```json
+> ```json
 { 
     "name": "Boss 2",
     "requires": "|Heart:5| and (|Sword| or |Spear| or |Club|) and (|Double Jump| or |Dash| or |Slide|)"
