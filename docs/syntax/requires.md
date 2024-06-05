@@ -61,7 +61,7 @@ Now, say the final boss is a big dragon with a glaring weakness to Blizzard. How
 
 As demonstrated in the [Making Items: Count](making/items.md#count) docs, you can configure an item to have more than one copy of that item in the world's item pool. Sometimes, you want to use multiple copies of an item as a requirement for accessing a location or region, and Manual supports this as well.
 
-The key is a short suffix added to the end of any required item name separated by a colon, like this: `|Coin:25|`. 
+The way to do this is a short suffix added to the end of any required item name separated by a colon, like this: `|Coin:25|`. 
 
 - That will tell Manual that the location/region requires 25 of that Coin item.
 
@@ -85,7 +85,7 @@ In addition to specific item counts, you can also specify a broad relative amoun
 
 As demonstrated in the [Making Items: Category](making/items.md#categories) docs, you can configure an item to belong to a category, potentially with other related items. Sometimes, you want to use a category of items as a requirement for accessing a location or region, and Manual supports this as well.
 
-The key is a short ampersand prefix added to the beginning of any required item name, like this: `|@Coins Category|`
+The way to do this is a short ampersand prefix added to the beginning of any required item name, like this: `|@Coins Category|`
 
 - That will tell Manual that the location/region requires 1 item from the "Coins Category" category.
 
@@ -100,6 +100,11 @@ Additionally, you can use counts as described above for required categories, jus
 Requirement functions are functions that you write in the Rules hook file and can use in requires in locations/regions. We do provide a couple of default ones as examples, but only a couple of generic ones for very specific cases (more on that below \*). In most cases, you'll be working with hooks to take advantage of requirement functions.
 
 You'd typically use requirement functions if you have requirements that are too cumbersome to type out by hand, have requirements that rely on some dynamic piece of information, or have requirements that don't fit into the templating syntax that Manual provides for requirements.
+
+The way to do this is using curly braces around the function name that you want to call, like this: `{myFunction()}`
+
+- Note the lack of pipes (`|`). Functions are processed entirely differently than items/categories used as requirements.
+- Doing this will tell Manual that the function will either return a requires string to be processed, or will return true/false based on whether this requirement was met.
 
 Requirement functions can have no function arguments, or have any number of function arguments separated by commas. 
 
