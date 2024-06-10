@@ -69,7 +69,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
 
-        # fallback if items_counts[player] not present (will not be accurate to hooks item count)
+        # Get the "real" item counts of item in the pool/placed/starting_items
         items_counts = world.get_item_counts(player)
 
         if requires_list == "":

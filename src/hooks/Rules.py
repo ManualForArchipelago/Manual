@@ -57,7 +57,7 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
 
     if (noCache or world.item_values_cache[player][value_name].get('count', -1) == -1
             or world.item_values_cache[player][value_name].get('state') != dict(state.prog_items[player])):
-        #Run First Time or if state changed since last check
+        # Run First Time, if state changed since last check or if noCache has a value
         existing_item_values = get_items_with_value(world, multiworld, value_name)
         total_Count = 0
         for name, value in existing_item_values.items():
@@ -67,7 +67,7 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
         if noCache:
             return total_Count >= requested_count
         world.item_values_cache[player][value_name]['count'] = total_Count
-        world.item_values_cache[player][value_name]['state'] = dict(state.prog_items[player]) #save the current gotten items to check later if its the same
+        world.item_values_cache[player][value_name]['state'] = dict(state.prog_items[player])
     return world.item_values_cache[player][value_name]['count'] >= requested_count
 
 
