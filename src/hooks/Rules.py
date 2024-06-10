@@ -28,39 +28,47 @@ def requiresMelee(world: World, multiworld: MultiWorld, state: CollectionState, 
     """Returns a requires string that checks if the player has unlocked the tank."""
     return "|Figher Level:15| or |Black Belt Level:15| or |Thief Level:15|"
 
-def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, args: str):
+def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, noCache: Optional[str] = None):
     """When passed a string with this format: 'valueName:int',
     this function will check if the player has collect at least 'int' valueName worth of items\n
-    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items
+    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
+    You can add a second string argument to disable creating/checking the cache like this:
+    '{ItemValue(Coins:12,Disable)}' it can be any string you want
     """
 
-    args_list = args.split(":")
-    if not len(args_list) == 2 or not args_list[1].isnumeric():
-        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args_list[0]}:12)'")
-    args_list[0] = args_list[0].lower().strip()
-    args_list[1] = int(args_list[1].strip())
+    valueCount = valueCount.split(":")
+    if not len(valueCount) == 2 or not valueCount[1].isnumeric():
+        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({valueCount[0]}:12)'")
+    value_name = valueCount[0].lower().strip()
+    requested_count = int(valueCount[1].strip())
 
     if not hasattr(world, 'item_values_cache'): #Cache made for optimization purposes
         world.item_values_cache = {}
 
     if not world.item_values_cache.get(player, {}):
-        world.item_values_cache[player] = {
-            'state': {},
-            'count': {},
-            }
+        world.item_values_cache[player] = {}
 
-    if (args_list[0] not in world.item_values_cache[player].get('count', {}).keys()
-            or world.item_values_cache[player].get('state') != dict(state.prog_items[player])):
+    if not noCache:
+        if not world.item_values_cache[player].get(value_name, {}):
+            world.item_values_cache[player][value_name] = {
+                'state': {},
+                'count': -1,
+                }
+
+    if (noCache or world.item_values_cache[player][value_name].get('count', -1) == -1
+            or world.item_values_cache[player][value_name].get('state') != dict(state.prog_items[player])):
         #Run First Time or if state changed since last check
-        existing_item_values = get_items_with_value(world, multiworld, args_list[0])
+        existing_item_values = get_items_with_value(world, multiworld, value_name)
         total_Count = 0
         for name, value in existing_item_values.items():
             count = state.count(name, player)
             if count > 0:
                 total_Count += count * value
-        world.item_values_cache[player]['count'][args_list[0]] = total_Count
-        world.item_values_cache[player]['state'] = dict(state.prog_items[player]) #save the current gotten items to check later if its the same
-    return world.item_values_cache[player]['count'][args_list[0]] >= args_list[1]
+        if noCache:
+            return total_Count >= requested_count
+        world.item_values_cache[player][value_name]['count'] = total_Count
+        world.item_values_cache[player][value_name]['state'] = dict(state.prog_items[player]) #save the current gotten items to check later if its the same
+    return world.item_values_cache[player][value_name]['count'] >= requested_count
 
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
