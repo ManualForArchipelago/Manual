@@ -198,9 +198,9 @@ class DataValidation():
     @staticmethod
     def _checkLocationRequiresForItemValueWithRegex(values_requested: dict[str, int], requires) -> dict[str, int]:
         if isinstance(requires, str) and 'ItemValue' in requires:
-            for result in re.findall(r'\{ItemValue\(([^:]*)\:([^,)]+)[^)]*\)\}', requires):
+            for result in re.findall(r'\{ItemValue\(([^:]*)\:(.*?)\)\}', requires):
                 value = result[0].lower().strip()
-                count = int(result[1])
+                count = int(result[1].split(",")[0])
                 if not values_requested.get(value):
                     values_requested[value] = count
                 else:
