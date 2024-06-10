@@ -282,7 +282,7 @@ class DataValidation():
         # compare whats available vs requested but only if there's anything requested
         if values_requested:
             errors = []
-            existing_items = [item for item in get_items_for_player(multiworld, player) if item.code is not None and
+            existing_items = [item for item in get_items_for_player(multiworld, player, True) if item.code is not None and
                         item.classification == ItemClassification.progression or item.classification == ItemClassification.progression_skip_balancing]
             for value, val_count in values_requested.items():
                 items_value = get_items_with_value(world, multiworld, value, player, True)
