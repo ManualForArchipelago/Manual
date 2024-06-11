@@ -1,9 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.meta.schema.json",
-    "description": "Schema for ManualAP meta.json",
+    "description": "Schema for Manual's meta.json",
     "type": "object",
     "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
         "_comment": {"$ref": "#/definitions/comment"},
         "enable_region_diagram": {
             "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
