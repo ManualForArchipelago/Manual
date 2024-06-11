@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.locations.schema.json",
-    "description": "Schema for ManualAP locations.json",
+    "description": "Schema for Manual's locations.json",
     "type": ["array", "object"],
     "items": {
         "$ref": "#/definitions/Location"
