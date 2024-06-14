@@ -307,6 +307,7 @@ class ManualContext(SuperContext):
                     if hint["finding_player"] == self.ctx.slot:
                         if hint["location"] in self.ctx.missing_locations:
                             location = self.ctx.get_location_by_id(hint["location"])
+                            location["category"] = location.get("category", [])
                             if "(Hinted)" not in location["category"]:
                                 location["category"].append("(Hinted)")
                                 rebuild = True
