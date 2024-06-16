@@ -123,7 +123,7 @@
     {
         "name": "Beat the Game - Deadpool",
         "category": ["Unlocked Teams", "Right Side"],
-        "requires": "|Deadpool|"
+        "requires": "|Deadpool| or {YamlEnabled(free_deadpool)}"
     },
     {
         "name": "Beat the Game - Wolverine",
