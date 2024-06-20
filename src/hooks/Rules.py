@@ -128,3 +128,10 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
     for function in functions:
         requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
     return requires_list
+
+# Rule to expose the can_reach_location core function
+def canReachLocation(world: World, multiworld: MultiWorld, state: CollectionState, player: int, location: str):
+    """Can the player reach the given location?"""
+    if state.can_reach_location(location, player):
+        return True
+    return False
