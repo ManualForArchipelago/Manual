@@ -12,21 +12,21 @@ Okay, so we know what requires are. Let's talk about the different ways you can 
 
 ## Boolean Logic (AND/OR)
 
-**Boolean logic is the default way to write requires in Manual.** It's called "boolean logic" because you're writing your logic much like you'd describe it normally: with a series of AND/OR combos. 
+**Boolean logic is the default way to write requires in Manual.** It's called "boolean logic" because you're writing your logic much like you'd describe it normally: with a series of AND/OR combos.
 
 For example, from the example above about Link to the Past and Thieves Town in the Dark World, let's assume that the first chest location in the dungeon has no additional requirements. So, we'd describe our logic for that first chest location as being "Moon Pearl and (either (Hammer and Power Glove) or Titan's Mitt)", same as the region itself. In Manual's boolean logic syntax, that would be:
 
 ```json
-{ 
+{
     "name": "First chest in Thieves Town",
     "requires": "|Moon Pearl| and ((|Hammer| and |Power Glove|) or |Titan's Mitt|)"
 }
 ```
 
-**You use `|pipes|` around item names and `(parentheses)` around your layers of nesting, if needed.** 
+**You use `|pipes|` around item names and `(parentheses)` around your layers of nesting, if needed.**
 
-- Pipes tell Manual where to look for entire item names. 
-- Parentheses tell Manual exactly how you're grouping your logic, since there's a difference between "Hammer and Power Glove or Titan's Mitt" and "(Hammer and Power Glove) or Titan's Mitt". 
+- Pipes tell Manual where to look for entire item names.
+- Parentheses tell Manual exactly how you're grouping your logic, since there's a difference between "Hammer and Power Glove or Titan's Mitt" and "(Hammer and Power Glove) or Titan's Mitt".
   - The former essentially evaluates to "Hammer and either Power Glove or Titan's Mitt", while the latter is very explicit about what the logic should be and evaluates correctly.
   - There's no theoretical limit to how many parentheses you can use, but try to not get past the practical limit of how many sets of parentheses you can reliably keep track of.
 
@@ -34,7 +34,7 @@ For example, from the example above about Link to the Past and Thieves Town in t
 
 Boss 1 Requires Ladder and Gloves, OR Sword and Shield, OR Bow and Quiver and Arrow (separate items): a simple case of various successful item sets. It's a few sets of ANDs separated by ORs.
 ```json
-{ 
+{
     "name": "Boss 1",
     "requires": "(|Ladder| and |Gloves|) or (|Sword| and |Shield|) or (|Bow| and |Quiver| and |Arrow|)"
 }
@@ -42,7 +42,7 @@ Boss 1 Requires Ladder and Gloves, OR Sword and Shield, OR Bow and Quiver and Ar
 
 Boss 2 simply requires one heart, a way to strike it (Sword, Spear or Club) and a way to dodge it (Double Jump, Dash or Slide): we're looking at different sets, and picking one item from which. It's many ORs inside a big set of ANDs.
 ```json
-{ 
+{
     "name": "Boss 2",
     "requires": "|Heart| and (|Sword| or |Spear| or |Club|) and (|Double Jump| or |Dash| or |Slide|)"
 }
@@ -50,7 +50,7 @@ Boss 2 simply requires one heart, a way to strike it (Sword, Spear or Club) and 
 
 Now, say the final boss is a big dragon with a glaring weakness to Blizzard. However, if you don't have blizzard, you will need a spear for its reach and a way to dodge it, which is one of the three mobility from before. This is an OR (the mobility), inside an AND (Spear and Mobility), inside an OR (Blizzard it or fight it legitimately). Layered logic is as such:
 ```json
-{ 
+{
     "name": "Final Boss",
     "requires": "|Blizzard| or (|Spear| and (|Double Jump| or |Dash| or |Slide|))",
     "victory": true
@@ -61,7 +61,7 @@ Now, say the final boss is a big dragon with a glaring weakness to Blizzard. How
 
 As demonstrated in the [Making Items: Count](making/items.md#count) docs, you can configure an item to have more than one copy of that item in the world's item pool. Sometimes, you want to use multiple copies of an item as a requirement for accessing a location or region, and Manual supports this as well.
 
-The way to do this is a short suffix added to the end of any required item name separated by a colon, like this: `|Coin:25|`. 
+The way to do this is a short suffix added to the end of any required item name separated by a colon, like this: `|Coin:25|`.
 
 - That will tell Manual that the location/region requires 25 of that Coin item.
 
@@ -69,7 +69,7 @@ Now that we know how to require multiple of an item, we can revise our Boss 2 ex
 
 > Boss 2 simply requires **FIVE hearts**, a way to strike it (Sword, Spear or Club) and a way to dodge it (Double Jump, Dash or Slide): we're looking at different sets, and picking one item from which. It's many ORs inside a big set of ANDs.
 > ```json
->{ 
+>{
 >    "name": "Boss 2",
 >    "requires": "|Heart:5| and (|Sword| or |Spear| or |Club|) and (|Double Jump| or |Dash| or |Slide|)"
 >}
@@ -106,13 +106,63 @@ The way to do this is using curly braces around the function name that you want 
 - Note the lack of pipes (`|`). Functions are processed entirely differently than items/categories used as requirements.
 - Doing this will tell Manual that the function will either return a requires string to be processed, or will return true/false based on whether this requirement was met.
 
-Requirement functions can have no function arguments, or have any number of function arguments separated by commas. 
+Requirement functions can have no function arguments, or have any number of function arguments separated by commas.
 
 - Example with no function arguments: https://github.com/ManualForArchipelago/Manual/blob/main/src/hooks/Rules.py#L8-L15.
 - Example with one argument, add str arguments to the end of the function for more: https://github.com/ManualForArchipelago/Manual/blob/main/src/hooks/Rules.py#L17-L24
 
-Additionally, those functions can themselves return a dynamically-created requires string, which would then be processed normally in the spot where the function call was. 
+Additionally, those functions can themselves return a dynamically-created requires string, which would then be processed normally in the spot where the function call was.
 
 - Example of a returned requires string: https://github.com/ManualForArchipelago/Manual/blob/main/src/hooks/Rules.py#L26-L29
 
-\* By default, the only two generic requirement functions that we provide are the OptOne and OptAll, which are both focused on allowing a required item or items to pass the requirement even if the item(s) have been disabled through defined category options. The rest of the functions in the Rules hook file are examples.
+## Bundled functions
+
+In addition to writing your own Requirement Functions, Manual comes with some helpful functions built in:
+
+### `ItemValue(ValueName:Count)`
+
+Checks if you've collected the specificed value of a value-based item.
+
+For Example, `{ItemValue(Coins:12)}` will check if the player has collect at least 12 coins worth of items
+
+
+### `OptOne(ItemName)`
+
+Requires an item only if that item exists.  Useful if an item might have been disabled by a yaml option.
+
+### `OptAll(ItemName)`
+
+Takes an entire requires string, and applies the above check to each item inside it.
+
+For example, `requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"` will be transformed into `"|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|"`
+
+
+### `YamlEnabled(option_name)` and `YamlDisabled(option_name)`
+
+These allow you to check yaml options within your logic.
+
+You might use this to allow glitches
+
+```json
+{
+    "name": "Item on Cliff",
+    "requires": "|Double Jump| or {YamlEnabled(allow_hard_glitches)}"
+}
+```
+
+Or make key items optional
+
+```json
+{
+    "name": "Hidden Item in Pokemon",
+    "requires": "|Itemfinder| or {YamlDisabled(require_itemfinder)}"
+}
+```
+
+You can even combine the two in complex ways
+
+```json
+{
+    "name": "This is probably a region",
+    "requires": "({YamlEnabled(easy_mode)} and |Gravity|) or ({YamlDisabled(easy_mode)} and |Jump| and |Blizzard| and |Water|)"
+}
