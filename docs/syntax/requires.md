@@ -115,11 +115,16 @@ Additionally, those functions can themselves return a dynamically-created requir
 
 - Example of a returned requires string: https://github.com/ManualForArchipelago/Manual/blob/main/src/hooks/Rules.py#L26-L29
 
-\* By default, the only two generic requirement functions that we provide are the OptOne and OptAll, which are both focused on allowing a required item or items to pass the requirement even if the item(s) have been disabled through defined category options. The rest of the functions in the Rules hook file are examples.
-
 ## Bundled functions
 
-Manual comes with some helpful functions built in:
+In addition to writing your own Requirement Functions, Manual comes with some helpful functions built in:
+
+### `ItemValue(ValueName:Count)`
+
+Checks if you've collected the specificed value of a value-based item.
+
+For Example, `{ItemValue(Coins:12)}` will check if the player has collect at least 12 coins worth of items
+
 
 ### `OptOne(ItemName)`
 
@@ -127,7 +132,10 @@ Requires an item only if that item exists.  Useful if an item might have been di
 
 ### `OptAll(ItemName)`
 
-I'm not sure how to document this function, nico pls help
+Takes an entire requires string, and applies the above check to each item inside it.
+
+For example, `requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"` will be transformed into `"|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|"`
+
 
 ### `YamlEnabled(option_name)` and `YamlDisabled(option_name)`
 

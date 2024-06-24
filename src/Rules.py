@@ -89,7 +89,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             func = globals().get(func_name)
 
             if func is None:
-                func = getattr(Rules, func_name)
+                func = getattr(Rules, func_name, None)
 
             if not callable(func):
                 raise ValueError(f"Invalid function `{func_name}` in {area}.")
