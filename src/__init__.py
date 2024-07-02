@@ -19,7 +19,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_option_enabled, is_item_enabled, get_option_value
+from .Helpers import is_option_enabled, is_item_enabled, get_option_value, get_items_for_player
 
 from BaseClasses import ItemClassification, Tutorial, Item
 from Options import PerGameCommonOptions
@@ -378,9 +378,10 @@ class ManualWorld(World):
         """returns the player real item count"""
         if player is None:
             player = self.player
+
         if not self.item_counts.get(player, {}) or reset:
-            real_pool = self.multiworld.get_items()
-            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
+            real_pool = get_items_for_player(self.multiworld, player, True)
+            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool}
         return self.item_counts.get(player)
 
     def client_data(self):

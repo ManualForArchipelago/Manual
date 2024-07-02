@@ -322,6 +322,6 @@
         "name": "Stars%",
         "victory": true,
         "category": ["All Characters Complete!"],
-        "requires": "{ItemValue(star:10)}"
+        "requires": "{ItemValue(star:10)} and {ItemValue(coins:10)}"
     }
 ]

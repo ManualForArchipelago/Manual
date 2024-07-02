@@ -68,18 +68,14 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
-        # Generate item_counts here so it can be access each time this is called
-        if player not in world.item_counts:
-            real_pool = multiworld.get_items()
-            world.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
 
-        # fallback if items_counts[player] not present (will not be accurate to hooks item count)
-        items_counts = world.get_item_counts()
+        # Get the "real" item counts of item in the pool/placed/starting_items
+        items_counts = world.get_item_counts(player)
 
         if requires_list == "":
             return True
 
-        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
+        for item in re.findall(r'\{(\w+)\((.*?)\)\}', requires_list):
             func_name = item[0]
             func_args = item[1].split(",")
             if func_args == ['']:
