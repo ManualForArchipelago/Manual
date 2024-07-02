@@ -223,7 +223,7 @@ class ManualWorld(World):
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
 
             if forbidden_item_names:
-                forbid_items_for_player(location, forbidden_item_names, self.player)
+                forbid_items_for_player(location, set(forbidden_item_names), self.player)
                 forbidden_item_names.clear()
 
         # Handle specific item placements using fill_restrictive
