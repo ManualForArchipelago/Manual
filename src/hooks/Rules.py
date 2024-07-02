@@ -28,7 +28,7 @@ def requiresMelee(world: World, multiworld: MultiWorld, state: CollectionState, 
     """Returns a requires string that checks if the player has unlocked the tank."""
     return "|Figher Level:15| or |Black Belt Level:15| or |Thief Level:15|"
 
-def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, noCache: Optional[str] = None):
+def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
     """When passed a string with this format: 'valueName:int',
     this function will check if the player has collect at least 'int' valueName worth of items\n
     eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
@@ -48,23 +48,23 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
     if not world.item_values_cache.get(player, {}):
         world.item_values_cache[player] = {}
 
-    if not noCache:
+    if not skipCache:
         if not world.item_values_cache[player].get(value_name, {}):
             world.item_values_cache[player][value_name] = {
                 'state': {},
                 'count': -1,
                 }
 
-    if (noCache or world.item_values_cache[player][value_name].get('count', -1) == -1
+    if (skipCache or world.item_values_cache[player][value_name].get('count', -1) == -1
             or world.item_values_cache[player][value_name].get('state') != dict(state.prog_items[player])):
-        # Run First Time, if state changed since last check or if noCache has a value
+        # Run First Time, if state changed since last check or if skipCache has a value
         existing_item_values = get_items_with_value(world, multiworld, value_name)
         total_Count = 0
         for name, value in existing_item_values.items():
             count = state.count(name, player)
             if count > 0:
                 total_Count += count * value
-        if noCache:
+        if skipCache:
             return total_Count >= requested_count
         world.item_values_cache[player][value_name]['count'] = total_Count
         world.item_values_cache[player][value_name]['state'] = dict(state.prog_items[player])
