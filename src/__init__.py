@@ -28,7 +28,7 @@ from worlds.AutoWorld import World, WebWorld
 from .hooks.World import \
     before_create_regions, after_create_regions, \
     before_create_items_starting, before_create_items_filler, after_create_items, \
-    before_create_item, after_create_item, \
+    before_create_item, after_create_item, get_filler_item_name, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler
@@ -61,6 +61,8 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
+    
+    get_filler_item_name = get_filler_item_name
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
