@@ -123,13 +123,13 @@ class ManualWorld(World):
 
             if item.get("early"): # Some or all early
                 if isinstance(item["early"],int) or (isinstance(item["early"],str) and item["early"].isnumeric()):
-                    self.multiworld.early_items[self.player][name] = int(item.get("early"))
+                    self.multiworld.early_items[self.player][name] = int(item["early"])
 
                 elif isinstance(item["early"],bool): #No need to deal with true vs false since false wont get here
                     self.multiworld.early_items[self.player][name] = item_count
 
                 else:
-                    raise Exception(f"Item {name}'s 'early' has an invalid value of '{item["early"]}'. \nA boolean or an integer was expected.")
+                    raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
 
             if item.get("local"): # All local
                 if name not in self.multiworld.local_items[self.player].value:
@@ -137,13 +137,13 @@ class ManualWorld(World):
 
             if item.get("local_early"): # Some or all local and early
                 if isinstance(item["local_early"],int) or (isinstance(item["local_early"],str) and item["local_early"].isnumeric()):
-                    self.multiworld.local_early_items[self.player][name] = int(item.get("local_early"))
+                    self.multiworld.local_early_items[self.player][name] = int(item["local_early"])
 
                 elif isinstance(item["local_early"],bool):
                     self.multiworld.local_early_items[self.player][name] = item_count
 
                 else:
-                    raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item["local_early"]}'. \nA boolean or an integer was expected.")
+                    raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
 
 
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
