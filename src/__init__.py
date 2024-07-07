@@ -33,7 +33,7 @@ from .hooks.World import \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
-from .hooks.Items import hook_get_filler_item
+from .hooks.Items import hook_get_filler_item_name
 
 class ManualWorld(World):
     __doc__ = world_description
@@ -64,7 +64,7 @@ class ManualWorld(World):
     victory_names = victory_names
     
     def get_filler_item_name(self) -> str:
-        return hook_get_filler_item() or filler_item_name
+        return hook_get_filler_item_name() or filler_item_name
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT

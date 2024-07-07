@@ -6,5 +6,5 @@ def before_item_table_processed(item_table: list) -> list:
 
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the 
-def hook_get_filler_item() -> str | bool:
+def hook_get_filler_item_name() -> str | bool:
     return False
