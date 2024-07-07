@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from .hooks import Rules
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled
+from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
+from worlds.AutoWorld import World
 
 import re
 import math
@@ -84,7 +85,15 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             func_args = item[1].split(",")
             if func_args == ['']:
                 func_args.pop()
-            func = getattr(Rules, func_name)
+
+            func = globals().get(func_name)
+
+            if func is None:
+                func = getattr(Rules, func_name, None)
+
+            if not callable(func):
+                raise ValueError(f"Invalid function `{func_name}` in {area}.")
+
             result = func(world, multiworld, state, player, *func_args)
             if isinstance(result, bool):
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
@@ -261,3 +270,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
+
+def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+    """Is a yaml option enabled?"""
+    return is_option_enabled(multiworld, player, param)
+
+def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+    """Is a yaml option disabled?"""
+    return not is_option_enabled(multiworld, player, param)
