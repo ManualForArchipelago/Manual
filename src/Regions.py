@@ -62,7 +62,7 @@ def create_region(world: World, multiworld: MultiWorld, player: int, name: str, 
             loc_id = world.location_name_to_id.get(location, 0)
             locationObj = ManualLocation(player, location, loc_id, ret)
             if location_name_to_location[location].get('prehint'):
-                multiworld.start_location_hints[player].value.add(location)
+                world.options.start_location_hints.value.add(location)
             ret.locations.append(locationObj)
     if exits:
         for exit in exits:
