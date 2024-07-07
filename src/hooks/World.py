@@ -115,10 +115,6 @@ def before_create_item(item_name: str, world: World, multiworld: MultiWorld, pla
 def after_create_item(item: ManualItem, world: World, multiworld: MultiWorld, player: int) -> ManualItem:
     return item
 
-# Use this function to change the valid filler items to be created to replace item links or starting items
-def get_filler_item_name() -> str:
-    return filler_item_name
-
 # This method is run towards the end of pre-generation, before the place_item options have been handled and before AP generation occurs
 def before_generate_basic(world: World, multiworld: MultiWorld, player: int) -> list:
     pass
