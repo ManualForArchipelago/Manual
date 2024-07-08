@@ -8,6 +8,7 @@ from worlds.AutoWorld import World
 
 import re
 import math
+import inspect
 
 if TYPE_CHECKING:
     from . import ManualWorld
@@ -93,7 +94,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             if not callable(func):
                 raise ValueError(f"Invalid function `{func_name}` in {area}.")
-
+            if func_args:
+                convert_req_function_args(func, func_args, area["name"])
             result = func(world, multiworld, state, player, *func_args)
             if isinstance(result, bool):
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
@@ -270,6 +272,51 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
+
+    def convert_req_function_args(func, args: list[str], areaName: str):
+        parameters = inspect.signature(func).parameters
+        knownArguments = ["world", "multiworld", "state", "player"]
+        index = 0
+        for parameter, info in parameters.items():
+            if parameter in knownArguments:
+                continue
+
+            argType = info.annotation
+            try:
+                value = args[index].strip().lower()
+
+            except IndexError:
+                if info is not inspect.Parameter.empty:
+                    value = info.default
+
+                else:
+                    raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its missing")
+
+            if not isinstance(value, argType):
+                if issubclass(argType, bool):
+                    #Special conversion to bool
+                    if value in ['true', '1']:
+                        value = True
+
+                    elif value in ['false', '0']:
+                        value = False
+
+                    else:
+                        # warning here spam the console, might be worth to make it a data validation instead
+                        # logging.warn(f"A function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed")
+                        value = bool(value)
+
+                else:
+                    try:
+                        value = argType(value)
+
+                    except ValueError:
+                        raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its value '{value}' cannot be converted to {argType}")
+
+                args[index] = value
+
+            index += 1
+
 
 def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
