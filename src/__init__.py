@@ -224,7 +224,6 @@ class ManualWorld(World):
 
             if forbidden_item_names:
                 forbid_items_for_player(location, set(forbidden_item_names), self.player)
-                forbidden_item_names.clear()
 
         # Handle specific item placements using fill_restrictive
         manual_locations_with_placements = {location['name']: location for location in location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
