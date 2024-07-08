@@ -283,9 +283,19 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 continue
 
             argType = info.annotation
+            optional = False
+            try:
+                if issubclass(argType, inspect._empty): #if not set then it wont get converted but still be checked for valid data at index
+                    argType = str
 
-            if issubclass(argType, inspect._empty): #if not set then it wont get converted but still be checked for valid data at index
-                argType = str
+            except TypeError: # Optional
+                if argType.__module__ == 'typing' and argType._name == 'Optional':
+                    optional = True
+                    argType = argType.__args__[0]
+                else:
+                    #Implementing complex typing is not simple so ill skip it for now
+                    index += 1
+                    continue
 
             try:
                 value = args[index].strip()
@@ -296,6 +306,17 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
                 else:
                     raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its missing")
+
+            if optional:
+                if isinstance(value, type(None)):
+                    index += 1
+                    continue
+                elif isinstance(value, str):
+                    if value.lower() == 'none':
+                        value = None
+                        args[index] = value
+                        index += 1
+                        continue
 
 
             if not isinstance(value, argType):
@@ -312,7 +333,6 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         if warn:
                         # warning here spam the console if called from rules.py, might be worth to make it a data validation instead
                             logging.warn(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed and thus converted to {value}")
-
 
                 else:
                     try:
