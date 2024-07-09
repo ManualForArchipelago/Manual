@@ -5,6 +5,6 @@ def before_item_table_processed(item_table: list) -> list:
     return item_table
 
 # Use this function to change the valid filler items to be created to replace item links or starting items.
-# Default value is the 
+# Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name() -> str | bool:
     return False
