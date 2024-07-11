@@ -25,7 +25,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "value": {"coins": 7},
+        "progression": true
         },
         {
             "name": "Firebrand",
@@ -403,6 +404,6 @@
                 "Right Side"
             ],
             "progression": true
-        }
-    ]
+        }    ]
+
 }
