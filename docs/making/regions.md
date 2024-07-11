@@ -6,8 +6,7 @@ Regions are a powerful and simple way to organize your game logic and make it ea
 [
     "Overworld": {
         "starting": true,
-        "connects_to": ["Lonely Island","Spooky Manor"],
-        "requires": []
+        "connects_to": ["Lonely Island","Spooky Manor"]
     },
     "Lonely Island": {
         "connects_to": [],
@@ -26,7 +25,7 @@ Regions are a powerful and simple way to organize your game logic and make it ea
 
 ## The basics
 
-When you create a [location](./locations.md), you can optionally assign it to a region. When you do this, the location will inherity ALL logic from the region it is in. This means that access to that location is not _only_ determined by that location's requires, but it now _also_ obeys the requires of the region it is in, _as well as_ that region's connection requirements (see below). If you have a location that is set to require Item A, and that location is in region "Cool Region", and "Cool Region" is set to require Item B, __that location will now require both Item A AND Item B before it is considered accessible__.
+When you create a [location](./locations.md), you can optionally assign it to a region. When you do this, the location will inherit ALL logic from the region it is in. This means that access to that location is not _only_ determined by that location's requires, but it now _also_ obeys the requires of the region it is in, _as well as_ that region's connection requirements (see below). If you have a location that is set to require Item A, and that location is in region "Cool Region", and "Cool Region" is set to require Item B, __that location will now require both Item A AND Item B before it is considered accessible__.
 
 _In locations.json:_
 
@@ -34,7 +33,7 @@ _In locations.json:_
     {
         "name": "My Location",
         "region": "Cool Region",
-        "requires": "Item A"
+        "requires": "|Item A|"
     },
 ```
 
@@ -42,7 +41,7 @@ _In regions.json:_
 
 ```json
     "Cool Region": {
-        "requires": ["Item B"]
+        "requires": "|Item B|"
     }
 ```
 
@@ -60,8 +59,7 @@ Consider the following example we showed earlier:
 [
     "Overworld": {
         "starting": true,
-        "connects_to": ["Lonely Island","Spooky Manor"],
-        "requires": []
+        "connects_to": ["Lonely Island","Spooky Manor"]
     },
     "Lonely Island": {
         "connects_to": [],
@@ -82,4 +80,4 @@ These regions represent the major areas of an adventure game we just made up. Ou
 
 Observe that the Overworld does _not_ connect to Manor Basement, but Spooky Manor does. There's no way in this game to go straight from the Overworld to the Basement _without_ going through the rest of the manor first. This means that you require the items necessary to get into the manor _and_ the items to get into the basement before you can access any locations in the basement.
 
-Please note that `connects_to` connections are _one-directional_. If you had some other way to access the Manor Basement without going through Spooky Manor, it would NOT necessarily give you access to the Spooky Manor as well, unless you specifically define it in Manor Basement's `connects_to`.
+Please note that `connects_to` connections are _one-directional_ when defined, because it is implied that you can travel backwards across a connection that you already used. If you had some other way to access the Manor Basement without going through Spooky Manor, it would NOT necessarily give you access to the Spooky Manor as well, unless you specifically define it in Manor Basement's `connects_to`.
