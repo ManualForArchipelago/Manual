@@ -1,9 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.game.schema.json",
-    "description": "Schema for ManualAP game.json",
+    "description": "Schema for Manual's game.json",
     "type": "object",
     "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
         "game": {
             "description": "The name of your game, compatible with capital letters.",
             "type": "string"

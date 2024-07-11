@@ -1,91 +1,103 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.items.schema.json",
-  "description": "Schema for ManualAP items.json",
-  "type": "array",
-  "items": {
-    "$ref": "#/definitions/Item"
-  },
-  "definitions": {
-    "Item": {
-      "type": "object",
-        "properties": {
-            "name": {
-                "description": "The unique name of the item. Do not use () or : in the name",
-                "type": "string"
-            },
-            "progression": {
-                "description": "(Optional) Is this item needed to unlock locations? Defaults to false if not included.",
-                "default": true,
-                "type": "boolean"
-            },
-            "count": {
-                "description": "(Optional) Number of copy of this item in the pool.",
-                "type": "integer",
-                "default": 1
-            },
-            "category": {
-                "description": "(Optional) The category(ies) this item fit in",
-                "type": "array",
-                "items": {
-                    "$ref": "#/definitions/Category"
-                },
-                "minItems": 1,
-                "uniqueItems": true
-            },
-            "useful": {
-                "description": "(Optional) Is this item usefull to have? Used for items that are not progression but you still want the rando to really use.",
-                "type": "boolean"
-            },
-            "progression_skip_balancing": {
-                "description": "(Optional) Should this item not get included in progression balance swaps. For more info check the discord",
-                "type": "boolean",
-                "default": true
-            },
-            "trap": {
-                "description": "(Optional) Is this item a trap? Something the player doesnt want to get.",
-                "type": "boolean",
-                "default": true
-            },
-            "early": {
-                "description": "(Optional) Is this item required to be placed somewhere accessible from the start (Sphere 1)",
-                "type": "boolean",
-                "default": true
-            },
-            "local": {
-                "description": "(Optional) Is this item supposed to be only in your locations(true) or anywhere(false)",
-                "type": "boolean",
-                "default": true
-            },
-            "value": {
-                "description": "(Optional) A dictonary of values this item has in the format {\"name\": int,\"otherName\": int} \nUsed with the {ItemValue(Name: int)} in location requires \neg. \"value\": {\"coins\":10} mean this item is worth 10 coins",
-                "type": "object",
-                "patternProperties": {
-                    "^.+$": {
-                        "anyOf": [
-                            {
-                                "type": "integer",
-                                "description": "A value that this item has must be 'name':integer \neg. \"coins\": 10"
-                            }
-                        ]
-                    }
-                }
-            },
-            "_comment": {"$ref": "#/definitions/comment"}
-
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.items.schema.json",
+    "description": "Schema for Manual's items.json",
+    "type": ["array", "object"],
+    "items": {
+        "$ref": "#/definitions/Item"
+    },
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
         },
-        "required": ["name"]
+        "data": {
+            "description": "List of Items",
+            "type": "array",
+            "items": {"$ref": "#/definitions/Item"}
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
     },
-    "Category": {
-        "type": "string"
-    },
-    "comment": {
-        "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-        "type": ["string", "array"],
-        "items": {
-            "description": "A line of comment",
-            "type":"string"
+    "definitions": {
+        "Item": {
+        "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The unique name of the item. Do not use () or : in the name",
+                    "type": "string"
+                },
+                "progression": {
+                    "description": "(Optional) Is this item needed to unlock locations? Defaults to false if not included.",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "count": {
+                    "description": "(Optional) Number of copy of this item in the pool.",
+                    "type": "integer",
+                    "default": 1
+                },
+                "category": {
+                    "description": "(Optional) The category(ies) this item fit in",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Category"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "useful": {
+                    "description": "(Optional) Is this item usefull to have? Used for items that are not progression but you still want the rando to really use.",
+                    "type": "boolean"
+                },
+                "progression_skip_balancing": {
+                    "description": "(Optional) Should this item not get included in progression balance swaps. For more info check the discord",
+                    "type": "boolean",
+                    "default": true
+                },
+                "trap": {
+                    "description": "(Optional) Is this item a trap? Something the player doesnt want to get.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "early": {
+                    "description": "(Optional) Is this item required to be placed somewhere accessible from the start (Sphere 1)",
+                    "type": "boolean",
+                    "default": true
+                },
+                "local": {
+                    "description": "(Optional) Is this item supposed to be only in your locations(true) or anywhere(false)",
+                    "type": "boolean",
+                    "default": true
+                },
+                "value": {
+                    "description": "(Optional) A dictionary of values this item has in the format {\"name\": int,\"otherName\": int} \nUsed with the {ItemValue(Name: int)} in location requires \neg. \"value\": {\"coins\":10} mean this item is worth 10 coins",
+                    "type": "object",
+                    "patternProperties": {
+                        "^.+$": {
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "description": "A value that this item has must be 'name':integer \neg. \"coins\": 10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "_comment": {"$ref": "#/definitions/comment"}
+
+            },
+            "required": ["name"]
+        },
+        "Category": {
+            "type": "string"
+        },
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
         }
     }
-  }
 }
