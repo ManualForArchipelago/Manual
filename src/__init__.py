@@ -400,8 +400,13 @@ class ManualWorld(World):
 ###
 
 def launch_client(*args):
+    import CommonClient
     from .ManualClient import launch as Main
-    launch_subprocess(Main, name="Manual client")
+
+    if CommonClient.gui_enabled:
+        launch_subprocess(Main, name="Manual client")
+    else:
+        Main()
 
 class VersionedComponent(Component):
     def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None):
