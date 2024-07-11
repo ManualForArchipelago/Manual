@@ -1,14 +1,26 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.items.schema.json",
-    "description": "Schema for ManualAP items.json",
-    "type": "array",
+    "description": "Schema for Manual's items.json",
+    "type": ["array", "object"],
     "items": {
         "$ref": "#/definitions/Item"
     },
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
+        "data": {
+            "description": "List of Items",
+            "type": "array",
+            "items": {"$ref": "#/definitions/Item"}
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
+    },
     "definitions": {
         "Item": {
-            "type": "object",
+        "type": "object",
             "properties": {
                 "name": {
                     "description": "The unique name of the item. Do not use () or : in the name",

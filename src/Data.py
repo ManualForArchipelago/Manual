@@ -22,12 +22,21 @@ def load_data_file(*args) -> dict:
 
     return filedata
 
-game_table = load_data_file('game.json')
-item_table = load_data_file('items.json')
-location_table = load_data_file('locations.json')
-region_table = load_data_file('regions.json')
-category_table = load_data_file('categories.json') or {}
-meta_table = load_data_file('meta.json') or {}
+def convert_to_list(data, property_name: str) -> list:
+    if isinstance(data, dict):
+        data = data.get(property_name, [])
+    return data
+
+game_table = load_data_file('game.json') #dict
+item_table = convert_to_list(load_data_file('items.json'), 'data') #list
+location_table = convert_to_list(load_data_file('locations.json'), 'data') #list
+region_table = load_data_file('regions.json') #dict
+category_table = load_data_file('categories.json') or {} #dict
+meta_table = load_data_file('meta.json') or {} #dict
+
+# Removal of schemas in root of tables
+region_table.pop('$schema', '')
+category_table.pop('$schema', '')
 
 # hooks
 game_table = after_load_game_file(game_table)

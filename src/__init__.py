@@ -19,7 +19,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_option_enabled, is_item_enabled, get_option_value
+from .Helpers import is_option_enabled, is_item_enabled, get_option_value, get_items_for_player
 
 from BaseClasses import ItemClassification, Tutorial, Item
 from Options import PerGameCommonOptions
@@ -397,9 +397,10 @@ class ManualWorld(World):
         """returns the player real item count"""
         if player is None:
             player = self.player
+
         if not self.item_counts.get(player, {}) or reset:
-            real_pool = self.multiworld.get_items()
-            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
+            real_pool = get_items_for_player(self.multiworld, player, True)
+            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool}
         return self.item_counts.get(player)
 
     def client_data(self):
@@ -419,8 +420,13 @@ class ManualWorld(World):
 ###
 
 def launch_client(*args):
+    import CommonClient
     from .ManualClient import launch as Main
-    launch_subprocess(Main, name="Manual client")
+
+    if CommonClient.gui_enabled:
+        launch_subprocess(Main, name="Manual client")
+    else:
+        Main()
 
 class VersionedComponent(Component):
     def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None):
@@ -428,7 +434,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_05_05 # YYYYMMDD
+    version = 2024_07_10 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":
