@@ -84,7 +84,8 @@
         },
         "enable_region_diagram": {
             "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
         }
     },
     "definitions": {
