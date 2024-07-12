@@ -60,14 +60,19 @@
                     "default": true
                 },
                 "early": {
-                    "description": "(Optional) Is this item required to be placed somewhere accessible from the start (Sphere 1)",
+                    "description": "(Optional) How many copies of this item are required to be placed somewhere accessible from the start (Sphere 1) \nChoosing 'True' mark all of them to be early",
+                    "type": ["boolean", "integer"],
+                    "default": 1
+                },
+                "local": {
+                    "description": "(Optional) Are all copies of this item supposed to be only in your locations(true) or anywhere(false)",
                     "type": "boolean",
                     "default": true
                 },
-                "local": {
-                    "description": "(Optional) Is this item supposed to be only in your locations(true) or anywhere(false)",
-                    "type": "boolean",
-                    "default": true
+                "local_early": {
+                    "description": "(Optional) How many copies of this item are supposed to be early and only in your locations. \nTrue mark all of them to be local_early. \nCan be used to mark some of the copies of an item to be early and local since 'local' is a toggle between none or all of them.",
+                    "type": ["boolean", "integer"],
+                    "default": 1
                 },
                 "value": {
                     "description": "(Optional) A dictionary of values this item has in the format {\"name\": int,\"otherName\": int} \nUsed with the {ItemValue(Name: int)} in location requires \neg. \"value\": {\"coins\":10} mean this item is worth 10 coins",
@@ -96,7 +101,7 @@
             "type": ["string", "array"],
             "items": {
                 "description": "A line of comment",
-                "type":"string"
+                "type": "string"
             }
         }
     }
