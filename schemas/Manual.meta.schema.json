@@ -9,10 +9,6 @@
             "description": "The schema to verify this document against."
         },
         "_comment": {"$ref": "#/definitions/comment"},
-        "enable_region_diagram": {
-            "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
-            "type": "boolean"
-        },
         "docs": {
             "description": "Every properties linked to the documentation of your apworld",
             "type": "object",
@@ -85,6 +81,10 @@
                     }
                 }
             }
+        },
+        "enable_region_diagram": {
+            "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
+            "type": "boolean"
         }
     },
     "definitions": {

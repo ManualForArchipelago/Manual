@@ -26,15 +26,11 @@
                     "description": "The unique name of the location.",
                     "type": "string"
                 },
-                "region": {
-                    "description": "(Optional) The name of the Region this location is part of.",
-                    "type": "string"
-                },
                 "category": {
                     "description": "(Optional) An array of the Category(ies) this location is a part of.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Category"
+                        "type": "string"
                     },
                     "uniqueItems": true
                 },
@@ -46,29 +42,15 @@
                     },
                     "uniqueItems": true
                 },
-                "place_item_category": {
-                    "description": "(Optional) Specify the category of item that will be placed at this location. (Ignore Logic)",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Place_item_category"
-                    },
-                    "minItems": 0,
-                    "uniqueItems": true
+                "region": {
+                    "description": "(Optional) The name of the Region this location is part of.",
+                    "type": "string"
                 },
                 "place_item": {
                     "description": "(Optional) Specify the list of item that can be placed at this location (will only randomly choose 1).",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Place_item"
-                    },
-                    "minItems": 0,
-                    "uniqueItems": true
-                },
-                "dont_place_item_category": {
-                    "description": "(Optional) Specify the categories of items that will never be placed at this location.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Place_item_category"
+                        "type": "string"
                     },
                     "minItems": 0,
                     "uniqueItems": true
@@ -77,24 +59,41 @@
                     "description": "(Optional) Specify the list of items that cannot be placed at this location.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Place_item"
+                        "type": "string"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "place_item_category": {
+                    "description": "(Optional) Specify the category of item that will be placed at this location. (Ignore Logic)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "dont_place_item_category": {
+                    "description": "(Optional) Specify the categories of items that will never be placed at this location.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     },
                     "minItems": 0,
                     "uniqueItems": true
                 },
                 "victory": {
                     "description": "(Optional) Is this location the goal of this Manual Apworld",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                 },
                 "prehint": {
                     "description": "(Optional) Prehint this location.",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
             }
-        },
-        "Category": {
-            "type": "string"
         },
         "Require": {
             "type": ["string", "array", "object"],
@@ -109,12 +108,6 @@
                     }
                 }
             }
-        },
-        "Place_item_category": {
-            "type": "string"
-        },
-        "Place_item": {
-            "type": "string"
         },
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",

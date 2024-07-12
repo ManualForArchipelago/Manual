@@ -29,14 +29,15 @@
                             "description": "Array of other regions the player can go from this region.",
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/Connects_to"
+                                "type": "string"
                             },
                             "minItems": 0,
                             "uniqueItems": true
                         },
                         "starting": {
                             "description": "(Optional) Is this region accessible from the start? Defaults to false if not included.",
-                            "type":"boolean"
+                            "type":"boolean",
+                            "default": false
                         },
                         "_comment": {"$ref": "#/definitions/comment"}
                     }
@@ -58,9 +59,6 @@
                     }
                 }
             }
-        },
-        "Connects_to": {
-            "type": "string"
         },
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
