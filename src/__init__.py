@@ -216,21 +216,14 @@ class ManualWorld(World):
             manual_location = manual_locations_with_forbid[location.name]
             forbidden_item_names = []
 
-            if "dont_place_item" in manual_location:
-                if len(manual_location["dont_place_item"]) == 0:
-                    continue
-
+            if manual_location.get("dont_place_item"):
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
 
-            if "dont_place_item_category" in manual_location:
-                if len(manual_location["dont_place_item_category"]) == 0:
-                    continue
-
+            if manual_location.get("dont_place_item_category"):
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
 
-            if len(forbidden_item_names) > 0:
-                forbid_items_for_player(location, forbidden_item_names, self.player)
-                forbidden_item_names.clear()
+            if forbidden_item_names:
+                forbid_items_for_player(location, set(forbidden_item_names), self.player)
 
         # Handle specific item placements using fill_restrictive
         manual_locations_with_placements = {location['name']: location for location in location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
@@ -238,51 +231,41 @@ class ManualWorld(World):
         for location in locations_with_placements:
             manual_location = manual_locations_with_placements[location.name]
             eligible_items = []
+            eligible_item_names = []
+            forbidden_item_names = []
+            place_messages = []
+            forbid_messages = []
 
-            if "place_item" in manual_location:
-                if len(manual_location["place_item"]) == 0:
-                    continue
+            #First we get possible items names
+            if manual_location.get("place_item"):
+                eligible_item_names += manual_location["place_item"]
+                place_messages.append('", "'.join(manual_location["place_item"]))
 
-                eligible_items = [item for item in self.multiworld.itempool if item.name in manual_location["place_item"] and item.player == self.player]
+            if manual_location.get("place_item_category"):
+                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
+                place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
 
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match %s." % (manual_location["name"], ", ".join(manual_location["place_item"])))
+            # Second we check for forbidden items names
+            if manual_location.get("dont_place_item"):
+                forbidden_item_names += manual_location["dont_place_item"]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
 
-            if "place_item_category" in manual_location:
-                if len(manual_location["place_item_category"]) == 0:
-                    continue
+            if manual_location.get("dont_place_item_category"):
+                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
 
-                eligible_item_names = [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
-                eligible_items = [item for item in self.multiworld.itempool if item.name in eligible_item_names and item.player == self.player]
+            # If we forbid some names, check for those in the possible names and remove them
+            if forbidden_item_names:
+                eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
 
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match categories %s." % (manual_location["name"], ", ".join(manual_location["place_item_category"])))
+            if eligible_item_names:
+                eligible_items = [item for item in self.multiworld.itempool if item.player == self.player and item.name in eligible_item_names]
 
-            if "dont_place_item" in manual_location:
-                if len(manual_location["dont_place_item"]) == 0:
-                    continue
-
-                eligible_items = [item for item in eligible_items if item.name not in manual_location["dont_place_item"]]
-
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match placed_items(_category) because of forbidden %s." % (manual_location["name"], ", ".join(manual_location["dont_place_item"])))
-
-            if "dont_place_item_category" in manual_location:
-                if len(manual_location["dont_place_item_category"]) == 0:
-                    continue
-
-                forbidden_item_names = [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
-
-                eligible_items = [item for item in eligible_items if item.name not in forbidden_item_names]
-
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match placed_items(_category) because of forbidden categories %s." % (manual_location["name"], ", ".join(manual_location["dont_place_item_category"])))
-                forbidden_item_names.clear()
-
-
-            # if we made it here and items is empty, then we encountered an unknown issue... but also can't do anything to place, so error
             if len(eligible_items) == 0:
-                raise Exception("Custom item placement at location %s failed." % (manual_location["name"]))
+                nl = "\n"
+                if forbidden_item_names:
+                    raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}".\n    No items that match "{f"{nl}     or ".join(place_messages)}"\n    Maybe because of forbidden "{f"{nl}     or ".join(forbid_messages)}"')
+                raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}". \n    No items that match "{f"{nl}     or ".join(place_messages)}"')
 
             item_to_place = self.random.choice(eligible_items)
             location.place_locked_item(item_to_place)
