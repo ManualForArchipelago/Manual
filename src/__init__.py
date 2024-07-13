@@ -26,14 +26,13 @@ from Options import PerGameCommonOptions
 from worlds.AutoWorld import World, WebWorld
 
 from .hooks.World import \
-    before_create_regions, after_create_regions, \
+    hook_get_filler_item_name, before_create_regions, after_create_regions, \
     before_create_items_starting, before_create_items_filler, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler
 from .hooks.Data import hook_interpret_slot_data
-from .hooks.Items import hook_get_filler_item_name
 
 class ManualWorld(World):
     __doc__ = world_description
