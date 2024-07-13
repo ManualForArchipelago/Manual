@@ -19,7 +19,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_option_enabled, is_item_enabled, get_option_value
+from .Helpers import is_option_enabled, is_item_enabled, get_option_value, get_items_for_player
 
 from BaseClasses import ItemClassification, Tutorial, Item
 from Options import PerGameCommonOptions
@@ -117,15 +117,34 @@ class ManualWorld(World):
 
             if item_count == 0: continue
 
-            for i in range(item_count):
+            for _ in range(item_count):
                 new_item = self.create_item(name)
                 pool.append(new_item)
 
-            if item.get("early"): # only early
-                self.multiworld.early_items[self.player][name] = item_count
-            if item.get("local"): # only local
+            if item.get("early"): # Some or all early
+                if isinstance(item["early"],int) or (isinstance(item["early"],str) and item["early"].isnumeric()):
+                    self.multiworld.early_items[self.player][name] = int(item["early"])
+
+                elif isinstance(item["early"],bool): #No need to deal with true vs false since false wont get here
+                    self.multiworld.early_items[self.player][name] = item_count
+
+                else:
+                    raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
+
+            if item.get("local"): # All local
                 if name not in self.multiworld.local_items[self.player].value:
                     self.options.local_items.value.add(name)
+
+            if item.get("local_early"): # Some or all local and early
+                if isinstance(item["local_early"],int) or (isinstance(item["local_early"],str) and item["local_early"].isnumeric()):
+                    self.multiworld.local_early_items[self.player][name] = int(item["local_early"])
+
+                elif isinstance(item["local_early"],bool):
+                    self.multiworld.local_early_items[self.player][name] = item_count
+
+                else:
+                    raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
+
 
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 
@@ -216,21 +235,14 @@ class ManualWorld(World):
             manual_location = manual_locations_with_forbid[location.name]
             forbidden_item_names = []
 
-            if "dont_place_item" in manual_location:
-                if len(manual_location["dont_place_item"]) == 0:
-                    continue
-
+            if manual_location.get("dont_place_item"):
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
 
-            if "dont_place_item_category" in manual_location:
-                if len(manual_location["dont_place_item_category"]) == 0:
-                    continue
-
+            if manual_location.get("dont_place_item_category"):
                 forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
 
-            if len(forbidden_item_names) > 0:
-                forbid_items_for_player(location, forbidden_item_names, self.player)
-                forbidden_item_names.clear()
+            if forbidden_item_names:
+                forbid_items_for_player(location, set(forbidden_item_names), self.player)
 
         # Handle specific item placements using fill_restrictive
         manual_locations_with_placements = {location['name']: location for location in location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
@@ -238,51 +250,41 @@ class ManualWorld(World):
         for location in locations_with_placements:
             manual_location = manual_locations_with_placements[location.name]
             eligible_items = []
+            eligible_item_names = []
+            forbidden_item_names = []
+            place_messages = []
+            forbid_messages = []
 
-            if "place_item" in manual_location:
-                if len(manual_location["place_item"]) == 0:
-                    continue
+            #First we get possible items names
+            if manual_location.get("place_item"):
+                eligible_item_names += manual_location["place_item"]
+                place_messages.append('", "'.join(manual_location["place_item"]))
 
-                eligible_items = [item for item in self.multiworld.itempool if item.name in manual_location["place_item"] and item.player == self.player]
+            if manual_location.get("place_item_category"):
+                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
+                place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
 
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match %s." % (manual_location["name"], ", ".join(manual_location["place_item"])))
+            # Second we check for forbidden items names
+            if manual_location.get("dont_place_item"):
+                forbidden_item_names += manual_location["dont_place_item"]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
 
-            if "place_item_category" in manual_location:
-                if len(manual_location["place_item_category"]) == 0:
-                    continue
+            if manual_location.get("dont_place_item_category"):
+                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
 
-                eligible_item_names = [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
-                eligible_items = [item for item in self.multiworld.itempool if item.name in eligible_item_names and item.player == self.player]
+            # If we forbid some names, check for those in the possible names and remove them
+            if forbidden_item_names:
+                eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
 
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match categories %s." % (manual_location["name"], ", ".join(manual_location["place_item_category"])))
+            if eligible_item_names:
+                eligible_items = [item for item in self.multiworld.itempool if item.player == self.player and item.name in eligible_item_names]
 
-            if "dont_place_item" in manual_location:
-                if len(manual_location["dont_place_item"]) == 0:
-                    continue
-
-                eligible_items = [item for item in eligible_items if item.name not in manual_location["dont_place_item"]]
-
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match placed_items(_category) because of forbidden %s." % (manual_location["name"], ", ".join(manual_location["dont_place_item"])))
-
-            if "dont_place_item_category" in manual_location:
-                if len(manual_location["dont_place_item_category"]) == 0:
-                    continue
-
-                forbidden_item_names = [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
-
-                eligible_items = [item for item in eligible_items if item.name not in forbidden_item_names]
-
-                if len(eligible_items) == 0:
-                    raise Exception("Could not find a suitable item to place at %s. No items that match placed_items(_category) because of forbidden categories %s." % (manual_location["name"], ", ".join(manual_location["dont_place_item_category"])))
-                forbidden_item_names.clear()
-
-
-            # if we made it here and items is empty, then we encountered an unknown issue... but also can't do anything to place, so error
             if len(eligible_items) == 0:
-                raise Exception("Custom item placement at location %s failed." % (manual_location["name"]))
+                nl = "\n"
+                if forbidden_item_names:
+                    raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}".\n    No items that match "{f"{nl}     or ".join(place_messages)}"\n    Maybe because of forbidden "{f"{nl}     or ".join(forbid_messages)}"')
+                raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}". \n    No items that match "{f"{nl}     or ".join(place_messages)}"')
 
             item_to_place = self.random.choice(eligible_items)
             location.place_locked_item(item_to_place)
@@ -378,9 +380,10 @@ class ManualWorld(World):
         """returns the player real item count"""
         if player is None:
             player = self.player
+
         if not self.item_counts.get(player, {}) or reset:
-            real_pool = self.multiworld.get_items()
-            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
+            real_pool = get_items_for_player(self.multiworld, player, True)
+            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool}
         return self.item_counts.get(player)
 
     def client_data(self):
@@ -400,8 +403,13 @@ class ManualWorld(World):
 ###
 
 def launch_client(*args):
+    import CommonClient
     from .ManualClient import launch as Main
-    launch_subprocess(Main, name="Manual client")
+
+    if CommonClient.gui_enabled:
+        launch_subprocess(Main, name="Manual client")
+    else:
+        Main()
 
 class VersionedComponent(Component):
     def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None):
@@ -409,7 +417,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_04_23 # YYYYMMDD
+    version = 2024_07_10 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":

@@ -1,12 +1,15 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from .hooks import Rules
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled
+from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
+from worlds.AutoWorld import World
 
 import re
 import math
+import inspect
+import logging
 
 if TYPE_CHECKING:
     from . import ManualWorld
@@ -68,23 +71,28 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
-        # Generate item_counts here so it can be access each time this is called
-        if player not in world.item_counts:
-            real_pool = multiworld.get_items()
-            world.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool if i.player == player}
 
-        # fallback if items_counts[player] not present (will not be accurate to hooks item count)
-        items_counts = world.get_item_counts()
+        # Get the "real" item counts of item in the pool/placed/starting_items
+        items_counts = world.get_item_counts(player)
 
         if requires_list == "":
             return True
 
-        for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
+        for item in re.findall(r'\{(\w+)\((.*?)\)\}', requires_list):
             func_name = item[0]
             func_args = item[1].split(",")
             if func_args == ['']:
                 func_args.pop()
-            func = getattr(Rules, func_name)
+
+            func = globals().get(func_name)
+
+            if func is None:
+                func = getattr(Rules, func_name, None)
+
+            if not callable(func):
+                raise ValueError(f"Invalid function `{func_name}` in {area}.")
+
+            convert_req_function_args(func, func_args, area["name"])
             result = func(world, multiworld, state, player, *func_args)
             if isinstance(result, bool):
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
@@ -102,14 +110,14 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             item_base = item
             item = item.lstrip('|@$').rstrip('|')
 
-            item_parts = item.split(":")
+            item_parts = item.split(":")  # type: list[str]
             item_name = item
             item_count = "1"
 
 
             if len(item_parts) > 1:
-                item_name = item_parts[0]
-                item_count = item_parts[1]
+                item_name = item_parts[0].strip()
+                item_count = item_parts[1].strip()
 
             total = 0
 
@@ -124,7 +132,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     percent = clamp(float(item_count[:-1]) / 100, 0, 1)
                     item_count = math.ceil(category_items_counts * percent)
                 else:
-                    item_count = int(item_count)
+                    try:
+                        item_count = int(item_count)
+                    except ValueError as e:
+                        raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
 
                 for category_item in category_items:
                     total += state.count(category_item["name"], player)
@@ -258,3 +269,83 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
+
+    def convert_req_function_args(func, args: list[str], areaName: str, warn: bool = False):
+        parameters = inspect.signature(func).parameters
+        knownArguments = ["world", "multiworld", "state", "player"]
+        index = 0
+        for parameter, info in parameters.items():
+            if parameter in knownArguments:
+                continue
+
+            argType = info.annotation
+            optional = False
+            try:
+                if issubclass(argType, inspect._empty): #if not set then it wont get converted but still be checked for valid data at index
+                    argType = str
+
+            except TypeError: # Optional
+                if argType.__module__ == 'typing' and argType._name == 'Optional':
+                    optional = True
+                    argType = argType.__args__[0]
+                else:
+                    #Implementing complex typing is not simple so ill skip it for now
+                    index += 1
+                    continue
+
+            try:
+                value = args[index].strip()
+
+            except IndexError:
+                if info is not inspect.Parameter.empty:
+                    value = info.default
+
+                else:
+                    raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its missing")
+
+            if optional:
+                if isinstance(value, type(None)):
+                    index += 1
+                    continue
+                elif isinstance(value, str):
+                    if value.lower() == 'none':
+                        value = None
+                        args[index] = value
+                        index += 1
+                        continue
+
+
+            if not isinstance(value, argType):
+                if issubclass(argType, bool):
+                    #Special conversion to bool
+                    if value.lower() in ['true', '1']:
+                        value = True
+
+                    elif value.lower() in ['false', '0']:
+                        value = False
+
+                    else:
+                        value = bool(value)
+                        if warn:
+                        # warning here spam the console if called from rules.py, might be worth to make it a data validation instead
+                            logging.warn(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed and thus converted to {value}")
+
+                else:
+                    try:
+                        value = argType(value)
+
+                    except ValueError:
+                        raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its value '{value}' cannot be converted to {argType}")
+
+                args[index] = value
+
+            index += 1
+
+
+def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+    """Is a yaml option enabled?"""
+    return is_option_enabled(multiworld, player, param)
+
+def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+    """Is a yaml option disabled?"""
+    return not is_option_enabled(multiworld, player, param)

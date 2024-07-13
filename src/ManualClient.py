@@ -11,6 +11,7 @@ import ModuleUpdate
 ModuleUpdate.update()
 
 import Utils
+from kivy.metrics import dp
 
 if __name__ == "__main__":
     Utils.init_logging("ManualClient", exception_logger="Client")
@@ -98,7 +99,8 @@ class ManualContext(SuperContext):
     def suggested_game(self) -> str:
         if self.game:
             return self.game
-        return Utils.persistent_load().get("client", {}).get("last_manual_game", "Manual_{\"game\" from game.json}_{\"creator\" from game.json}")
+        from .Game import game_name  # This will at least give us the name of a manual they've installed
+        return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
 
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
@@ -205,6 +207,7 @@ class ManualContext(SuperContext):
 
         class TreeViewButton(Button, TreeViewNode):
             victory: bool = False
+            id: int = None
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
@@ -231,12 +234,12 @@ class ManualContext(SuperContext):
             def build(self) -> Layout:
                 super().build()
 
-                self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=30)
+                self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
-                game_bar_label = Label(text="Manual Game ID", size=(150, 30), size_hint_y=None, size_hint_x=None)
+                game_bar_label = Label(text="Manual Game ID", size=(dp(150), dp(30)), size_hint_y=None, size_hint_x=None)
                 self.manual_game_layout.add_widget(game_bar_label)
                 self.game_bar_text = TextInput(text=self.ctx.suggested_game,
-                                                size_hint_y=None, height=30, multiline=False, write_tab=False)
+                                                size_hint_y=None, height=dp(30), multiline=False, write_tab=False)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
@@ -304,6 +307,7 @@ class ManualContext(SuperContext):
                     if hint["finding_player"] == self.ctx.slot:
                         if hint["location"] in self.ctx.missing_locations:
                             location = self.ctx.get_location_by_id(hint["location"])
+                            location["category"] = location.get("category", [])
                             if "(Hinted)" not in location["category"]:
                                 location["category"].append("(Hinted)")
                                 rebuild = True
@@ -423,6 +427,7 @@ class ManualContext(SuperContext):
                     for location_id in self.listed_locations[location_category]:
                         location_button = TreeViewButton(text=self.ctx.location_names[location_id], size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_press=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
+                        location_button.id = location_id
                         category_layout.add_widget(location_button)
 
                     # if this is the category that Victory is in, display the Victory button
@@ -563,9 +568,7 @@ class ManualContext(SuperContext):
                                                 reachable_count += 1
                                             continue
 
-                                        location = self.ctx.get_location_by_name(location_button.text)
-
-                                        if ("victory" not in location or not location["victory"]) and location["id"] not in self.ctx.missing_locations:
+                                        if location_button.id and location_button.id not in self.ctx.missing_locations:
                                             import logging
 
                                             logging.info("location button being removed: " + location_button.text)
