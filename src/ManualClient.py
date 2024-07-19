@@ -11,7 +11,6 @@ import ModuleUpdate
 ModuleUpdate.update()
 
 import Utils
-from kivy.metrics import dp
 
 if __name__ == "__main__":
     Utils.init_logging("ManualClient", exception_logger="Client")
@@ -169,8 +168,8 @@ class ManualContext(SuperContext):
         super().on_deathlink(data)
         self.ui.death_link_button.text = f"Death Link: {data['source']}"
         self.ui.death_link_button.background_color = [1, 0, 0, 1]
-        
-        
+
+
     def on_tracker_updated(self, reachable_locations: list[str]):
         self.tracker_reachable_locations = reachable_locations
         self.ui.update_tracker_and_locations_table(update_highlights=True)
@@ -184,6 +183,7 @@ class ManualContext(SuperContext):
         """Import kivy UI system and start running it as self.ui_task."""
         from kvui import GameManager
 
+        from kivy.metrics import dp
         from kivy.uix.button import Button
         from kivy.uix.label import Label
         from kivy.uix.layout import Layout
