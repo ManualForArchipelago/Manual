@@ -30,6 +30,10 @@
                             "minItems": 1,
                             "uniqueItems": true
                         },
+                        "yaml_description": {
+                            "description": "(Optional) Dictionary of option-description pairs to add descriptor text to the yaml options defined in 'yaml_option'",
+                            "type": "object"
+                        }
                         "_comment": {"$ref": "#/definitions/comment"}
                     }
                 }
