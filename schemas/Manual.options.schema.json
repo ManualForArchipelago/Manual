@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json",
-    "description": "Schema for ManualAP options.json",
+    "description": "Schema for Manual's options.json",
     "type": "object",
     "items": {
         "$ref": "#/definitions/Option"
@@ -16,7 +16,7 @@
             "type": "object",
             "patternProperties": {
                 "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
-                "^.*$": {"$ref": "#/definitions/Option"}
+                "^.*$": {"description": "An Option for your World","$ref": "#/definitions/Option"}
             }
         },
         "_comment": {"$ref": "#/definitions/comment"}
@@ -37,16 +37,23 @@
                 "type": {
                     "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
                     "type": "string",
-                    "enum": ["FreeText", "Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange", "$undefined"],
-                    "default": "Toggle"
+                    "enum": ["FreeText", "Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "required": ["type"],
-            "if": {"properties": { "type": {"const": "$undefined"}}},
-            "then": {"const": "'type' must not be undefined"},
+            "if": {"properties": { "type": {"const": "Choice"}}},
+            "then": {
+                "description": "Let the user pick from a list of values",
+                "properties": {
+                    "values": {"$ref": "#/definitions/ChoiceValue"},
+                    "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                    "default": {"$ref": "#/definitions/DefaultInt"}
+                },
+                "required": ["values"]
+            },
             "else": {
-                "if": {"properties": { "type": {"const": "Choice"}}},
+                "if": {"properties": { "type": {"const": "TextChoice"}}},
                 "then": {
                     "description": "Like Choice but the player can define their own values",
                     "properties": {
@@ -57,47 +64,35 @@
                     "required": ["values"]
                 },
                 "else": {
-                    "if": {"properties": { "type": {"const": "TextChoice"}}},
+                    "if": {"properties": { "type": {"const": "Range"}}},
                     "then": {
-                        "description": "Like Choice but the player can define their own values",
+                        "description": "Allow the player to specify a value between 'start' and 'end'",
                         "properties": {
-                            "values": {"$ref": "#/definitions/ChoiceValue"},
-                            "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                            "start": {"$ref": "#/definitions/rangeStart"},
+                            "end": {"$ref": "#/definitions/rangeEnd"},
                             "default": {"$ref": "#/definitions/DefaultInt"}
                         },
-                        "required": ["values"]
-                    },
+                        "required": ["start", "end"]},
                     "else": {
-                        "if": {"properties": { "type": {"const": "Range"}}},
-                        "then": {
-                            "description": "Allow the player to specify a value between 'start' and 'end'",
+                        "if": {"properties": { "type": {"const": "NamedRange"}}},
+                        "then": {"description": "Like a Range, but with your own defined label for certain values",
                             "properties": {
                                 "start": {"$ref": "#/definitions/rangeStart"},
                                 "end": {"$ref": "#/definitions/rangeEnd"},
-                                "default": {"$ref": "#/definitions/DefaultInt"}
+                                "default": {"$ref": "#/definitions/DefaultInt"},
+                                "special_range_names":{"$ref": "#/definitions/special_range_names"}
                             },
-                            "required": ["start", "end"]},
+                            "required": ["start", "end"]
+                        },
                         "else": {
-                            "if": {"properties": { "type": {"const": "NamedRange"}}},
-                            "then": {"description": "Like a Range, but with a Special dict of lowercase string:int values",
-                                "properties": {
-                                    "start": {"$ref": "#/definitions/rangeStart"},
-                                    "end": {"$ref": "#/definitions/rangeEnd"},
-                                    "default": {"$ref": "#/definitions/DefaultInt"},
-                                    "special_range_names":{"$ref": "#/definitions/special_range_names"}
-                                },
-                                "required": ["start", "end"]
-                            },
-                            "else": {
-                                "if": {"properties": { "type": {"const": "Toggle"}}},
-                                "then": {"description": "A simple boolean, the default value is False. Use DefaultOnToggle instead for True"},
+                            "if": {"properties": { "type": {"const": "Toggle"}}},
+                            "then": {"description": "A simple boolean, the default value is False. Use DefaultOnToggle instead for True"},
+                            "else":{
+                                "if": {"properties": { "type": {"const": "DefaultOnToggle"}}},
+                                "then": {"description": "A simple boolean, the default value is True. Use Toggle instead for False"},
                                 "else":{
-                                    "if": {"properties": { "type": {"const": "DefaultOnToggle"}}},
-                                    "then": {"description": "A simple boolean, the default value is True. Use Toggle instead for False"},
-                                    "else":{
-                                        "if": {"properties": { "type": {"const": "FreeText"}}},
-                                        "then": {"description": "This Option will return a Player's chosen String"}
-                                    }
+                                    "if": {"properties": { "type": {"const": "FreeText"}}},
+                                    "then": {"description": "This Option will return a Player's chosen String"}
                                 }
                             }
                         }
