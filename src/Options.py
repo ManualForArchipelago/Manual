@@ -30,6 +30,8 @@ for category in category_table:
         if option_name not in manual_options:
             manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
+        if option_name in category_table[category].get("yaml_description", []):
+            manual_options[option_name].__doc__ = category_table[category]["yaml_description"][option_name]
 
 manual_options = after_options_defined(manual_options)
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))

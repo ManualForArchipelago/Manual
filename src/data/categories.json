@@ -4,6 +4,7 @@
         "hidden": true
     },
     "Example Yaml-option category": {
-        "yaml_option": ["DLC_enabled"]
+        "yaml_option": ["DLC_enabled"],
+        "yaml_description": {"DLC_enabled": "Include items and locations that require purchasing the DLC"}
     }
 }
