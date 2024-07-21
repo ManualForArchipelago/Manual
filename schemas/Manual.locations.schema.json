@@ -27,7 +27,7 @@
                     "type": "string"
                 },
                 "category": {
-                    "description": "(Optional) An array of the Category(ies) this location is a part of.",
+                    "description": "(Optional) A list of categories to be applied to this location.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -35,7 +35,7 @@
                     "uniqueItems": true
                 },
                 "requires": {
-                    "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
+                    "description": "(Optional) A boolean logic string that describes the required items, counts, etc. needed to reach this location.",
                     "type": [ "string", "array" ],
                     "items": {
                         "$ref": "#/definitions/Require"
@@ -43,11 +43,11 @@
                     "uniqueItems": true
                 },
                 "region": {
-                    "description": "(Optional) The name of the Region this location is part of.",
+                    "description": "(Optional) The name of the region this location is part of.",
                     "type": "string"
                 },
                 "place_item": {
-                    "description": "(Optional) Specify the list of item that can be placed at this location (will only randomly choose 1).",
+                    "description": "(Optional) Places an item that matches one of the item names listed in this setting at this location. Does not check logical access to the location.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -56,7 +56,7 @@
                     "uniqueItems": true
                 },
                 "dont_place_item": {
-                    "description": "(Optional) Specify the list of items that cannot be placed at this location.",
+                    "description": "(Optional) Places an item that DOES NOT match one of the item names listed in this setting at this location. Does not check logical access to the location.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -65,7 +65,7 @@
                     "uniqueItems": true
                 },
                 "place_item_category": {
-                    "description": "(Optional) Specify the category of item that will be placed at this location. (Ignore Logic)",
+                    "description": "(Optional) Places an item that matches at least one of the categories listed in this setting at this location. Does not check logical access to the location.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -74,7 +74,7 @@
                     "uniqueItems": true
                 },
                 "dont_place_item_category": {
-                    "description": "(Optional) Specify the categories of items that will never be placed at this location.",
+                    "description": "(Optional) Places an item that DOES NOT match at least one of the categories listed in this setting at this location. Does not check logical access to the location.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -83,12 +83,12 @@
                     "uniqueItems": true
                 },
                 "victory": {
-                    "description": "(Optional) Is this location the goal of this Manual Apworld",
+                    "description": "(Optional) Is this location one of the possible goals of this Manual APWorld?",
                     "type": "boolean",
                     "default": false
                 },
                 "prehint": {
-                    "description": "(Optional) Prehint this location.",
+                    "description": "(Optional) Should this location be hinted at the start?",
                     "type": "boolean",
                     "default": false
                 },

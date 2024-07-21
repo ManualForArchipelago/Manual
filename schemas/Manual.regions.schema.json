@@ -17,7 +17,7 @@
                     "description": "Name of the region",
                     "properties": {
                         "requires": {
-                            "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
+                            "description": "(Optional) A boolean logic string that describes the required items, counts, etc. needed to reach this region.",
                             "type": [ "string", "array" ],
                             "items": {
                                 "$ref": "#/definitions/Require"
@@ -26,7 +26,7 @@
                             "uniqueItems": true
                         },
                         "connects_to": {
-                            "description": "Array of other regions the player can go from this region.",
+                            "description": "A list of other regions that the player can reach from this region. Only describe forward connections with this setting, as backward connections are implied from regions you have already accessed.",
                             "type": "array",
                             "items": {
                                 "type": "string"
@@ -35,7 +35,7 @@
                             "uniqueItems": true
                         },
                         "starting": {
-                            "description": "(Optional) Is this region accessible from the start? Defaults to false if not included.",
+                            "description": "(Optional) Is this region accessible from the start? Or, does this region not require a connection from another region first?",
                             "type":"boolean",
                             "default": false
                         },
