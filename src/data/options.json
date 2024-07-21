@@ -2,13 +2,58 @@
     "$schema": "../../schemas/Manual.options.schema.json",
     "_comment": "Add a _ before an option name to comment it out and it wont be added to the apworld",
     "data": {
-        "example":{
+        "Choice":{
             "type": "Choice",
+            "description": ["This is a Choice"],
             "values": {
-                "start":0
+                "start":0,
+                "test":1
              },
             "default": 0
         },
+        "TextChoice":{
+            "type":"TextChoice",
+            "description": ["This is a TextChoice"],
+            "values": {
+                "start":0,
+                "test":1
+             },
+            "default": 0
+        },
+        "Range":{
+            "type": "Range",
+            "description": ["this is a Range"],
+            "range_start": 0,
+            "default": 1,
+            "range_end": 10
+        },
+        "NamedRange":{
+            "description": ["this is a NamedRange"],
+            "type": "NamedRange",
+            "range_start": 0,
+            "range_end": 10,
+            "special_range_names": {"test":2}
+        },
+        "DefaultOnToggle":{
+            "description": ["this is a DefaultOnToggle"],
+            "type": "DefaultOnToggle"
+        },
+        "Toggle":{
+            "description": ["this is a Toggle"],
+            "type": "Toggle"
+        },
+        "FreeText":{
+            "description": ["this is a FreeText"],
+            "type": "FreeText"
+        },
+
+
+        "DLC_enabled":{
+            "display_name": "DLC Enabled",
+            "description": ["Is the Dlc enabled?"],
+            "type": "DefaultOnToggle"
+        },
+
         "_commented_out":{
             "type": "DefaultOnToggle"
         }

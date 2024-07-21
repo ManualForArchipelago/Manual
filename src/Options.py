@@ -2,6 +2,7 @@ from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, Te
 from dataclasses import make_dataclass
 from .hooks.Options import before_options_defined, after_options_defined
 from .Data import category_table, game_table, option_table
+from .Helpers import convertToLongString
 
 from .Locations import victory_names
 from .Items import item_table
@@ -12,10 +13,6 @@ class FillerTrapPercent(Range):
     """How many fillers will be replaced with traps. 0 means no additional traps, 100 means all fillers are traps."""
     range_end = 100
 
-def convertToLongString(input: str | list) -> str: #Todo maybe find a better name for this
-    if not isinstance(input, str):
-        return str.join("\n", input)
-    return input
 
 def createChoiceOptions(values: dict, aliases: dict) -> dict:
     values = {'option_' + i: v for i, v in values.items()}
@@ -27,20 +24,41 @@ manual_options = before_options_defined({})
 for option_name, option in option_table.items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
-    option_type = Toggle
+    option_type = Toggle # ! I think there might be a better way to convert option['type'] -> type but I cant find it right now
     args = {'display_name': option.get('display_name', option_name)}
     if option['type'] == "DefaultOnToggle":
         option_type = DefaultOnToggle
+
     elif option['type'] == "Choice" or option['type'] == "TextChoice":
         option_type = Choice
         if option['type'] == "TextChoice":
             option_type = TextChoice
         args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
+
+    elif option['type'] == "Range" or option['type'] == "NamedRange":
+        option_type = Range
+        args['range_start'] = option.get('range_start', 0)
+        args['range_end'] = option.get('range_end', 1)
+        if option['type'] == "NamedRange":
+            option_type = NamedRange
+            args['special_range_names'] = option.get('special_range_names', {})
+            args['special_range_names']['default'] = option.get('default', args['range_start'])
+
+    elif option['type'] == "FreeText":
+        option_type = FreeText
+
+    if option.get('default'):
+        args['default'] = option.get('default')
+
+    if option.get('rich_text_doc',None) is not None:
+        args["rich_text_doc"] = option["rich_text_doc"]
+
     if option_name in ['goal', 'filler_traps']:
         if manual_options.get('goal'):
             logging.warn("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
-        #todo do something for those situations, maybe convert, maybe warn idk for now
+        # todo do something for those situations, maybe convert, maybe warn idk for now
         continue
+
     if option_name not in manual_options:
         manual_options[option_name] = type(option_name, (option_type,), args )
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))

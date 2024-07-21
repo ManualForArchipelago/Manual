@@ -2,6 +2,7 @@
 from BaseClasses import Tutorial
 from worlds.AutoWorld import World, WebWorld
 from .Data import meta_table
+from .Helpers import convertToLongString
 
 ##############
 # Meta Classes
@@ -23,14 +24,7 @@ def set_world_description(base_doc: str) -> str:
     if meta_table.get("docs", {}).get("apworld_description", None) is None:
         return base_doc
 
-    if isinstance(meta_table["docs"]["apworld_description"], str):
-        base_doc = meta_table["docs"]["apworld_description"]
-    else:
-        fullstring = ""
-        for line in meta_table["docs"]["apworld_description"]:
-            fullstring += "\n" + line
-        base_doc = fullstring
-    return base_doc
+    return convertToLongString(meta_table["docs"]["apworld_description"])
 
 def set_world_webworld(web: WebWorld) -> WebWorld:
     if meta_table.get("docs", {}).get("web", {}):
