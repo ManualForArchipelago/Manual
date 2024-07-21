@@ -6,6 +6,7 @@ from .Helpers import convertToLongString
 
 from .Locations import victory_names
 from .Items import item_table
+from pydoc import locate
 import logging
 
 
@@ -38,28 +39,22 @@ for option_name, option in option_table.get('data', {}).items():
             manual_goal_override['description'] = convertToLongString(option.get('description', ''))
         continue
 
-    option_type = Toggle # ! I think there might be a better way to convert option['type'] -> type but I cant find it right now
-    args = {'display_name': option.get('display_name', option_name)}
-    if option['type'] == "DefaultOnToggle":
-        option_type = DefaultOnToggle
+    option_type = locate('Options.' + option['type'])
 
-    elif option['type'] == "Choice" or option['type'] == "TextChoice":
-        option_type = Choice
-        if option['type'] == "TextChoice":
-            option_type = TextChoice
+    if option_type is None:
+        raise Exception(f'Option {option_name} in options.json has an invalid type of "{option["type"]}".\nIt must be one of the folowing: "FreeText", "Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range" or "NamedRange"')
+
+    args = {'display_name': option.get('display_name', option_name)}
+
+    if issubclass(option_type, Choice):
         args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
 
-    elif option['type'] == "Range" or option['type'] == "NamedRange":
-        option_type = Range
+    elif issubclass(option_type, Range):
         args['range_start'] = option.get('range_start', 0)
         args['range_end'] = option.get('range_end', 1)
-        if option['type'] == "NamedRange":
-            option_type = NamedRange
+        if issubclass(option_type, NamedRange):
             args['special_range_names'] = option.get('special_range_names', {})
             args['special_range_names']['default'] = option.get('default', args['range_start'])
-
-    elif option['type'] == "FreeText":
-        option_type = FreeText
 
     if option.get('default'):
         args['default'] = option.get('default')

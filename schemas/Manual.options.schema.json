@@ -141,8 +141,7 @@
                     "description": "An int value this option can have",
                     "type": "integer"
                 }
-            },
-            "minProperties": 1
+            }
         },
         "ChoiceAlias": {
             "description": "A dict of possible values in the format 'name':int/the name of a value from 'values'",

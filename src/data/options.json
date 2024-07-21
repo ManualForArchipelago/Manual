@@ -53,6 +53,12 @@
             "description": ["Is the Dlc enabled?"],
             "type": "DefaultOnToggle"
         },
+        "goal":{
+            "type": "Choice",
+            "display_name": "Goal",
+            "description": ["How to End your Randomized playthrough."],
+            "values": {}
+        },
 
         "_commented_out":{
             "type": "DefaultOnToggle"
