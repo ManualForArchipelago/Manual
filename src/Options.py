@@ -20,10 +20,24 @@ def createChoiceOptions(values: dict, aliases: dict) -> dict:
     return {**values, **aliases}
 
 manual_options = before_options_defined({})
-
+manual_goal_override = {}
 for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
+
+    if option_name in ['goal', 'filler_traps']:
+        if manual_options.get('goal'):
+            logging.warn("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
+        # todo do something for those situations, maybe convert, maybe warn idk for now
+        if option_name == 'goal':
+            if option['type'] != 'Choice':
+                raise Exception("a 'goal' option must be of type 'Choice'")
+            manual_goal_override['args'] = createChoiceOptions({}, option.get('aliases', {}))
+            manual_goal_override['args']['default'] = args['default'] = option.get('default', 0)
+            manual_goal_override['args']['display_name'] = option.get('display_name', option_name)
+            manual_goal_override['description'] = convertToLongString(option.get('description', ''))
+        continue
+
     option_type = Toggle # ! I think there might be a better way to convert option['type'] -> type but I cant find it right now
     args = {'display_name': option.get('display_name', option_name)}
     if option['type'] == "DefaultOnToggle":
@@ -53,12 +67,6 @@ for option_name, option in option_table.get('data', {}).items():
     if option.get('rich_text_doc',None) is not None:
         args["rich_text_doc"] = option["rich_text_doc"]
 
-    if option_name in ['goal', 'filler_traps']:
-        if manual_options.get('goal'):
-            logging.warn("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
-        # todo do something for those situations, maybe convert, maybe warn idk for now
-        continue
-
     if option_name not in manual_options:
         manual_options[option_name] = type(option_name, (option_type,), args )
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
@@ -66,8 +74,10 @@ for option_name, option in option_table.get('data', {}).items():
 if len(victory_names) > 1:
     goal = {'option_' + v: i for i, v in enumerate(victory_names)}
     # Check for existing Goal option
+    if manual_goal_override:
+        goal = {**goal, **manual_goal_override['args']}
     manual_options['goal'] = type('goal', (Choice,), goal)
-    manual_options['goal'].__doc__ = "Choose your victory condition."
+    manual_options['goal'].__doc__ = manual_goal_override.get('description', '') or "Choose your victory condition."
 
 
 if any(item.get('trap') for item in item_table):
