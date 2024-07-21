@@ -80,6 +80,15 @@
                     "description": "(Optional) how many items of this block will be randomly added to inventory. Will add every item in the block if not included",
                     "type":"integer"
                 },
+                "yaml_option": {
+                    "description": "(Optional) Array of Options that will decide if the items & locations in this category are enabled",
+                    "type": "array",
+                    "items": {
+                        "type":"string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "minProperties": 1

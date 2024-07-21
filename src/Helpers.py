@@ -34,8 +34,11 @@ def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str)
         return hook_result
 
     category_data = category_table.get(category_name, {})
-    if "yaml_option" in category_data:
-        for option_name in category_data["yaml_option"]:
+    return resolve_yaml_option(multiworld, player, category_data)
+
+def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
+    if "yaml_option" in data:
+        for option_name in data["yaml_option"]:
             required = True
             if option_name.startswith("!"):
                 option_name = option_name[1:]

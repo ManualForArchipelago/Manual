@@ -22,6 +22,10 @@
         },
         {
             "random": 3
+        },
+        {
+            "items": ["Deadpool"],
+            "yaml_option": ["start_with_deadpool"]
         }
     ],
     "death_link": false
