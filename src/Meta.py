@@ -21,10 +21,11 @@ class ManualWeb(WebWorld):
 # Convert meta.json data to properties
 ######################################
 def set_world_description(base_doc: str) -> str:
-    if meta_table.get("docs", {}).get("apworld_description", None) is None:
-        return base_doc
+    if meta_table.get("docs", {}).get("apworld_description"):
+        return convertToLongString(meta_table["docs"]["apworld_description"])
 
-    return convertToLongString(meta_table["docs"]["apworld_description"])
+    return base_doc
+
 
 def set_world_webworld(web: WebWorld) -> WebWorld:
     if meta_table.get("docs", {}).get("web", {}):

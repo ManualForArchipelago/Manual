@@ -21,7 +21,7 @@ def createChoiceOptions(values: dict, aliases: dict) -> dict:
 
 manual_options = before_options_defined({})
 
-for option_name, option in option_table.items():
+for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
     option_type = Toggle # ! I think there might be a better way to convert option['type'] -> type but I cant find it right now

@@ -32,7 +32,7 @@ item_table = convert_to_list(load_data_file('items.json'), 'data') #list
 location_table = convert_to_list(load_data_file('locations.json'), 'data') #list
 region_table = load_data_file('regions.json') #dict
 category_table = load_data_file('categories.json') or {} #dict
-option_table = load_data_file('options.json').get('data', {}) #dict
+option_table = load_data_file('options.json') or {} #dict
 meta_table = load_data_file('meta.json') or {} #dict
 
 # Removal of schemas in root of tables
