@@ -85,12 +85,12 @@
                     "default": false
                 },
                 "local": {
-                    "description": "(Optional) Are all copies of this item supposed to be only in your locations(true) or anywhere(false)",
+                    "description": "(Optional) Are all copies of this item supposed to be only in your locations (true), or can they be anywhere (false)?",
                     "type": "boolean",
                     "default": false
                 },
                 "local_early": {
-                    "description": "(Optional) How many copies of this item are supposed to be early and only in your locations. \nCan be used to mark some of the copies of an item to be early and local since 'local' is a toggle between none or all of them.",
+                    "description": "(Optional) How many copies of this item (or 'true' if all copies) are supposed to be early and only in your locations. \nCan be used to mark some of the copies of an item to be early and local since 'local' is a toggle between none or all of them.",
                     "type": ["boolean", "integer"],
                     "default": false
                 },
