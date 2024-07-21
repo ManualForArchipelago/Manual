@@ -1,5 +1,5 @@
 {
-    "$schema": "../../schemas/Manual.options.schema.json",
+    "$schema": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json",
     "_comment": "Add a _ before an option name to comment it out and it wont be added to the apworld",
     "data": {
         "Choice":{
