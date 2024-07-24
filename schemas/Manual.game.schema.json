@@ -55,13 +55,6 @@
         "Sitems": {
             "type":"object",
             "properties": {
-                "if_previous_item":{
-                    "description": "(Optional) Causes the starting item block to only occur when any of the matching items have already been added to starting inventory by any previous starting item blocks",
-                    "type":"array",
-                    "items":{
-                        "type":"string"
-                    }
-                },
                 "items": {
                     "description": "(Optional) List of item to pick from. If not included will pick from 'item_categories' if present or from the entire item pool if absent",
                     "type":"array",
@@ -79,6 +72,13 @@
                 "random": {
                     "description": "(Optional) how many items of this block will be randomly added to inventory. Will add every item in the block if not included",
                     "type":"integer"
+                },
+                "if_previous_item":{
+                    "description": "(Optional) Causes the starting item block to only occur when any of the matching items have already been added to starting inventory by any previous starting item blocks",
+                    "type":"array",
+                    "items":{
+                        "type":"string"
+                    }
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
