@@ -81,7 +81,7 @@
                     "type":"integer"
                 },
                 "yaml_option": {
-                    "description": "(Optional) Array of Options that will decide if the items & locations in this category are enabled",
+                    "description": "(Optional) Array of Options that will decide if this block is rolled",
                     "type": "array",
                     "items": {
                         "type":"string"
