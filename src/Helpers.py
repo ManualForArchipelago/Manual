@@ -123,3 +123,8 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
                             and i.name in world.item_name_groups.get(f'has_{value}_value', [])}
         world.item_values[player][value] = item_with_values
     return world.item_values[player].get(value)
+
+def convertToLongString(input: str | list) -> str: #Todo maybe find a better name for this
+    if not isinstance(input, str):
+        return str.join("\n", input)
+    return input
