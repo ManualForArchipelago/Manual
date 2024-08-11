@@ -109,7 +109,7 @@ class ManualContext(SuperContext):
         return location
 
     def get_location_by_id(self, id) -> dict[str, Any]:
-        name = self.location_names[id]
+        name = self.location_names.lookup_in_game(id)
         return self.get_location_by_name(name)
 
     def get_item_by_name(self, name):
@@ -119,7 +119,7 @@ class ManualContext(SuperContext):
         return item
 
     def get_item_by_id(self, id):
-        name = self.item_names[id]
+        name = self.item_names.lookup_in_game(id)
         return self.get_item_by_name(name)
 
     def update_ids(self, data_package) -> None:
@@ -347,7 +347,7 @@ class ManualContext(SuperContext):
 
                 for location_id in self.ctx.missing_locations:
                     # holy nesting, wow
-                    location_name = self.ctx.location_names[location_id]
+                    location_name = self.ctx.location_names.lookup_in_game(location_id)
                     location = self.ctx.get_location_by_name(location_name)
 
                     if not location:
@@ -425,7 +425,7 @@ class ManualContext(SuperContext):
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
-                        location_button = TreeViewButton(text=self.ctx.location_names[location_id], size_hint=(None, None), height=30, width=400)
+                        location_button = TreeViewButton(text=self.ctx.location_names.lookup_in_game(location_id), size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_press=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
                         category_layout.add_widget(location_button)
@@ -498,7 +498,7 @@ class ManualContext(SuperContext):
 
                                 # Label (for new item listings)
                                 for network_item in self.ctx.items_received:
-                                    item_name = self.ctx.item_names[network_item.item]
+                                    item_name = self.ctx.item_names.lookup_in_game(network_item.item)
                                     item_data = self.ctx.get_item_by_name(item_name)
 
                                     if "category" not in item_data or not item_data["category"]:
