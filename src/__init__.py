@@ -135,7 +135,7 @@ class ManualWorld(World):
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
 
             if item.get("local"): # All local
-                if name not in self.multiworld.local_items[self.player].value:
+                if name not in self.options.local_items.value:
                     self.options.local_items.value.add(name)
 
             if item.get("local_early"): # Some or all local and early
