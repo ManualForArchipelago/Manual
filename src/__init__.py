@@ -8,7 +8,7 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
-from .Data import item_table, location_table, region_table, category_table, meta_table
+from .Data import item_table, location_table, region_table, category_table, meta_table, game_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
@@ -310,7 +310,8 @@ class ManualWorld(World):
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
 
-        # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
+        if game_table.get("auto_send"):
+            slot_data["auto_send"] = True
         common_options = set(PerGameCommonOptions.type_hints.keys())
         for option_key, _ in self.options_dataclass.type_hints.items():
             if option_key in common_options:
