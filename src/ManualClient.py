@@ -17,6 +17,7 @@ if __name__ == "__main__":
 
 from NetUtils import ClientStatus
 from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProcessor, server_loop
+from MultiServer import mark_raw
 
 tracker_loaded = False
 try:
@@ -27,14 +28,34 @@ except ModuleNotFoundError:
     from CommonClient import CommonContext as SuperContext
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
-    def _cmd_resync(self):
+    def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
-        self.output(f"Syncing items.")
+        self.output("Syncing items.")
         self.ctx.syncing = True
+        return True
+
+    @mark_raw
+    def _cmd_send(self, location_name: str) -> bool:
+        """Send a check"""
+        names = self.ctx.location_names_to_id.keys()
+        location_name, usable, response = Utils.get_intended_text(
+            location_name,
+            names
+        )
+        if usable:
+            location_id = self.ctx.location_names_to_id[location_name]
+            self.ctx.locations_checked.append(location_id)
+            self.ctx.syncing = True
+        else:
+            self.output(response)
+            return False
+
+
+
 
 
 class ManualContext(SuperContext):
-    command_processor: int = ManualClientCommandProcessor
+    command_processor = ManualClientCommandProcessor
     game = "not set"  # this is changed in server_auth below based on user input
     items_handling = 0b111  # full remote
     tags = {"AP"}
