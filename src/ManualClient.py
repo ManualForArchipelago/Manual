@@ -50,6 +50,8 @@ class ManualContext(SuperContext):
     set_deathlink = False
     last_death_link = 0
     deathlink_out = False
+    
+    auto_release = False
 
     def __init__(self, server_address, password, game, player_name) -> None:
         super(ManualContext, self).__init__(server_address, password)
@@ -155,6 +157,8 @@ class ManualContext(SuperContext):
                     self.ui.enable_death_link()
                     self.set_deathlink = True
                     self.last_death_link = 0
+                if args['slot_data'].get('auto_release'):
+                    self.auto_release = True
                 logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -564,6 +568,8 @@ class ManualContext(SuperContext):
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
                                             category_count += 1
                                             if location_button.victory and "__Victory__" in self.ctx.tracker_reachable_events:
+                                                if self.ctx.auto_release:
+                                                    self.location_button_callback(location_button.id, location_button)
                                                 location_button.background_color=[2/255, 242/255, 42/255, 1]
                                                 reachable_count += 1
                                             continue
@@ -576,6 +582,8 @@ class ManualContext(SuperContext):
                                             continue
 
                                         if location_button.text in self.ctx.tracker_reachable_locations:
+                                            if self.ctx.auto_release:
+                                                self.location_button_callback(location_button.id, location_button)
                                             location_button.background_color=[2/255, 242/255, 42/255, 1]
                                             reachable_count += 1
                                         else:
