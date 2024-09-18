@@ -61,7 +61,7 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
-    
+
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name() or filler_item_name
 
@@ -135,7 +135,7 @@ class ManualWorld(World):
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
 
             if item.get("local"): # All local
-                if name not in self.multiworld.local_items[self.player].value:
+                if name not in self.options.local_items.value:
                     self.options.local_items.value.add(name)
 
             if item.get("local_early"): # Some or all local and early
@@ -420,7 +420,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_07_17 # YYYYMMDD
+    version = 2024_08_11 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":

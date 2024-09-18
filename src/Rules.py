@@ -92,7 +92,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             if not callable(func):
                 raise ValueError(f"Invalid function `{func_name}` in {area}.")
 
-            convert_req_function_args(func, func_args, area["name"])
+            convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
             result = func(world, multiworld, state, player, *func_args)
             if isinstance(result, bool):
                 requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
