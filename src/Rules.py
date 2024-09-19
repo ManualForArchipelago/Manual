@@ -341,6 +341,120 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             index += 1
 
+def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
+    """When passed a string with this format: 'valueName:int',
+    this function will check if the player has collect at least 'int' valueName worth of items\n
+    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
+    You can add a second string argument to disable creating/checking the cache like this:
+    '{ItemValue(Coins:12,Disable)}' it can be any string you want
+    """
+
+    valueCount = valueCount.split(":")
+    if not len(valueCount) == 2 or not valueCount[1].isnumeric():
+        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({valueCount[0]}:12)'")
+    value_name = valueCount[0].lower().strip()
+    requested_count = int(valueCount[1].strip())
+
+    if not hasattr(world, 'item_values_cache'): #Cache made for optimization purposes
+        world.item_values_cache = {}
+
+    if not world.item_values_cache.get(player, {}):
+        world.item_values_cache[player] = {}
+
+    if not skipCache:
+        if not world.item_values_cache[player].get(value_name, {}):
+            world.item_values_cache[player][value_name] = {
+                'state': {},
+                'count': -1,
+                }
+
+    if (skipCache or world.item_values_cache[player][value_name].get('count', -1) == -1
+            or world.item_values_cache[player][value_name].get('state') != dict(state.prog_items[player])):
+        # Run First Time, if state changed since last check or if skipCache has a value
+        existing_item_values = get_items_with_value(world, multiworld, value_name)
+        total_Count = 0
+        for name, value in existing_item_values.items():
+            count = state.count(name, player)
+            if count > 0:
+                total_Count += count * value
+        if skipCache:
+            return total_Count >= requested_count
+        world.item_values_cache[player][value_name]['count'] = total_Count
+        world.item_values_cache[player][value_name]['state'] = dict(state.prog_items[player])
+    return world.item_values_cache[player][value_name]['count'] >= requested_count
+
+# Two useful functions to make require work if an item is disabled instead of making it inaccessible
+def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
+    """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
+    where count is clamped to the maximum number of said item in the itempool.\n
+    Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
+    """
+    if item == "":
+        return "" #Skip this function if item is left blank
+    if not items_counts:
+        items_counts = world.get_item_counts()
+
+    require_type = 'item'
+
+    if '@' in item[:2]:
+        require_type = 'category'
+
+    item = item.lstrip('|@$').rstrip('|')
+
+    item_parts = item.split(":")
+    item_name = item
+    item_count = '1'
+
+    if len(item_parts) > 1:
+        item_name = item_parts[0]
+        item_count = item_parts[1]
+
+    if require_type == 'category':
+        if item_count.isnumeric():
+            #Only loop if we can use the result to clamp
+            category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
+            category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
+            item_count = clamp(int(item_count), 0, category_items_counts)
+        return f"|@{item_name}:{item_count}|"
+    elif require_type == 'item':
+        if item_count.isnumeric():
+            item_current_count = items_counts.get(item_name, 0)
+            item_count = clamp(int(item_count), 0, item_current_count)
+        return f"|{item_name}:{item_count}|"
+
+# OptAll check the passed require string and loop every item to check if they're enabled,
+def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player: int, requires: str):
+    """Check the passed require string and loop every item to check if they're enabled,
+    then returns the require string with items counts adjusted using OptOne\n
+    eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
+    become "|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|" """
+    requires_list = requires
+
+    items_counts = world.get_item_counts()
+
+    functions = {}
+    if requires_list == "":
+        return True
+    for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
+        #so this function doesn't try to get item from other functions, in theory.
+        func_name = item[0]
+        functions[func_name] = item[1]
+        requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "{" + func_name + "(temp)}")
+    # parse user written statement into list of each item
+    for item in re.findall(r'\|[^|]+\|', requires):
+        itemScanned = OptOne(world, multiworld, state, player, item, items_counts)
+        requires_list = requires_list.replace(item, itemScanned)
+
+    for function in functions:
+        requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
+    return requires_list
+
+# Rule to expose the can_reach_location core function
+def canReachLocation(world: World, multiworld: MultiWorld, state: CollectionState, player: int, location: str):
+    """Can the player reach the given location?"""
+    if state.can_reach_location(location, player):
+        return True
+    return False
 
 def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
