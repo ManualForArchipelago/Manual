@@ -3,7 +3,7 @@ from .Helpers import is_category_enabled, is_location_enabled
 from .Data import region_table
 from .Locations import ManualLocation, location_name_to_location
 from worlds.AutoWorld import World
-from .hooks.Regions import before_region_table_processed
+
 
 if not region_table:
     region_table = {}
@@ -19,7 +19,6 @@ regionMap["Manual"] = {
     "connects_to": starting_regions
 }
 
-regionMap = before_region_table_processed(regionMap)
 
 def create_regions(world: World, multiworld: MultiWorld, player: int):
     # Create regions and assign locations to each region
