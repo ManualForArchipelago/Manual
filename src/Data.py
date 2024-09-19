@@ -5,6 +5,8 @@ import pkgutil
 
 from .DataValidation import DataValidation, ValidationError
 
+from .Utils import load_data_file
+
 from .hooks.Data import \
     after_load_game_file, \
     after_load_item_file, after_load_location_file, \

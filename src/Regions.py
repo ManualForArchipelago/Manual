@@ -9,6 +9,7 @@ if not region_table:
     region_table = {}
 
 regionMap = { **region_table }
+regionMap.pop('$schema', '')
 starting_regions = [ name for name in regionMap if "starting" in regionMap[name].keys() and regionMap[name]["starting"] ]
 
 if len(starting_regions) == 0:

@@ -3,7 +3,8 @@ from worlds.generic.Rules import set_rule
 from .Regions import regionMap
 from .hooks import Rules
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
+from .Helpers import is_item_enabled, get_items_with_value, is_option_enabled
+from .Utils import clamp
 from worlds.AutoWorld import World
 
 import re

@@ -1,6 +1,7 @@
 from typing import Optional
 from worlds.AutoWorld import World
-from ..Helpers import clamp, get_items_with_value
+from ..Helpers import  get_items_with_value
+from ..Utils import clamp
 from BaseClasses import MultiWorld, CollectionState
 
 import re

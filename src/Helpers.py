@@ -1,7 +1,6 @@
 from BaseClasses import MultiWorld, Item
 from typing import Optional, List
 from worlds.AutoWorld import World
-from .Data import category_table
 from .Items import ManualItem
 from .Locations import ManualLocation
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
@@ -18,16 +17,8 @@ def get_option_value(multiworld: MultiWorld, player: int, name: str) -> Union[in
 
     return option.value
 
-def clamp(value, min, max):
-    """Returns value clamped to the inclusive range of min and max"""
-    if value < min:
-        return min
-    elif value > max:
-        return max
-    else:
-        return value
-
 def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> bool:
+    from .Data import category_table
     """Check if a category has been disabled by a yaml option."""
     hook_result = before_is_category_enabled(multiworld, player, category_name)
     if hook_result is not None:

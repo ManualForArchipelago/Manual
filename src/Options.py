@@ -23,7 +23,9 @@ if any(item.get('trap') for item in item_table):
 if game_table.get("death_link"):
     manual_options["death_link"] = DeathLink
 
-for category in category_table:
+categoryMap = {**category_table }
+categoryMap.pop('$schema', '')
+for category in categoryMap:
     for option_name in category_table[category].get("yaml_option", []):
         if option_name[0] == "!":
             option_name = option_name[1:]
