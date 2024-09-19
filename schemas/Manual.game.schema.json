@@ -80,6 +80,15 @@
                         "type":"string"
                     }
                 },
+                "yaml_option": {
+                    "description": "(Optional) Array of Options that will decide if this block is rolled",
+                    "type": "array",
+                    "items": {
+                        "type":"string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "minProperties": 1
