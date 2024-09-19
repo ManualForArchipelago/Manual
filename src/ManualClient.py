@@ -288,7 +288,7 @@ class ManualContext(SuperContext):
                     self.death_link_button = Button(text="Death Link: Primed",
                                                 size_hint_x=None, width=150)
                     self.connect_layout.add_widget(self.death_link_button)
-                    self.death_link_button.bind(on_press=self.send_death_link)
+                    self.death_link_button.bind(on_release=self.send_death_link)
 
             def send_death_link(self, *args):
                 if self.ctx.last_death_link:
@@ -426,7 +426,7 @@ class ManualContext(SuperContext):
 
                     for location_id in self.listed_locations[location_category]:
                         location_button = TreeViewButton(text=self.ctx.location_names.lookup_in_game(location_id), size_hint=(None, None), height=30, width=400)
-                        location_button.bind(on_press=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
+                        location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
                         category_layout.add_widget(location_button)
 
@@ -438,7 +438,7 @@ class ManualContext(SuperContext):
                         victory_text = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
                         location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=30, width=400)
                         location_button.victory = True
-                        location_button.bind(on_press=self.victory_button_callback)
+                        location_button.bind(on_release=self.victory_button_callback)
                         category_layout.add_widget(location_button)
 
                 tracker_panel_scrollable.add_widget(tracker_panel)
