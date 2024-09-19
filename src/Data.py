@@ -20,6 +20,9 @@ def load_data_file(*args) -> dict:
     except:
         filedata = []
 
+        if args[0] in ['game.json', 'regions.json', 'categories.json', 'meta.json']:
+            filedata = {}
+
     return filedata
 
 def convert_to_list(data, property_name: str) -> list:
