@@ -27,7 +27,7 @@ def load_json_file(*args) -> dict:
 def load_remote_json(url: str, has_internet: bool = True) -> dict:
     import requests
     if url.startswith('file:'):
-        data = load_json_file(url.lstrip("file:").lstrip("/\\"))
+        data = load_json_file(remove_prefix(url,"file:").lstrip("/\\"))
     else:
         if not has_internet:
             return {}
@@ -54,3 +54,8 @@ def clamp(value, min, max):
         return max
     else:
         return value
+
+def remove_prefix(text: str, prefix: str) -> str:
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
