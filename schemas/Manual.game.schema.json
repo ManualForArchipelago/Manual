@@ -38,8 +38,9 @@
             "default": false
         },
         "starting_index": {
-            "description": "(Optional) (Advanced) Choose the starting index for your locations and items.\nWhen not included uses the old system to generate a unique starting index",
-            "type": "integer"
+            "description": "(Optional) (Advanced) Choose the starting index for your locations and items.",
+            "type": "integer",
+            "default": 1
         },
         "_comment": {"$ref": "#/definitions/comment"}
     },
