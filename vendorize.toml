@@ -1,0 +1,7 @@
+target = "src/_vendor"
+packages = [
+    "jsonschema",
+    "referencing",
+    "jsonschema_specifications",
+    "rpds-py"
+]

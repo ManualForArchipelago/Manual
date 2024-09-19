@@ -4,6 +4,9 @@ import json
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, ItemClassification
 
+from .Utils import load_remote_json, have_internet
+from ._vendor import jsonschema
+from ._vendor.jsonschema.exceptions import ValidationError as jsonValidationError
 
 class ValidationError(Exception):
     pass
@@ -432,6 +435,26 @@ class DataValidation():
             raise ValidationError("No locations were found in your locations.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
 
     @staticmethod
+    def checkTableAgainstSchema(schema_table_name: str, table: dict, has_internet: bool):
+        """schema_table_name is the middle part of the schema name aka
+        Manual.game.schema.json would be "game"
+        """
+        githubSchemaBaseUrl = "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/"
+        if table.get("$schema"):
+            url = table["$schema"]
+        else:
+            url = githubSchemaBaseUrl + "Manual." + schema_table_name + ".schema.json"
+
+        schema = load_remote_json(url, has_internet) #Might try to do a internet test and skip this if offline
+        if schema:
+            jsonschema.validators.validate(instance=table, schema=schema)
+        else:
+            if not has_internet:
+                print(f"An empty schema was returned for {schema_table_name}.json. It might be because you are Offline.")
+            else:
+                print(f"An empty schema was returned for {schema_table_name}.json. But it seems you are online.")
+
+    @staticmethod
     def checkForNonStartingRegionsThatAreUnreachable():
         using_starting_regions = len([region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region] and not DataValidation.region_table[region]["starting"]]) > 0
 
@@ -460,6 +483,27 @@ def runPreFillDataValidation(world: World, multiworld: MultiWorld):
 # Called during stage_assert_generate
 def runGenerationDataValidation() -> None:
     validation_errors = []
+    has_internet = have_internet()
+    # validate the json files against their schema
+    try: DataValidation.checkTableAgainstSchema("game", DataValidation.game_table, has_internet)
+    except jsonValidationError as e: validation_errors.append(parseJsonSchemaException("game.json",e))
+
+    try: DataValidation.checkTableAgainstSchema("items", DataValidation.item_table, has_internet)
+    except jsonValidationError as e: validation_errors.append(parseJsonSchemaException("items.json",e))
+
+    try: DataValidation.checkTableAgainstSchema("locations", DataValidation.location_table, has_internet)
+    except jsonValidationError as e: validation_errors.append(parseJsonSchemaException("locations.json",e))
+
+    if DataValidation.region_table:
+        try: DataValidation.checkTableAgainstSchema("regions", DataValidation.region_table, has_internet)
+        except jsonValidationError as e: validation_errors.append(parseJsonSchemaException("regions.json",e))
+
+    if DataValidation.category_table:
+        try: DataValidation.checkTableAgainstSchema("categories", DataValidation.category_table, has_internet)
+        except jsonValidationError as e: validation_errors.append(parseJsonSchemaException("categories.json",e))
+    if DataValidation.meta_table:
+        try: DataValidation.checkTableAgainstSchema("meta", DataValidation.meta_table, has_internet)
+        except jsonValidationError as e: validation_errors.append(parseJsonSchemaException("meta.json",e))
 
     # check that requires have correct item names in locations and regions
     try: DataValidation.checkItemNamesInLocationRequires()
@@ -518,3 +562,15 @@ def runGenerationDataValidation() -> None:
     except ValidationError as e: validation_errors.append(e)
     if len(validation_errors) > 0:
         raise Exception("\nValidationError(s): \n\n%s\n\n" % ("\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
+
+def parseJsonSchemaException(source:str, e: jsonValidationError) -> str:
+    error = f"[{source}] " + e.message
+    if e.validator == 'type':
+        error = f"[{source}] Type error in the property '{e.json_path.lstrip('$.')}': " + e.message
+    elif e.validator == 'oneOf':
+        error = f"[{source}] At least one of the following properties must be present: {[p['required'] for p in e.validator_value]}"
+    elif e.validator == "additionalProperties":
+        error = f"[{source}] One of your defined property is invalid, it was found at/in '{e.json_path.lstrip('$.')}' and may have unexpected results. \n   Full error: {e.message}"
+    # elif e.validator == 'required':
+    #     error = f"[{source}] " + e.message
+    return error
