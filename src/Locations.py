@@ -17,7 +17,15 @@ for key, _ in enumerate(location_table):
     if "victory" in location_table[key] and location_table[key]["victory"]:
         victory_names.append(location_table[key]["name"])
 
-    location_table[key]["id"] = count
+    if "id" in location_table[key]:
+        item_id = location_table[key]["id"]
+        if item_id > count:
+            location_table[key]["id"] = item_id
+        else:
+            raise ValueError(f"{location_table[key]['name']} has an invalid ID. ID must be at least {count + 1}")
+    else:
+        location_table[key]["id"] = count
+
 
     if not "region" in location_table[key]:
         location_table[key]["region"] = "Manual" # all locations are in the same region for Manual
