@@ -10,14 +10,15 @@ class ValidationError(Exception):
 
 class DataValidation():
     game_table = {}
-    item_table = []
-    location_table = []
+    item_table = {}
+    location_table = {}
     region_table = {}
-
+    category_table = {}
+    meta_table = {}
 
     @staticmethod
     def checkItemNamesInLocationRequires():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table['data']:
             if "requires" not in location:
                 continue
 
@@ -39,7 +40,7 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table['data'] if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
@@ -60,7 +61,7 @@ class DataValidation():
                             if len(or_item_parts) > 1:
                                 or_item_name = or_item_parts[0]
 
-                            item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == or_item_name]) > 0
+                            item_exists = len([item["name"] for item in DataValidation.item_table['data'] if item["name"] == or_item_name]) > 0
 
                             if not item_exists:
                                 raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (or_item_name, location["name"]))
@@ -71,7 +72,7 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table['data'] if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
@@ -102,7 +103,7 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table['data'] if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
@@ -123,7 +124,7 @@ class DataValidation():
                             if len(or_item_parts) > 1:
                                 or_item_name = or_item_parts[0]
 
-                            item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == or_item_name]) > 0
+                            item_exists = len([item["name"] for item in DataValidation.item_table['data'] if item["name"] == or_item_name]) > 0
 
                             if not item_exists:
                                 raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (or_item_name, region_name))
@@ -134,14 +135,14 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table['data'] if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
 
     @staticmethod
     def checkRegionNamesInLocations():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table['data']:
             if "region" not in location or location["region"] in ["Menu", "Manual"]:
                 continue
 
@@ -152,7 +153,7 @@ class DataValidation():
 
     @staticmethod
     def checkItemsThatShouldBeRequired():
-        for item in DataValidation.item_table:
+        for item in DataValidation.item_table['data']:
             # if the item is already progression, no need to check
             if "progression" in item and item["progression"]:
                 continue
@@ -162,7 +163,7 @@ class DataValidation():
                 continue
 
             # check location requires for the presence of item name
-            for location in DataValidation.location_table:
+            for location in DataValidation.location_table['data']:
                 if "requires" not in location:
                     continue
 
@@ -213,7 +214,7 @@ class DataValidation():
         values_requested = {}
 
         # First find the biggest values required by locations
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table['data']:
             if "requires" not in location:
                 continue
 
@@ -236,7 +237,7 @@ class DataValidation():
         if values_requested:
 
             # get all the available values with total count
-            for item in DataValidation.item_table:
+            for item in DataValidation.item_table['data']:
                 # if the item is already progression, no need to check
                 if not item.get("progression") and not item.get("progression_skip_balancing"):
                     continue
@@ -313,16 +314,16 @@ class DataValidation():
 
     @staticmethod
     def checkForDuplicateItemNames():
-        for item in DataValidation.item_table:
-            name_count = len([i for i in DataValidation.item_table if i["name"] == item["name"]])
+        for item in DataValidation.item_table['data']:
+            name_count = len([i for i in DataValidation.item_table['data'] if i["name"] == item["name"]])
 
             if name_count > 1:
                 raise ValidationError("Item %s is defined more than once." % (item["name"]))
 
     @staticmethod
     def checkForDuplicateLocationNames():
-        for location in DataValidation.location_table:
-            name_count = len([l for l in DataValidation.location_table if l["name"] == location["name"]])
+        for location in DataValidation.location_table['data']:
+            name_count = len([l for l in DataValidation.location_table['data'] if l["name"] == location["name"]])
 
             if name_count > 1:
                 raise ValidationError("Location %s is defined more than once." % (location["name"]))
@@ -349,12 +350,12 @@ class DataValidation():
 
             if "items" in starting_block:
                 for item_name in starting_block["items"]:
-                    if not item_name in [item["name"] for item in DataValidation.item_table]:
+                    if not item_name in [item["name"] for item in DataValidation.item_table['data']]:
                         raise ValidationError("Item %s is set as a starting item, but is misspelled or is not defined." % (item_name))
 
             if "item_categories" in starting_block:
                 for category_name in starting_block["item_categories"]:
-                    if len([item for item in DataValidation.item_table if "category" in item and category_name in item["category"]]) == 0:
+                    if len([item for item in DataValidation.item_table['data'] if "category" in item and category_name in item["category"]]) == 0:
                         raise ValidationError("Item category %s is set as a starting item category, but is misspelled or is not defined on any items." % (category_name))
 
     @staticmethod
@@ -374,7 +375,7 @@ class DataValidation():
 
     @staticmethod
     def checkPlacedItemsAndCategoriesForBadSyntax():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table['data']:
             place_item = location.get("place_item", False)
             place_item_category = location.get("place_item_category", False)
 
@@ -389,7 +390,7 @@ class DataValidation():
 
     @staticmethod
     def checkPlacedItemsForValidItems():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table['data']:
             if not (place_item := location.get("place_item", False)):
                 continue
 
@@ -398,12 +399,12 @@ class DataValidation():
                 continue
 
             for item_name in place_item:
-                if not item_name in [item["name"] for item in DataValidation.item_table]:
+                if not item_name in [item["name"] for item in DataValidation.item_table['data']]:
                     raise ValidationError("Item %s is placed (using place_item) on a location, but is misspelled or is not defined." % (item_name))
 
     @staticmethod
     def checkPlacedItemCategoriesForValidItemCategories():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table['data']:
             if not (place_item_category := location.get("place_item_category", False)):
                 continue
 
@@ -412,7 +413,7 @@ class DataValidation():
                 continue
 
             for category_name in place_item_category:
-                if len([item for item in DataValidation.item_table if "category" in item and category_name in item["category"]]) == 0:
+                if len([item for item in DataValidation.item_table['data'] if "category" in item and category_name in item["category"]]) == 0:
                     raise ValidationError("Item category %s is placed (using place_item_category) on a location, but is misspelled or is not defined." % (category_name))
 
     @staticmethod
@@ -422,12 +423,12 @@ class DataValidation():
 
     @staticmethod
     def checkForItemsBeingInvalidJSON():
-        if len(DataValidation.item_table) == 0:
+        if len(DataValidation.item_table['data']) == 0:
             raise ValidationError("No items were found in your items.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
 
     @staticmethod
     def checkForLocationsBeingInvalidJSON():
-        if len(DataValidation.location_table) == 0:
+        if len(DataValidation.location_table['data']) == 0:
             raise ValidationError("No locations were found in your locations.json. This likely indicates that your JSON is incorrectly formatted. Use https://jsonlint.com/ to validate your JSON files.")
 
     @staticmethod

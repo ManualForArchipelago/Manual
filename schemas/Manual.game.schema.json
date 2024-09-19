@@ -81,8 +81,10 @@
                     }
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
+
             },
-            "minProperties": 1
+            "minProperties": 1,
+            "additionalProperties": false
         }
     }
 }

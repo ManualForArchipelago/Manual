@@ -1,7 +1,5 @@
 import json
 import logging
-import os
-import pkgutil
 
 from .DataValidation import DataValidation, ValidationError
 
@@ -13,32 +11,47 @@ from .hooks.Data import \
     after_load_region_file, after_load_category_file, \
     after_load_meta_file
 
-# blatantly copied from the minecraft ap world because why not
-def load_data_file(*args) -> dict:
-    fname = os.path.join("data", *args)
-
-    try:
-        filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
-    except:
-        filedata = []
-
-    return filedata
-
 def convert_to_list(data, property_name: str) -> list:
     if isinstance(data, dict):
         data = data.get(property_name, [])
     return data
 
-game_table = load_data_file('game.json') #dict
-item_table = convert_to_list(load_data_file('items.json'), 'data') #list
-location_table = convert_to_list(load_data_file('locations.json'), 'data') #list
-region_table = load_data_file('regions.json') #dict
-category_table = load_data_file('categories.json') or {} #dict
-meta_table = load_data_file('meta.json') or {} #dict
+def convert_to_dict(data) -> dict:
+    if isinstance(data, list):
+        data = {'data':data}
+    return data
 
-# Removal of schemas in root of tables
-region_table.pop('$schema', '')
-category_table.pop('$schema', '')
+class ManualFile:
+    filename: str
+    data_type: dict|list
+
+    def __init__(self, filename, data_type):
+        self.filename = filename
+        self.data_type = data_type
+
+    def load(self):
+        contents = load_data_file(self.filename)
+
+        if not contents and type(contents) != self.data_type:
+            return self.data_type()
+
+        return contents
+
+# seed all of the tables for validation and keep the $schema if present
+DataValidation.game_table = ManualFile('game.json', dict).load() #dict
+DataValidation.item_table = convert_to_dict(ManualFile('items.json', list).load())
+DataValidation.location_table = convert_to_dict(ManualFile('locations.json', list).load())
+DataValidation.region_table = ManualFile('regions.json', dict).load()
+DataValidation.category_table = ManualFile('categories.json', dict).load()
+DataValidation.meta_table = ManualFile('meta.json', dict).load()
+
+game_table = DataValidation.game_table #dict
+item_table = DataValidation.item_table['data'] #list
+location_table = DataValidation.location_table['data'] #list
+region_table = DataValidation.region_table #dict
+category_table = DataValidation.category_table #dict
+meta_table = DataValidation.meta_table #dict
+
 
 # hooks
 game_table = after_load_game_file(game_table)
@@ -47,12 +60,6 @@ location_table = after_load_location_file(location_table)
 region_table = after_load_region_file(region_table)
 category_table = after_load_category_file(category_table)
 meta_table = after_load_meta_file(meta_table)
-
-# seed all of the tables for validation
-DataValidation.game_table = game_table
-DataValidation.item_table = item_table
-DataValidation.location_table = location_table
-DataValidation.region_table = region_table
 
 validation_errors = []
 
@@ -65,7 +72,6 @@ except ValidationError as e: validation_errors.append(e)
 
 try: DataValidation.checkForLocationsBeingInvalidJSON()
 except ValidationError as e: validation_errors.append(e)
-
 
 ############
 # If there are any validation errors, display all of them at once
