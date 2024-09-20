@@ -34,7 +34,13 @@
         },
         "death_link": {
             "description": "(Optional) Does your game support Deathlink?",
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
+        },
+        "starting_index": {
+            "description": "(Optional) (Advanced) Choose the starting index for your locations and items.",
+            "type": "integer",
+            "default": 1
         },
         "_comment": {"$ref": "#/definitions/comment"}
     },
