@@ -7,6 +7,7 @@ from .Helpers import convertToLongString
 from .Locations import victory_names
 from .Items import item_table
 from pydoc import locate
+from .Game import starting_items
 import logging
 
 
@@ -88,6 +89,16 @@ for category in category_table:
         if option_name not in manual_options:
             manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
+
+if starting_items:
+    for starting_items in starting_items:
+        if starting_items.get("yaml_option"):
+            for option_name in starting_items["yaml_option"]:
+                if option_name[0] == "!":
+                    option_name = option_name[1:]
+                if option_name not in manual_options:
+                    manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
+                    manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
 
 manual_options = after_options_defined(manual_options)
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))

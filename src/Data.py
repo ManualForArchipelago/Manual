@@ -11,6 +11,7 @@ from .hooks.Data import \
     after_load_region_file, after_load_category_file, \
     after_load_option_file, after_load_meta_file
 
+
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
     fname = os.path.join("data", *args)
@@ -27,13 +28,30 @@ def convert_to_list(data, property_name: str) -> list:
         data = data.get(property_name, [])
     return data
 
-game_table = load_data_file('game.json') #dict
-item_table = convert_to_list(load_data_file('items.json'), 'data') #list
-location_table = convert_to_list(load_data_file('locations.json'), 'data') #list
-region_table = load_data_file('regions.json') #dict
-category_table = load_data_file('categories.json') or {} #dict
-option_table = load_data_file('options.json') or {} #dict
-meta_table = load_data_file('meta.json') or {} #dict
+class ManualFile:
+    filename: str
+    data_type: dict|list
+    
+    def __init__(self, filename, data_type):
+        self.filename = filename
+        self.data_type = data_type
+
+    def load(self):
+        contents = load_data_file(self.filename)
+        
+        if not contents and type(contents) != self.data_type:
+            return self.data_type()
+        
+        return contents
+
+
+game_table = ManualFile('game.json', dict).load() #dict
+item_table = convert_to_list(ManualFile('items.json', list).load(), 'data') #list
+location_table = convert_to_list(ManualFile('locations.json', list).load(), 'data') #list
+region_table = ManualFile('regions.json', dict).load() #dict
+category_table = ManualFile('categories.json', dict).load() #dict
+option_table = ManualFile('options.json', dict).load() #dict
+meta_table = ManualFile('meta.json', dict).load() #dict
 
 # Removal of schemas in root of tables
 region_table.pop('$schema', '')
