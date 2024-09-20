@@ -19,7 +19,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_option_enabled, is_item_enabled, get_option_value, get_items_for_player
+from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option
 
 from BaseClasses import ItemClassification, Tutorial, Item
 from Options import PerGameCommonOptions
@@ -135,7 +135,7 @@ class ManualWorld(World):
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
 
             if item.get("local"): # All local
-                if name not in self.multiworld.local_items[self.player].value:
+                if name not in self.options.local_items.value:
                     self.options.local_items.value.add(name)
 
             if item.get("local_early"): # Some or all local and early
@@ -155,6 +155,8 @@ class ManualWorld(World):
 
         if starting_items:
             for starting_item_block in starting_items:
+                if not resolve_yaml_option(self.multiworld, self.player, starting_item_block):
+                    continue
                 # if there's a condition on having a previous item, check for any of them
                 # if not found in items started, this starting item rule shouldn't execute, and check the next one
                 if "if_previous_item" in starting_item_block:
@@ -420,7 +422,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_09_13 # YYYYMMDD
+    version = 2024_09_19 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":

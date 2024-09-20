@@ -72,6 +72,17 @@ class ManualContext(SuperContext):
     last_death_link = 0
     deathlink_out = False
 
+    colors = {
+        'location_default': [219/255, 218/255, 213/255, 1],
+        'location_in_logic': [2/255, 242/255, 42/255, 1],
+        'category_even_default': [0.5, 0.5, 0.5, 0.1],
+        'category_odd_default': [1.0, 1.0, 1.0, 0.0],
+        'category_in_logic': [2/255, 82/255, 2/255, 1],
+        'deathlink_received': [1, 0, 0, 1],
+        'deathlink_primed': [1, 1, 1, 1],
+        'deathlink_sent': [0, 1, 0, 1]
+    }
+
     def __init__(self, server_address, password, game, player_name) -> None:
         super(ManualContext, self).__init__(server_address, password)
 
@@ -130,7 +141,7 @@ class ManualContext(SuperContext):
         return location
 
     def get_location_by_id(self, id) -> dict[str, Any]:
-        name = self.location_names[id]
+        name = self.location_names.lookup_in_game(id)
         return self.get_location_by_name(name)
 
     def get_item_by_name(self, name):
@@ -140,7 +151,7 @@ class ManualContext(SuperContext):
         return item
 
     def get_item_by_id(self, id):
-        name = self.item_names[id]
+        name = self.item_names.lookup_in_game(id)
         return self.get_item_by_name(name)
 
     def update_ids(self, data_package) -> None:
@@ -188,7 +199,7 @@ class ManualContext(SuperContext):
     def on_deathlink(self, data: typing.Dict[str, typing.Any]) -> None:
         super().on_deathlink(data)
         self.ui.death_link_button.text = f"Death Link: {data['source']}"
-        self.ui.death_link_button.background_color = [1, 0, 0, 1]
+        self.ui.death_link_button.background_color = self.colors['deathlink_received']
 
 
     def on_tracker_updated(self, reachable_locations: list[str]):
@@ -315,11 +326,11 @@ class ManualContext(SuperContext):
                 if self.ctx.last_death_link:
                     self.ctx.last_death_link = 0
                     self.death_link_button.text = "Death Link: Primed"
-                    self.death_link_button.background_color = [1, 1, 1, 1]
+                    self.death_link_button.background_color = self.ctx.colors['deathlink_primed']
                 else:
                     self.ctx.deathlink_out = True
                     self.death_link_button.text = "Death Link: Sent"
-                    self.death_link_button.background_color = [0, 1, 0, 1]
+                    self.death_link_button.background_color = self.ctx.colors['deathlink_sent']
 
             def update_hints(self):
                 super().update_hints()
@@ -368,7 +379,7 @@ class ManualContext(SuperContext):
 
                 for location_id in self.ctx.missing_locations:
                     # holy nesting, wow
-                    location_name = self.ctx.location_names[location_id]
+                    location_name = self.ctx.location_names.lookup_in_game(location_id)
                     location = self.ctx.get_location_by_name(location_name)
 
                     if not location:
@@ -446,7 +457,7 @@ class ManualContext(SuperContext):
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
-                        location_button = TreeViewButton(text=self.ctx.location_names[location_id], size_hint=(None, None), height=30, width=400)
+                        location_button = TreeViewButton(text=self.ctx.location_names.lookup_in_game(location_id), size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_press=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
                         category_layout.add_widget(location_button)
@@ -519,7 +530,7 @@ class ManualContext(SuperContext):
 
                                 # Label (for new item listings)
                                 for network_item in self.ctx.items_received:
-                                    item_name = self.ctx.item_names[network_item.item]
+                                    item_name = self.ctx.item_names.lookup_in_game(network_item.item)
                                     item_data = self.ctx.get_item_by_name(item_name)
 
                                     if "category" not in item_data or not item_data["category"]:
@@ -585,7 +596,7 @@ class ManualContext(SuperContext):
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
                                             category_count += 1
                                             if location_button.victory and "__Victory__" in self.ctx.tracker_reachable_events:
-                                                location_button.background_color=[2/255, 242/255, 42/255, 1]
+                                                location_button.background_color = self.ctx.colors['location_in_logic']
                                                 reachable_count += 1
                                             continue
 
@@ -597,10 +608,10 @@ class ManualContext(SuperContext):
                                             continue
 
                                         if location_button.text in self.ctx.tracker_reachable_locations:
-                                            location_button.background_color=[2/255, 242/255, 42/255, 1]
+                                            location_button.background_color = self.ctx.colors['location_in_logic']
                                             reachable_count += 1
                                         else:
-                                            location_button.background_color=[219/255, 218/255, 213/255, 1]
+                                            location_button.background_color = self.ctx.colors['location_default']
 
                                         category_count += 1
 
@@ -622,6 +633,15 @@ class ManualContext(SuperContext):
 
                                 category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
                                 category_label.text = "%s (%s)" % (category_name, count_text)
+
+                                if reachable_count > 0:
+                                    # treeviewlabels don't have background color. because #justkivythings.
+                                    category_label.even_color = self.ctx.colors['category_in_logic']
+                                    category_label.odd_color = self.ctx.colors['category_in_logic']
+                                else:
+                                    category_label.even_color = self.ctx.colors['category_even_default']
+                                    category_label.odd_color = self.ctx.colors['category_odd_default']
+
                                 category_scrollview.size=(Window.width / 2, scrollview_height)
 
             def location_button_callback(self, location_id, button):
