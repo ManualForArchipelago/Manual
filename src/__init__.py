@@ -333,7 +333,7 @@ class ManualWorld(World):
     def write_spoiler(self, spoiler_handle):
         before_write_spoiler(self, self.multiworld, spoiler_handle)
 
-    def extend_hint_information(self, hint_data: Dict[int, Dict[int, str]]) -> None:
+    def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
         before_extend_hint_information(self, hint_data)
 
     ###

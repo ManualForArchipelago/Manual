@@ -140,6 +140,6 @@ def before_write_spoiler(world: World, multiworld: MultiWorld, spoiler_handle) -
     pass
 
 # This is called when you want to add information to the hint text
-def before_extend_hint_information(world: World, hint_data: Dict[int, Dict[int, str]]) -> None:
+def before_extend_hint_information(world: World, hint_data: dict[int, dict[int, str]]) -> None:
     pass
 
