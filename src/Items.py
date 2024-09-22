@@ -1,9 +1,7 @@
 from BaseClasses import Item
 from .Data import item_table
 from .Game import filler_item_name, starting_index
-from .hooks.Items import before_item_table_processed
 
-item_table = before_item_table_processed(item_table)
 
 ######################
 # Generate item lookups

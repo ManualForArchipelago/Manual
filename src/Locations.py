@@ -1,9 +1,7 @@
 from BaseClasses import Location
 from .Data import location_table
 from .Game import starting_index
-from .hooks.Locations import before_location_table_processed
 
-location_table = before_location_table_processed(location_table)
 
 ######################
 # Generate location lookups
