@@ -154,3 +154,5 @@ def before_extend_hint_information(world: World, hint_data: dict[int, dict[int, 
     
     pass
 
+def after_extend_hint_information(world: World, hint_data: dict[int, dict[int, str]]) -> None:
+    pass

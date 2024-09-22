@@ -32,7 +32,7 @@ from .hooks.World import \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
-    before_extend_hint_information
+    before_extend_hint_information, after_extend_hint_information
 from .hooks.Data import hook_interpret_slot_data
 
 class ManualWorld(World):
@@ -335,6 +335,16 @@ class ManualWorld(World):
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
         before_extend_hint_information(self, hint_data)
+        
+        for location in self.multiworld.get_locations(world.player):
+            if not location.address:
+                continue
+            if "hint_entrance" in self.location_name_to_location[location.name]:
+                if self.player not in hint_data:
+                    hint_data.update({self.player: {}})
+                hint_data[self.player][location.address] = self.location_name_to_location[location.name]["hint_entrance"]
+        
+        after_extend_hint_information(self, hint_data)
 
     ###
     # Non-standard AP world methods

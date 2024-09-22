@@ -25,7 +25,8 @@
         {
             "name": "Beat the Game - Shuma-Gorath",
             "category": ["Unlocked Teams", "Right Side"],
-            "requires": "|Shuma-Gorath|"
+            "requires": "|Shuma-Gorath|",
+            "hint_entrance": "Unlock Shuma-Gorath"
         },
         {
             "name": "Beat the Game - Nemesis T-Type",
