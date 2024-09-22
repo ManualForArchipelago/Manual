@@ -92,6 +92,10 @@
                     "type": "boolean",
                     "default": false
                 },
+                "hint_entrance": {
+                    "description": "(Optional) Adds additional text to this location's hints to convey useful information. Typically used for entrance randomization.",
+                    "type": "string"
+                }
                 "_comment": {"$ref": "#/definitions/comment"}
             }
         },
