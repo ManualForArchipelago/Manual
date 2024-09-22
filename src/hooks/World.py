@@ -141,5 +141,16 @@ def before_write_spoiler(world: World, multiworld: MultiWorld, spoiler_handle) -
 
 # This is called when you want to add information to the hint text
 def before_extend_hint_information(world: World, hint_data: dict[int, dict[int, str]]) -> None:
+    
+    ### Example way to use this hook: 
+    # hint_data.update({world.player: {}})
+    # for location in world.multiworld.get_locations(world.player):
+    #     if not location.address:
+    #         continue
+    #
+    #     use this section to calculate the hint string
+    #
+    #     hint_data[world.player][location.address] = hint_string
+    
     pass
 
