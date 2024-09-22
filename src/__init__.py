@@ -31,7 +31,8 @@ from .hooks.World import \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
-    before_fill_slot_data, after_fill_slot_data, before_write_spoiler
+    before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
+    before_extend_hint_information
 from .hooks.Data import hook_interpret_slot_data
 
 class ManualWorld(World):
@@ -331,6 +332,9 @@ class ManualWorld(World):
 
     def write_spoiler(self, spoiler_handle):
         before_write_spoiler(self, self.multiworld, spoiler_handle)
+
+    def extend_hint_information(self, hint_data: Dict[int, Dict[int, str]]) -> None:
+        before_extend_hint_information(self, hint_data)
 
     ###
     # Non-standard AP world methods

@@ -138,3 +138,8 @@ def after_fill_slot_data(slot_data: dict, world: World, multiworld: MultiWorld, 
 # This is called right at the end, in case you want to write stuff to the spoiler log
 def before_write_spoiler(world: World, multiworld: MultiWorld, spoiler_handle) -> None:
     pass
+
+# This is called when you want to add information to the hint text
+def before_extend_hint_information(world: World, hint_data: Dict[int, Dict[int, str]]) -> None:
+    pass
+
