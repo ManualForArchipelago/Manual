@@ -63,7 +63,7 @@ class ManualWorld(World):
     victory_names = victory_names
 
     def get_filler_item_name(self) -> str:
-        return hook_get_filler_item_name() or filler_item_name
+        return hook_get_filler_item_name(self, self.multiworld, self.player) or filler_item_name
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
