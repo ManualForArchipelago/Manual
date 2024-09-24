@@ -19,7 +19,7 @@ for key, _ in enumerate(location_table):
 
     if "id" in location_table[key]:
         item_id = location_table[key]["id"]
-        if item_id > count:
+        if item_id >= count:
             count = item_id
         else:
             raise ValueError(f"{location_table[key]['name']} has an invalid ID. ID must be at least {count + 1}")
