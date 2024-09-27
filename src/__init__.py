@@ -334,9 +334,9 @@ class ManualWorld(World):
         before_write_spoiler(self, self.multiworld, spoiler_handle)
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
-        before_extend_hint_information(self, hint_data)
+        before_extend_hint_information(hint_data, self, self.multiworld, self.player)
         
-        for location in self.multiworld.get_locations(world.player):
+        for location in self.multiworld.get_locations(self.player):
             if not location.address:
                 continue
             if "hint_entrance" in self.location_name_to_location[location.name]:
@@ -344,7 +344,7 @@ class ManualWorld(World):
                     hint_data.update({self.player: {}})
                 hint_data[self.player][location.address] = self.location_name_to_location[location.name]["hint_entrance"]
         
-        after_extend_hint_information(self, hint_data)
+        after_extend_hint_information(hint_data, self, self.multiworld, self.player)
 
     ###
     # Non-standard AP world methods

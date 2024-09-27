@@ -140,19 +140,20 @@ def before_write_spoiler(world: World, multiworld: MultiWorld, spoiler_handle) -
     pass
 
 # This is called when you want to add information to the hint text
-def before_extend_hint_information(world: World, hint_data: dict[int, dict[int, str]]) -> None:
+def before_extend_hint_information(hint_data: dict[int, dict[int, str]], world: World, multiworld: MultiWorld, player: int) -> None:
     
     ### Example way to use this hook: 
-    # hint_data.update({world.player: {}})
-    # for location in world.multiworld.get_locations(world.player):
+    # if player not in hint_data:
+    #     hint_data.update({player: {}})
+    # for location in multiworld.get_locations(player):
     #     if not location.address:
     #         continue
     #
     #     use this section to calculate the hint string
     #
-    #     hint_data[world.player][location.address] = hint_string
+    #     hint_data[player][location.address] = hint_string
     
     pass
 
-def after_extend_hint_information(world: World, hint_data: dict[int, dict[int, str]]) -> None:
+def after_extend_hint_information(hint_data: dict[int, dict[int, str]], world: World, multiworld: MultiWorld, player: int) -> None:
     pass
