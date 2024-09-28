@@ -1,9 +1,7 @@
 from BaseClasses import Item
 from .Data import item_table
 from .Game import filler_item_name, starting_index
-from .hooks.Items import before_item_table_processed
 
-item_table = before_item_table_processed(item_table)
 
 ######################
 # Generate item lookups
@@ -25,6 +23,13 @@ if filler_item_name:
 
 # add sequential generated ids to the lists
 for key, val in enumerate(item_table):
+    if "id" in item_table[key]:
+        item_id = item_table[key]["id"]
+        if item_id >= count:
+            count = item_id
+        else:
+            raise ValueError(f"{item_table[key]['name']} has an invalid ID. ID must be at least {count + 1}")
+
     item_table[key]["id"] = count
     item_table[key]["progression"] = val["progression"] if "progression" in val else False
     count += 1

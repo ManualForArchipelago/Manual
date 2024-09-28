@@ -1,5 +1,4 @@
-from typing import List
-from Options import item_and_loc_options, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, PerGameCommonOptions, DeathLink, OptionGroup
+from Options import item_and_loc_options, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, PerGameCommonOptions, DeathLink, OptionGroup, StartInventoryPool
 from dataclasses import make_dataclass
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
@@ -7,8 +6,9 @@ from .Helpers import convertToLongString
 
 from .Locations import victory_names
 from .Items import item_table
-from pydoc import locate
 from .Game import starting_items
+from pydoc import locate
+from typing import List
 import logging
 
 
@@ -16,13 +16,14 @@ class FillerTrapPercent(Range):
     """How many fillers will be replaced with traps. 0 means no additional traps, 100 means all fillers are traps."""
     range_end = 100
 
-
 def createChoiceOptions(values: dict, aliases: dict) -> dict:
     values = {'option_' + i: v for i, v in values.items()}
     aliases = {'alias_' + i: v for i, v in aliases.items()}
     return {**values, **aliases}
 
 manual_options = before_options_defined({})
+manual_options["start_inventory_from_pool"] = StartInventoryPool
+
 manual_option_groups = {}
 manual_goal_override = {}
 for option_name, option in option_table.get('data', {}).items():

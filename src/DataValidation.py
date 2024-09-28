@@ -366,7 +366,7 @@ class DataValidation():
             if type(starting_block) is not dict or len(starting_block.keys()) == 0:
                 raise ValidationError("One of your starting item definitions is not a valid dictionary.\n   Each definition must be inside {}, as demonstrated in the Manual documentation.")
 
-            valid_keys = ["items", "item_categories", "random", "if_previous_item", "_comment"] # _comment is provided by schema
+            valid_keys = ["items", "item_categories", "random", "if_previous_item", "_comment", "yaml_option"] # _comment is provided by schema
             invalid_keys = [f'"{key}"' for key in starting_block.keys() if key not in valid_keys]
 
             if len(invalid_keys) > 0:

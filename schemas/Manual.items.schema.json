@@ -94,6 +94,10 @@
                     "type": ["boolean", "integer"],
                     "default": false
                 },
+                "id": {
+                    "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
+                    "type": "integer"
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "required": ["name"]

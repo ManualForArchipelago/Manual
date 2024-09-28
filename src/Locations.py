@@ -1,9 +1,7 @@
 from BaseClasses import Location
 from .Data import location_table
 from .Game import starting_index
-from .hooks.Locations import before_location_table_processed
 
-location_table = before_location_table_processed(location_table)
 
 ######################
 # Generate location lookups
@@ -16,6 +14,13 @@ victory_names: list[str] = []
 for key, _ in enumerate(location_table):
     if "victory" in location_table[key] and location_table[key]["victory"]:
         victory_names.append(location_table[key]["name"])
+
+    if "id" in location_table[key]:
+        item_id = location_table[key]["id"]
+        if item_id >= count:
+            count = item_id
+        else:
+            raise ValueError(f"{location_table[key]['name']} has an invalid ID. ID must be at least {count + 1}")
 
     location_table[key]["id"] = count
 

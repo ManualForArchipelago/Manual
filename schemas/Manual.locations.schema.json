@@ -92,6 +92,14 @@
                     "type": "boolean",
                     "default": false
                 },
+                "hint_entrance": {
+                    "description": "(Optional) Adds additional text to this location's hints to convey useful information. Typically used for entrance randomization.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
+                    "type": "integer"
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             }
         },
