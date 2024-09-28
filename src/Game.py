@@ -14,3 +14,5 @@ if "starting_index" in game_table:
         raise Exception("The value of data/game.json:'starting_index' should be an int")
 else:
     starting_index = 1
+
+auto_send = game_table["auto_send"] if "auto_send" in game_table else False

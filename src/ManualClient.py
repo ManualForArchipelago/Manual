@@ -50,7 +50,11 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.output(response)
             return False
 
-
+    def _cmd_toggle_autosend(self) -> bool:
+        """Toggle autosend.  If enabled, the client will automatically send checks out as soon as UT says they're in logic."""
+        self.ctx.auto_send = not self.ctx.auto_send
+        self.output(f"Auto-send is now {self.ctx.auto_send}")
+        return True
 
 
 
@@ -71,6 +75,8 @@ class ManualContext(SuperContext):
     set_deathlink = False
     last_death_link = 0
     deathlink_out = False
+
+    auto_send = False
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -187,6 +193,10 @@ class ManualContext(SuperContext):
                     self.ui.enable_death_link()
                     self.set_deathlink = True
                     self.last_death_link = 0
+
+                if hasattr(AutoWorldRegister.world_types[self.game], "auto_send") and AutoWorldRegister.world_types[self.game].auto_send:
+                    self.auto_send = True
+
                 logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -205,6 +215,13 @@ class ManualContext(SuperContext):
     def on_tracker_updated(self, reachable_locations: list[str]):
         self.tracker_reachable_locations = reachable_locations
         self.ui.update_tracker_and_locations_table(update_highlights=True)
+        if self.auto_send:
+            sync = False
+            for location in reachable_locations:
+                location_id = self.location_names_to_id[location]
+                self.locations_checked.append(location_id)
+                sync = True
+            self.syncing = sync
 
     def on_tracker_events(self, events: list[str]):
         self.tracker_reachable_events = events

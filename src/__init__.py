@@ -9,7 +9,7 @@ from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess
 
 from .Data import item_table, location_table, region_table, category_table, meta_table
-from .Game import game_name, filler_item_name, starting_items
+from .Game import game_name, filler_item_name, starting_items, auto_send
 from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
@@ -62,6 +62,8 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
+
+    auto_send = auto_send
 
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or filler_item_name

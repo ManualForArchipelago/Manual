@@ -42,6 +42,10 @@
             "type": "integer",
             "default": 1
         },
+        "auto_send": {
+            "description": "(Optional) Will your client automatically send in-logic checks? WARNING: This should only be used for non-game manual worlds.",
+            "type": "boolean"
+        },
         "_comment": {"$ref": "#/definitions/comment"}
     },
     "required":["game", "filler_item_name"],
