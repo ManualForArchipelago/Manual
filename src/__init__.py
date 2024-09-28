@@ -37,9 +37,9 @@ from .hooks.Data import hook_interpret_slot_data
 class ManualWorld(World):
     __doc__ = world_description
     game: str = game_name
+    options_dataclass = manual_options_data
     web = world_webworld
 
-    options_dataclass = manual_options_data
     data_version = 2
     required_client_version = (0, 3, 4)
 

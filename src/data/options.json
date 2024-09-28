@@ -4,47 +4,54 @@
     "data": {
         "Choice":{
             "type": "Choice",
-            "description": ["This is a Choice"],
+            "description": ["This is a Choice", "Let the user pick from a list of values"],
             "values": {
                 "start":0,
                 "test":1
              },
-            "default": 0
+            "default": 0,
+            "group": "Example Options"
         },
         "TextChoice":{
             "type":"TextChoice",
-            "description": ["This is a TextChoice"],
+            "description": ["This is a TextChoice", "Like Choice but the player can define their own values"],
             "values": {
                 "start":0,
                 "test":1
              },
-            "default": 0
+            "default": 0,
+            "group": "Example Options"
         },
         "Range":{
             "type": "Range",
-            "description": ["this is a Range"],
+            "description": ["this is a Range","Allow the player to specify a value between 'start' and 'end'"],
             "range_start": 0,
             "default": 1,
-            "range_end": 10
+            "range_end": 10,
+            "group": "Example Options"
         },
         "NamedRange":{
-            "description": ["this is a NamedRange"],
+            "description": ["this is a NamedRange","Like a Range, but with your own defined label for certain values"],
             "type": "NamedRange",
             "range_start": 0,
             "range_end": 10,
-            "special_range_names": {"test":2}
+            "special_range_names": {"test":2},
+            "group": "Example Options"
         },
         "DefaultOnToggle":{
-            "description": ["this is a DefaultOnToggle"],
-            "type": "DefaultOnToggle"
+            "description": ["this is a DefaultOnToggle","A simple boolean, the default value is True. Use Toggle instead for False"],
+            "type": "DefaultOnToggle",
+            "group": "Example Options"
         },
         "Toggle":{
-            "description": ["this is a Toggle"],
-            "type": "Toggle"
+            "description": ["this is a Toggle","A simple boolean, the default value is False. Use DefaultOnToggle instead for True"],
+            "type": "Toggle",
+            "group": "Example Options"
         },
         "FreeText":{
-            "description": ["this is a FreeText"],
-            "type": "FreeText"
+            "description": ["this is a FreeText","This Option will return a Player's chosen String"],
+            "type": "FreeText",
+            "group": "Example Options"
         },
 
 

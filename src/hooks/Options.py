@@ -1,5 +1,5 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange
+from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
@@ -55,3 +55,11 @@ def after_options_defined(options: dict) -> dict:
     #     options['goal'].default = your_goal_class.options.get('default', generated_goal.default)
     #     options['goal'].__doc__ = your_goal_class.__doc__ or options['goal'].__doc__
     return options
+
+# Use this Hook if you want to add your Option to an Option group (existing or not)
+def before_option_groups_created(groups: dict[str, list[Option]]) -> dict[str, list[Option]]:
+    # Uses the format groups['GroupName'] = [TotalCharactersToWinWith]
+    return groups
+
+def after_option_groups_created(groups: list[OptionGroup]) -> list[OptionGroup]:
+    return groups

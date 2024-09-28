@@ -44,6 +44,12 @@
                     "type": "boolean",
                     "default": false
                 },
+                "group": {
+                    "description": "The name of the group this option is a part of on the webhost",
+                    "type": "string",
+                    "default": "Game Options",
+                    "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "required": ["type"],

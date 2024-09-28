@@ -28,6 +28,7 @@ def set_world_description(base_doc: str) -> str:
 
 
 def set_world_webworld(web: WebWorld) -> WebWorld:
+    from .Options import manual_options_groups_data
     if meta_table.get("docs", {}).get("web", {}):
         Web_Config = meta_table["docs"]["web"]
 
@@ -35,6 +36,8 @@ def set_world_webworld(web: WebWorld) -> WebWorld:
         web.game_info_languages = Web_Config.get("game_info_languages", web.game_info_languages)
         web.options_presets = Web_Config.get("options_presets", web.options_presets)
         web.options_page = Web_Config.get("options_page", web.options_page)
+        if manual_options_groups_data:
+            web.option_groups = manual_options_groups_data
         if hasattr(web, 'bug_report_page'):
             web.bug_report_page = Web_Config.get("bug_report_page", web.bug_report_page)
         else:
