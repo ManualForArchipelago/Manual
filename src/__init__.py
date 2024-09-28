@@ -54,6 +54,8 @@ class ManualWorld(World):
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
 
+    filler_item_name = filler_item_name
+
     item_counts = {}
     start_inventory = {}
 
@@ -64,7 +66,7 @@ class ManualWorld(World):
     victory_names = victory_names
 
     def get_filler_item_name(self) -> str:
-        return hook_get_filler_item_name(self, self.multiworld, self.player) or filler_item_name
+        return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
@@ -106,8 +108,10 @@ class ManualWorld(World):
         configured_item_names = self.item_id_to_name.copy()
 
         for name in configured_item_names.values():
+            # victory gets placed via place_locked_item at the victory location in create_regions
             if name == "__Victory__": continue
-            if name == filler_item_name: continue
+            # the game.json filler item name is added to the item lookup, so skip it until it's potentially needed later
+            if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
 
             item = self.item_name_to_item[name]
             item_count = int(item.get("count", 1))
@@ -370,7 +374,7 @@ class ManualWorld(World):
                 item_pool.append(extra_item)
 
             for _ in range(0, filler_count):
-                extra_item = self.create_item(filler_item_name)
+                extra_item = self.create_item(self.get_filler_item_name())
                 item_pool.append(extra_item)
         elif extras < 0:
             logging.warning(f"{self.game} has more items than locations. {abs(extras)} non-progression items will be removed at random.")
