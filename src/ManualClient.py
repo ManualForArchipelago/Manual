@@ -1,5 +1,6 @@
 from __future__ import annotations
 import time
+import sys
 from typing import Any
 import typing
 from worlds import AutoWorldRegister, network_data_package
@@ -736,7 +737,10 @@ def launch() -> None:
     parser.add_argument('apmanual_file', default="", type=str, nargs="?",
                         help='Path to an APMANUAL file')
 
-    args, rest = parser.parse_known_args()
+    args = sys.argv[1:]
+    if "Manual Client" in args:
+        args.remove("Manual Client")
+    args, rest = parser.parse_known_args(args=args)
     colorama.init()
     asyncio.run(main(args))
     colorama.deinit()
