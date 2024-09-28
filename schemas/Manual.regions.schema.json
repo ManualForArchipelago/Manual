@@ -39,6 +39,32 @@
                             "type":"boolean",
                             "default": false
                         },
+                        "exit_requires": {
+                            "description": "(Optional) Additional requirements to use a specific exit from this region.",
+                            "type": "object",
+                            "patternProperties": {
+                                "^[^$].*$": {
+                                    "type": ["string", "array"],
+                                    "items": {
+                                        "$ref": "#/definitions/Require"
+                                    }
+                                }
+                            },
+                            "uniqueItems": true
+                        },
+                        "entrance_requires": {
+                            "description": "(Optional) Additional requirements to use a specific entrance into this region.  This is the same as exit_requires, but from the other side.",
+                            "type": "object",
+                            "patternProperties": {
+                                "^[^$].*$": {
+                                    "type": ["string", "array"],
+                                    "items": {
+                                        "$ref": "#/definitions/Require"
+                                    }
+                                }
+                            },
+                            "uniqueItems": true
+                        },
                         "_comment": {"$ref": "#/definitions/comment"}
                     }
                 }
