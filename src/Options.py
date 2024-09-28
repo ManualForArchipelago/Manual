@@ -1,12 +1,13 @@
-from Options import item_and_loc_options, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, PerGameCommonOptions, DeathLink, OptionGroup, StartInventoryPool
-from dataclasses import make_dataclass
+from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
+    OptionGroup, StartInventoryPool, item_and_loc_options
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
 from .Helpers import convertToLongString
-
 from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
+
+from dataclasses import make_dataclass
 from pydoc import locate
 from typing import List
 import logging
@@ -32,7 +33,7 @@ for option_name, option in option_table.get('data', {}).items():
 
     if option_name in ['goal', 'filler_traps']:
         if manual_options.get('goal'):
-            logging.warn("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
+            logging.warning("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
         # todo do something for those situations, maybe convert, maybe warn idk for now
         if option_name == 'goal':
             if option['type'] != 'Choice':
