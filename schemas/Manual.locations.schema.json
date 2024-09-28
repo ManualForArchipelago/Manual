@@ -1,10 +1,22 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.locations.schema.json",
-    "description": "Schema for ManualAP locations.json",
-    "type": "array",
+    "description": "Schema for Manual's locations.json",
+    "type": ["array", "object"],
     "items": {
         "$ref": "#/definitions/Location"
+    },
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
+        "data": {
+            "description": "List of locations for this apworld",
+            "type": "array",
+            "items": {"$ref": "#/definitions/Location"}
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
     },
     "definitions": {
         "Location": {
@@ -14,74 +26,82 @@
                     "description": "The unique name of the location.",
                     "type": "string"
                 },
-                "region": {
-                    "description": "(Optional) The name of the Region this location is part of.",
-                    "type": "string"
-                },
                 "category": {
-                    "description": "(Optional) An array of the Category(ies) this location is a part of.",
+                    "description": "(Optional) A list of categories to be applied to this location.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Category"
+                        "type": "string"
                     },
                     "uniqueItems": true
                 },
                 "requires": {
-                    "description": "(Optional) Either an array of items or a boolean logic string(check discord).",
+                    "description": "(Optional) A boolean logic string that describes the required items, counts, etc. needed to reach this location.",
                     "type": [ "string", "array" ],
                     "items": {
                         "$ref": "#/definitions/Require"
                     },
                     "uniqueItems": true
                 },
-                "place_item_category": {
-                    "description": "(Optional) Specify the category of item that will be placed at this location. (Ignore Logic)",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Place_item_category"
-                    },
-                    "minItems": 0,
-                    "uniqueItems": true
+                "region": {
+                    "description": "(Optional) The name of the region this location is part of.",
+                    "type": "string"
                 },
                 "place_item": {
-                    "description": "(Optional) Specify the list of item that can be placed at this location (will only randomly choose 1).",
+                    "description": "(Optional) Places an item that matches one of the item names listed in this setting at this location. Does not check logical access to the location.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Place_item"
-                    },
-                    "minItems": 0,
-                    "uniqueItems": true
-                },
-                "dont_place_item_category": {
-                    "description": "(Optional) Specify the categories of items that will never be placed at this location.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Place_item_category"
+                        "type": "string"
                     },
                     "minItems": 0,
                     "uniqueItems": true
                 },
                 "dont_place_item": {
-                    "description": "(Optional) Specify the list of items that cannot be placed at this location.",
+                    "description": "(Optional) Configures what item names should not end up at this location during normal generation. Does not check logical access to the location.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Place_item"
+                        "type": "string"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "place_item_category": {
+                    "description": "(Optional) Places an item that matches at least one of the categories listed in this setting at this location. Does not check logical access to the location.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": true
+                },
+                "dont_place_item_category": {
+                    "description": "(Optional) Configures what item categories should not end up at this location during normal generation. Does not check logical access to the location.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     },
                     "minItems": 0,
                     "uniqueItems": true
                 },
                 "victory": {
-                    "description": "(Optional) Is this location the goal of this Manual Apworld",
-                    "type": "boolean"
+                    "description": "(Optional) Is this location one of the possible goals of this Manual APWorld?",
+                    "type": "boolean",
+                    "default": false
                 },
-                "_comment": {
-                    "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-                    "type":"string"
-                }
+                "prehint": {
+                    "description": "(Optional) Should this location be hinted at the start?",
+                    "type": "boolean",
+                    "default": false
+                },
+                "hint_entrance": {
+                    "description": "(Optional) Adds additional text to this location's hints to convey useful information. Typically used for entrance randomization.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
+                    "type": "integer"
+                },
+                "_comment": {"$ref": "#/definitions/comment"}
             }
-        },
-        "Category": {
-            "type": "string"
         },
         "Require": {
             "type": ["string", "array", "object"],
@@ -97,11 +117,13 @@
                 }
             }
         },
-        "Place_item_category": {
-            "type": "string"
-        },
-        "Place_item": {
-            "type": "string"
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
         }
     }
 }

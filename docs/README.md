@@ -12,11 +12,10 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 - [Overview](manual/overview.md)
 - [How does it work?](manual/how-it-works.md)
-  
+
 ### How to play a Manual?
 
 - [Get the apworld](play/get-apworld.md)
-- [Get the Manual client](play/get-client.md)
 - [How to connect the Manual client](play/connect-client.md)
 
 ### How to design a Manual?
@@ -48,10 +47,11 @@ _How does that work?!_ Well, you'll just have to read more below!
 - [Location syntax](syntax/location.md)
 - [Categories for Items and Locations](syntax/categories-for-items-and-locations.md)
 - [Region syntax](syntax/region.md)
-- [Requires for Locations and Regions](syntax/requires-for-locations-and-regions.md)
+- [Requires for Locations and Regions](syntax/requires.md)
+  - [Boolean Logic (AND/OR)](syntax/requires.md#boolean-logic)
   - [Item Counts](syntax/requires.md#item-counts)
   - [Requiring Categories](syntax/requires.md#requiring-categories)
-  - [Boolean Logic (AND/OR)](syntax/requires.md#boolean-logic)
+  - [Requirement Functions](syntax/requires.md#requirement-functions)
 - [Category syntax](syntax/category.md)
 - [Hooks](syntax/hooks.md)
   - [World Hooks](syntax/hooks.md#world-hooks)

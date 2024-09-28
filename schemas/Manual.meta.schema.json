@@ -1,0 +1,133 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.meta.schema.json",
+    "description": "Schema for Manual's meta.json",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
+        "_comment": {"$ref": "#/definitions/comment"},
+        "docs": {
+            "description": "Every properties linked to the documentation of your apworld",
+            "type": "object",
+            "properties": {
+                "_comment": {"$ref": "#/definitions/comment"},
+                "apworld_description": {
+                    "description": "An array of every line of text describing your apworld. \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#docstrings",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "web": {
+                    "description": "Json version of the web component. For more info, check the official AP github. \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#webworld-class",
+                    "type": "object",
+                    "$comment": "I took the description of properties from the WebWorld Class",
+                    "properties": {
+                        "_comment": {"$ref": "#/definitions/comment"},
+                        "options_page": {
+                            "description": "(Optional) a settings page. Can be a link to a specific page or external tool.",
+                            "type": ["boolean", "string"]
+                        },
+                        "game_info_languages": {
+                            "description": "(Optional) docs folder will be scanned for game info pages using this list in the format '{language}_{game_name}.md'",
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "default": ["en"]
+                        },
+                        "theme": {
+                            "description": "(Optional) Choose a theme for your game pages.\nAvailable: dirt, grass, grassFlowers, ice, jungle, ocean, partyTime, stone",
+                            "type": "string",
+                            "enum": ["dirt", "grass", "grassFlowers", "ice", "jungle", "ocean", "partyTime", "stone"],
+                            "default": "grass"
+                        },
+                        "bug_report_page": {
+                            "description": "(Optional) display a link to a bug report page, most likely a link to a GitHub issue page.",
+                            "type": "string"
+                        },
+                        "tutorials": {
+                            "description": "(Optional) a list of defined tutorial from the docs folder. Each Tutorial object is to be used for one guide.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutorial"
+                            }
+                        },
+                        "options_presets": {
+                            "description": "A dictionary containing a collection of developer-defined game option presets.",
+                            "type":"object",
+                            "patternProperties": {
+                                "^.*$": {
+                                    "anyOf": [
+                                        {
+                                            "description": "Name of this options Presets",
+                                            "type": "object",
+                                            "patternProperties": {
+                                                "^.*$": {
+                                                    "anyOf": [
+                                                        {
+                                                            "description": "An option and it's preset value",
+                                                            "type": ["boolean", "string", "integer", "object", "array"]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "enable_region_diagram": {
+            "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
+            "type": "boolean",
+            "default": false
+        }
+    },
+    "definitions": {
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
+        },
+        "tutorial": {
+            "description": "Class to build website tutorial pages from a .md file in the world's /docs folder",
+            "type":"object",
+            "properties": {
+                "_comment": {"$ref": "#/definitions/comment"},
+                "name": {
+                    "description": "Name of this tutorial.",
+                    "type":"string"
+                },
+                "description": {
+                    "description": "Describe what this tutorial is used for in usually 1 line.",
+                    "type":"string"
+                },
+                "language": {
+                    "description": "Name of the language this tutorial is written in. eg. 'English'",
+                    "type":"string"
+                },
+                "file_name": {
+                    "description": "file name of this tutorial in the docs folder of the apworld. eg. 'setup_en.md'",
+                    "type":"string"
+                },
+                "link": {
+                    "description": "Custom path for your tutorial, standard is 'setup/language code'. eg. 'setup/en'",
+                    "type":"string"
+                },
+                "authors": {
+                    "type": "array",
+                    "description": "An array of author names, if not included will add the creator name from game.json",
+                    "items": {"type":"string"}
+                }
+            }
+        }
+    }
+}

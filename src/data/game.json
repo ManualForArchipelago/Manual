@@ -1,4 +1,5 @@
 {
+    "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
     "game": "UltimateMarvelVsCapcom3",
     "creator": "ManualTeam",
 
@@ -21,6 +22,11 @@
         },
         {
             "random": 3
+        },
+        {
+            "items": ["Deadpool"],
+            "yaml_option": ["start_with_deadpool"]
         }
-    ]
+    ],
+    "death_link": false
 }

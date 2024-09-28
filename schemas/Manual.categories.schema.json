@@ -1,43 +1,49 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.categories.schema.json",
-    "description": "Schema for ManualAP categories.json",
+    "description": "Schema for Manual's categories.json",
     "type": "object",
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        }
+    },
     "patternProperties": {
-        "^.*$": {
+        "^[^$].*$": {
             "anyOf": [
                 {
                     "type": "object",
+                    "description": "Name of the category",
                     "properties": {
-                        "hidden": {
-                            "description": "(Optional) Should this category be Hidden in the client?",
-                            "type": "boolean",
-                            "default": true
-                        },
                         "yaml_option": {
                             "description": "(Optional) Array of Options that will decide if the items & locations in this category are enabled",
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/Connects_to"
+                                "type": "string"
                             },
                             "minItems": 1,
                             "uniqueItems": true
                         },
-                        "_comment": {
-                            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-                            "type":"string"
-                        }
+                        "hidden": {
+                            "description": "(Optional) Should this category be Hidden in the client?",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "_comment": {"$ref": "#/definitions/comment"}
                     }
                 }
             ]
         }
     },
     "definitions": {
-        "Require": {
-            "type": ["object", "string", "array"]
-        },
-        "Connects_to": {
-            "type": "string"
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
         }
     }
 }

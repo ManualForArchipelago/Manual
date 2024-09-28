@@ -1,72 +1,114 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.items.schema.json",
-  "description": "Schema for ManualAP items.json",
-  "type": "array",
-  "items": {
-    "$ref": "#/definitions/Item"
-  },
-  "definitions": {
-    "Item": {
-      "type": "object",
-        "properties": {
-            "name": {
-                "description": "The unique name of the item. Do not use () or : in the name",
-                "type": "string"
-            },
-            "progression": {
-                "description": "(Optional) Is this item needed to unlock locations? Defaults to false if not included.",
-                "default": true,
-                "type": "boolean"
-            },
-            "count": {
-                "description": "(Optional) Number of copy of this item in the pool.",
-                "type": "integer",
-                "default": 1
-            },
-            "category": {
-                "description": "(Optional) The category(ies) this item fit in",
-                "type": "array",
-                "items": {
-                    "$ref": "#/definitions/Category"
-                },
-                "minItems": 1,
-                "uniqueItems": true
-            },
-            "useful": {
-                "description": "(Optional) Is this item usefull to have? Used for items that are not progression but you still want the rando to really use.",
-                "type": "boolean"
-            },
-            "progression_skip_balancing": {
-                "description": "(Optional) Should this item not get included in progression balance swaps. For more info check the discord",
-                "type": "boolean",
-                "default": true
-            },
-            "trap": {
-                "description": "(Optional) Is this item a trap? Something the player doesnt want to get.",
-                "type": "boolean",
-                "default": true
-            },
-            "early": {
-                "description": "(Optional) Is this item required to be placed somewhere accessible from the start (Sphere 1)",
-                "type": "boolean",
-                "default": true
-            },
-            "local": {
-                "description": "(Optional) Is this item supposed to be only in your locations(true) or anywhere(false)",
-                "type": "boolean",
-                "default": true
-            },
-            "_comment": {
-                "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
-                "type":"string"
-            }
-
-        },
-        "required": ["name"]
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.items.schema.json",
+    "description": "Schema for Manual's items.json",
+    "type": ["array", "object"],
+    "items": {
+        "$ref": "#/definitions/Item"
     },
-    "Category": {
-        "type": "string"
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
+        "data": {
+            "description": "List of Items",
+            "type": "array",
+            "items": {"$ref": "#/definitions/Item"}
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
+    },
+    "definitions": {
+        "Item": {
+        "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The unique name of the item. Do not use () or : in the name",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "(Optional) A list of categories to be applied to this item.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "count": {
+                    "description": "(Optional) Total number of this item that will be in the itempool for randomization.",
+                    "type": "integer",
+                    "default": 1
+                },
+                "value": {
+                    "description": "(Optional) A dictionary of values this item has in the format {\"name\": int,\"otherName\": int} \nUsed with the {ItemValue(Name: int)} in location requires \neg. \"value\": {\"coins\":10} mean this item is worth 10 coins",
+                    "type": "object",
+                    "patternProperties": {
+                        "^.+$": {
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "description": "A value that this item has must be 'name':integer \neg. \"coins\": 10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "progression": {
+                    "description": "(Optional) Is this item needed to unlock locations? For more information on item classifications, see: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items",
+                    "type": "boolean",
+                    "default": false
+                },
+                "progression_skip_balancing": {
+                    "description": "(Optional) Should this item not get included in progression balance swaps? For more information on item classifications, see: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items",
+                    "type": "boolean",
+                    "default": false
+                },
+                "useful": {
+                    "description": "(Optional) Is this item useful to have but not required to complete the game? For more information on item classifications, see: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items",
+                    "type": "boolean",
+                    "default": false
+                },
+                "trap": {
+                    "description": "(Optional) Is this item something the player doesn't want to get? For more information on item classifications, see: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items",
+                    "type": "boolean",
+                    "default": false
+                },
+                "filler": {
+                    "description": "(Optional) Is this item mostly useless and okay to skip placing sometimes? For more information on item classifications, see: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items",
+                    "type": "boolean",
+                    "default": true
+                },
+                "early": {
+                    "description": "(Optional) How many copies of this item are required to be placed somewhere accessible from the start (Sphere 1) \nChoosing 'True' mark all of them to be early",
+                    "type": ["boolean", "integer"],
+                    "default": false
+                },
+                "local": {
+                    "description": "(Optional) Are all copies of this item supposed to be only in your locations (true), or can they be anywhere (false)?",
+                    "type": "boolean",
+                    "default": false
+                },
+                "local_early": {
+                    "description": "(Optional) How many copies of this item (or 'true' if all copies) are supposed to be early and only in your locations. \nCan be used to mark some of the copies of an item to be early and local since 'local' is a toggle between none or all of them.",
+                    "type": ["boolean", "integer"],
+                    "default": false
+                },
+                "id": {
+                    "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
+                    "type": "integer"
+                },
+                "_comment": {"$ref": "#/definitions/comment"}
+            },
+            "required": ["name"]
+        },
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type": "string"
+            }
+        }
     }
-  }
 }
