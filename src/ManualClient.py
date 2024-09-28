@@ -224,6 +224,7 @@ class ManualContext(SuperContext):
         from kivy.uix.gridlayout import GridLayout
         from kivy.uix.scrollview import ScrollView
         from kivy.uix.textinput import TextInput
+        from kivy.uix.spinner import Spinner
         from kivy.uix.tabbedpanel import TabbedPanelItem
         from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
         from kivy.clock import Clock
@@ -270,9 +271,10 @@ class ManualContext(SuperContext):
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
                 game_bar_label = Label(text="Manual Game ID", size=(dp(150), dp(30)), size_hint_y=None, size_hint_x=None)
+                manuals = tuple([w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w])
                 self.manual_game_layout.add_widget(game_bar_label)
-                self.game_bar_text = TextInput(text=self.ctx.suggested_game,
-                                                size_hint_y=None, height=dp(30), multiline=False, write_tab=False)
+                self.game_bar_text = Spinner(text=self.ctx.suggested_game,
+                                                size_hint_y=None, height=dp(30), values=manuals)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
