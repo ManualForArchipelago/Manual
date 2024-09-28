@@ -212,9 +212,8 @@ class ManualContext(SuperContext):
         if events:
             self.ui.update_tracker_and_locations_table(update_highlights=True)
 
-    def run_gui(self):
-        """Import kivy UI system and start running it as self.ui_task."""
-        from kvui import GameManager
+    def make_gui(self) -> typing.Type["kvui.GameManager"]:
+        ui = super().make_gui()  # before the kivy imports so kvui gets loaded first
 
         from kivy.metrics import dp
         from kivy.uix.button import Button
@@ -246,7 +245,7 @@ class ManualContext(SuperContext):
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
 
-        class ManualManager(GameManager):
+        class ManualManager(ui):
             logging_pairs = [
                 ("Client", "Archipelago"),
                 ("Manual", "Manual"),
@@ -286,9 +285,6 @@ class ManualContext(SuperContext):
                 self.tracker_and_locations_panel = panel.content = TrackerAndLocationsLayout(cols = 2)
 
                 self.build_tracker_and_locations_table()
-
-                if tracker_loaded:
-                    self.ctx.build_gui(self)
 
                 return self.container
 
@@ -663,12 +659,7 @@ class ManualContext(SuperContext):
                 self.ctx.items_received.append("__Victory__")
                 self.ctx.syncing = True
 
-        self.ui = ManualManager(self)
-
-        if tracker_loaded:
-            self.load_kv()
-
-        self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
+        return ManualManager
 
 async def game_watcher_manual(ctx: ManualContext):
     while not ctx.exit_event.is_set():
