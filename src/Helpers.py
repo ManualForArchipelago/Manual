@@ -1,12 +1,24 @@
-from BaseClasses import MultiWorld, Item
+import os
+import pkgutil
+import json
+
+from BaseClasses import MultiWorld, Item, Location
 from typing import Optional, List
 from worlds.AutoWorld import World
-from .Data import category_table
-from .Items import ManualItem
-from .Locations import ManualLocation
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
 
 from typing import Union
+
+# blatantly copied from the minecraft ap world because why not
+def load_data_file(*args) -> dict:
+    fname = os.path.join("data", *args)
+
+    try:
+        filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
+    except:
+        filedata = []
+
+    return filedata
 
 def is_option_enabled(multiworld: MultiWorld, player: int, name: str) -> bool:
     return get_option_value(multiworld, player, name) > 0
@@ -28,6 +40,7 @@ def clamp(value, min, max):
         return value
 
 def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> bool:
+    from .Data import category_table
     """Check if a category has been disabled by a yaml option."""
     hook_result = before_is_category_enabled(multiworld, player, category_name)
     if hook_result is not None:
@@ -56,7 +69,7 @@ def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) ->
 
     return is_item_enabled(multiworld, player, item)
 
-def is_item_enabled(multiworld: MultiWorld, player: int, item: ManualItem) -> bool:
+def is_item_enabled(multiworld: MultiWorld, player: int, item: Item) -> bool:
     """Check if an item has been disabled by a yaml option."""
     hook_result = before_is_item_enabled(multiworld, player, item)
     if hook_result is not None:
@@ -72,7 +85,7 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
 
     return is_location_enabled(multiworld, player, location)
 
-def is_location_enabled(multiworld: MultiWorld, player: int, location: ManualLocation) -> bool:
+def is_location_enabled(multiworld: MultiWorld, player: int, location: Location) -> bool:
     """Check if a location has been disabled by a yaml option."""
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
