@@ -40,15 +40,24 @@
                     "items": {"type": "string"}
                 },
                 "rich_text_doc": {
-                    "description": "Enable support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
+                    "description": "(Optional) support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
                     "type": "boolean",
                     "default": false
                 },
                 "group": {
-                    "description": "The name of the group this option is a part of on the webhost",
+                    "description": "(Optional) The name of the group this option is a part of on the webhost",
                     "type": "string",
                     "default": "Game Options",
                     "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
+                },
+                "visibility": {
+                    "description": "(Optional) (Advanced) Specify where this option can be seen. \nIt can be represented by the value names, an array of those, \nthe binary string representation of that choice (\"0b1111\") or the integer value of the binary \nEvery example values other than 'none' and 'all' gives the same results aka 14 aka 0b1110 aka that array \nMore info at https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-visibility",
+                    "type":["string","array","integer"],
+                    "items": {"type": "string", "enum": [ "template", "simple_ui", "complex_ui", "spoiler"]},
+                    "default": "all",
+                    "examples": ["none", "0b1110", ["spoiler", "simple_ui", "complex_ui"], 14 ],
+                    "if": {"type":"string", "pattern": "0b[01]..."},
+                    "else": {"if": {"type": "string"}, "then": {"enum": ["all", "none", "template", "simple_ui", "complex_ui", "spoiler"]} }
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
             },

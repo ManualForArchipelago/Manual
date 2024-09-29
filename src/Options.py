@@ -1,5 +1,5 @@
 from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
-    OptionGroup, StartInventoryPool, item_and_loc_options
+    OptionGroup, StartInventoryPool, Visibility, item_and_loc_options
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
 from .Helpers import convertToLongString
@@ -66,6 +66,21 @@ for option_name, option in option_table.get('data', {}).items():
 
         if option.get('rich_text_doc',None) is not None:
             args["rich_text_doc"] = option["rich_text_doc"]
+
+        if option.get('visibility'):
+            final = Visibility.all
+            if isinstance(option['visibility'], list):
+                final = Visibility.none
+                for type in option['visibility']:
+                    final += Visibility[type.lower()]
+            elif isinstance(option['visibility'],str):
+                if option['visibility'].startswith('0b'):
+                    final = int(option['visibility'], base=0)
+                else:
+                    final = Visibility[option['visibility'].lower()]
+            elif isinstance(option['visibility'], int):
+                final = option['visibility']
+            args['visibility'] = final
 
         manual_options[option_name] = type(option_name, (option_type,), args )
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
