@@ -328,7 +328,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         value = bool(value)
                         if warn:
                         # warning here spam the console if called from rules.py, might be worth to make it a data validation instead
-                            logging.warn(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed and thus converted to {value}")
+                            logging.warning(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed and thus converted to {value}")
 
                 else:
                     try:
