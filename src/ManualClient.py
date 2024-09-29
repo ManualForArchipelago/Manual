@@ -81,7 +81,8 @@ class ManualContext(SuperContext):
         'category_in_logic': [2/255, 82/255, 2/255, 1],
         'deathlink_received': [1, 0, 0, 1],
         'deathlink_primed': [1, 1, 1, 1],
-        'deathlink_sent': [0, 1, 0, 1]
+        'deathlink_sent': [0, 1, 0, 1],
+        'game_select_button': [150/255, 200/255, 200/255, 1],
     }
 
     def __init__(self, server_address, password, game, player_name) -> None:
@@ -217,16 +218,15 @@ class ManualContext(SuperContext):
 
         from kivy.metrics import dp
         from kivy.uix.button import Button
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.dropdown import DropDown
+        from kivy.uix.gridlayout import GridLayout
         from kivy.uix.label import Label
         from kivy.uix.layout import Layout
-        from kivy.uix.boxlayout import BoxLayout
-        from kivy.uix.gridlayout import GridLayout
         from kivy.uix.scrollview import ScrollView
+        from kivy.uix.spinner import Spinner, SpinnerOption
         from kivy.uix.textinput import TextInput
-        from kivy.uix.spinner import Spinner
-        from kivy.uix.tabbedpanel import TabbedPanelItem
         from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
-        from kivy.clock import Clock
         from kivy.core.window import Window
 
         class TrackerAndLocationsLayout(GridLayout):
@@ -243,6 +243,13 @@ class ManualContext(SuperContext):
             id: int = None
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
+            pass
+
+        class GameSelectOption(SpinnerOption):
+            background_color = self.colors['game_select_button']
+
+        class GameSelectDropDown(DropDown):
+            # If someone can figure out how to give this a solid background, I'd be very happy.
             pass
 
         class ManualManager(ui):
@@ -270,10 +277,11 @@ class ManualContext(SuperContext):
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
                 game_bar_label = Label(text="Manual Game ID", size=(dp(150), dp(30)), size_hint_y=None, size_hint_x=None)
-                manuals = tuple([w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w])
+                manuals = [w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w]
+                manuals.sort()  # Sort by alphabetical order, not load order
                 self.manual_game_layout.add_widget(game_bar_label)
                 self.game_bar_text = Spinner(text=self.ctx.suggested_game,
-                                                size_hint_y=None, height=dp(30), values=manuals)
+                                                size_hint_y=None, height=dp(30), values=manuals, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
