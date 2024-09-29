@@ -280,8 +280,8 @@ class ManualContext(SuperContext):
                 manuals = [w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w]
                 manuals.sort()  # Sort by alphabetical order, not load order
                 self.manual_game_layout.add_widget(game_bar_label)
-                self.game_bar_text = Spinner(text=self.ctx.suggested_game,
-                                                size_hint_y=None, height=dp(30), values=manuals, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
+                self.game_bar_text = Spinner(text=self.ctx.suggested_game, size_hint_y=None, height=dp(30), sync_height=True,
+                                             values=manuals, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
