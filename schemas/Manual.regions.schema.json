@@ -40,7 +40,7 @@
                             "default": false
                         },
                         "exit_requires": {
-                            "description": "(Optional) Additional requirements to use a specific exit from this region.",
+                            "description": "(Optional) Additional requirements to use a specific connection out of this region.",
                             "type": "object",
                             "patternProperties": {
                                 "^[^$].*$": {
@@ -53,7 +53,7 @@
                             "uniqueItems": true
                         },
                         "entrance_requires": {
-                            "description": "(Optional) Additional requirements to use a specific entrance into this region.  This is the same as exit_requires, but from the other side.",
+                            "description": "(Optional) Additional requirements to use a specific connection into this region.  This is the same as exit_requires, but from the other side.",
                             "type": "object",
                             "patternProperties": {
                                 "^[^$].*$": {
