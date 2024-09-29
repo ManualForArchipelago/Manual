@@ -82,7 +82,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
             if found_functions:
                 if recursionDepth >= maxRecursion:
-                    raise RecursionError(f'the require in {area.get("name", f"An area with these parameters: {area}")} looped too many time ({maxRecursion})')
+                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {maxRecursion}) \
+                                         \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
+                                         \n    And the currently processed requires look like this: "{requires_list}"')
                 else:
                     for item in found_functions:
                         func_name = item[0]
