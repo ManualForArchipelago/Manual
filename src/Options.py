@@ -1,4 +1,4 @@
-from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, PerGameCommonOptions, DeathLink
+from Options import FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, PerGameCommonOptions, DeathLink, StartInventoryPool
 from dataclasses import make_dataclass
 from .hooks.Options import before_options_defined, after_options_defined
 from .Data import category_table, game_table
@@ -12,6 +12,8 @@ class FillerTrapPercent(Range):
     range_end = 100
 
 manual_options = before_options_defined({})
+
+manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 if len(victory_names) > 1:
     goal = {'option_' + v: i for i, v in enumerate(victory_names)}
