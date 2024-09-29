@@ -82,7 +82,7 @@ class ManualContext(SuperContext):
         'deathlink_received': [1, 0, 0, 1],
         'deathlink_primed': [1, 1, 1, 1],
         'deathlink_sent': [0, 1, 0, 1],
-        'game_select_button': [150/255, 200/255, 200/255, 1],
+        'game_select_button': [200/255, 200/255, 200/255, 1],
     }
 
     def __init__(self, server_address, password, game, player_name) -> None:
