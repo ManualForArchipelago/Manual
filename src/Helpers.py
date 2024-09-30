@@ -3,11 +3,15 @@ import pkgutil
 import json
 
 from BaseClasses import MultiWorld, Item, Location
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from worlds.AutoWorld import World
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
 
 from typing import Union
+
+if TYPE_CHECKING:
+    from .Items import ManualItem
+    from .Locations import ManualLocation
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
@@ -69,7 +73,7 @@ def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) ->
 
     return is_item_enabled(multiworld, player, item)
 
-def is_item_enabled(multiworld: MultiWorld, player: int, item: Item) -> bool:
+def is_item_enabled(multiworld: MultiWorld, player: int, item: "ManualItem") -> bool:
     """Check if an item has been disabled by a yaml option."""
     hook_result = before_is_item_enabled(multiworld, player, item)
     if hook_result is not None:
@@ -85,7 +89,7 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
 
     return is_location_enabled(multiworld, player, location)
 
-def is_location_enabled(multiworld: MultiWorld, player: int, location: Location) -> bool:
+def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLocation") -> bool:
     """Check if a location has been disabled by a yaml option."""
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
