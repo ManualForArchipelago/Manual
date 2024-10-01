@@ -339,7 +339,7 @@ class ManualWorld(World):
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
         before_extend_hint_information(hint_data, self, self.multiworld, self.player)
-        
+
         for location in self.multiworld.get_locations(self.player):
             if not location.address:
                 continue
@@ -347,7 +347,7 @@ class ManualWorld(World):
                 if self.player not in hint_data:
                     hint_data.update({self.player: {}})
                 hint_data[self.player][location.address] = self.location_name_to_location[location.name]["hint_entrance"]
-        
+
         after_extend_hint_information(hint_data, self, self.multiworld, self.player)
 
     ###
@@ -440,7 +440,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_09_19 # YYYYMMDD
+    version = 2024_09_29 # YYYYMMDD
     found = False
     for c in components:
         if c.display_name == "Manual Client":

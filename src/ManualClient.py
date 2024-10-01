@@ -1,5 +1,6 @@
 from __future__ import annotations
 import time
+import sys
 from typing import Any
 import typing
 from worlds import AutoWorldRegister, network_data_package
@@ -80,7 +81,8 @@ class ManualContext(SuperContext):
         'category_in_logic': [2/255, 82/255, 2/255, 1],
         'deathlink_received': [1, 0, 0, 1],
         'deathlink_primed': [1, 1, 1, 1],
-        'deathlink_sent': [0, 1, 0, 1]
+        'deathlink_sent': [0, 1, 0, 1],
+        'game_select_button': [200/255, 200/255, 200/255, 1],
     }
 
     def __init__(self, server_address, password, game, player_name) -> None:
@@ -211,21 +213,20 @@ class ManualContext(SuperContext):
         if events:
             self.ui.update_tracker_and_locations_table(update_highlights=True)
 
-    def run_gui(self):
-        """Import kivy UI system and start running it as self.ui_task."""
-        from kvui import GameManager
+    def make_gui(self) -> typing.Type["kvui.GameManager"]:
+        ui = super().make_gui()  # before the kivy imports so kvui gets loaded first
 
         from kivy.metrics import dp
         from kivy.uix.button import Button
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.dropdown import DropDown
+        from kivy.uix.gridlayout import GridLayout
         from kivy.uix.label import Label
         from kivy.uix.layout import Layout
-        from kivy.uix.boxlayout import BoxLayout
-        from kivy.uix.gridlayout import GridLayout
         from kivy.uix.scrollview import ScrollView
+        from kivy.uix.spinner import Spinner, SpinnerOption
         from kivy.uix.textinput import TextInput
-        from kivy.uix.tabbedpanel import TabbedPanelItem
         from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
-        from kivy.clock import Clock
         from kivy.core.window import Window
 
         class TrackerAndLocationsLayout(GridLayout):
@@ -244,7 +245,14 @@ class ManualContext(SuperContext):
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
 
-        class ManualManager(GameManager):
+        class GameSelectOption(SpinnerOption):
+            background_color = self.colors['game_select_button']
+
+        class GameSelectDropDown(DropDown):
+            # If someone can figure out how to give this a solid background, I'd be very happy.
+            pass
+
+        class ManualManager(ui):
             logging_pairs = [
                 ("Client", "Archipelago"),
                 ("Manual", "Manual"),
@@ -269,9 +277,11 @@ class ManualContext(SuperContext):
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
                 game_bar_label = Label(text="Manual Game ID", size=(dp(150), dp(30)), size_hint_y=None, size_hint_x=None)
+                manuals = [w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w]
+                manuals.sort()  # Sort by alphabetical order, not load order
                 self.manual_game_layout.add_widget(game_bar_label)
-                self.game_bar_text = TextInput(text=self.ctx.suggested_game,
-                                                size_hint_y=None, height=dp(30), multiline=False, write_tab=False)
+                self.game_bar_text = Spinner(text=self.ctx.suggested_game, size_hint_y=None, height=dp(30), sync_height=True,
+                                             values=manuals, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
@@ -283,9 +293,6 @@ class ManualContext(SuperContext):
                 self.tracker_and_locations_panel = panel.content = TrackerAndLocationsLayout(cols = 2)
 
                 self.build_tracker_and_locations_table()
-
-                if tracker_loaded:
-                    self.ctx.build_gui(self)
 
                 return self.container
 
@@ -660,12 +667,7 @@ class ManualContext(SuperContext):
                 self.ctx.items_received.append("__Victory__")
                 self.ctx.syncing = True
 
-        self.ui = ManualManager(self)
-
-        if tracker_loaded:
-            self.load_kv()
-
-        self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
+        return ManualManager
 
 async def game_watcher_manual(ctx: ManualContext):
     while not ctx.exit_event.is_set():
@@ -736,7 +738,10 @@ def launch() -> None:
     parser.add_argument('apmanual_file', default="", type=str, nargs="?",
                         help='Path to an APMANUAL file')
 
-    args, rest = parser.parse_known_args()
+    args = sys.argv[1:]
+    if "Manual Client" in args:
+        args.remove("Manual Client")
+    args, rest = parser.parse_known_args(args=args)
     colorama.init()
     asyncio.run(main(args))
     colorama.deinit()
