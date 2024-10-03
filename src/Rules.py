@@ -78,11 +78,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         if requires_list == "":
             return True
 
-        def findAndRecursivelyExecuteFunctions(requires_list: str, maxRecursion: int, recursionDepth: int = 0) -> str:
+        def findAndRecursivelyExecuteFunctions(requires_list: str, recursionDepth: int = 0) -> str:
             found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
             if found_functions:
-                if recursionDepth >= maxRecursion:
-                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {maxRecursion}) \
+                if recursionDepth >= world.rules_functions_maximum_recursion:
+                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
                                          \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
                                          \n    And the currently processed requires look like this: "{requires_list}"')
                 else:
@@ -107,10 +107,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         else:
                             requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
 
-                requires_list = findAndRecursivelyExecuteFunctions(requires_list, maxRecursion, recursionDepth + 1)
+                requires_list = findAndRecursivelyExecuteFunctions(requires_list, recursionDepth + 1)
             return requires_list
 
-        requires_list = findAndRecursivelyExecuteFunctions(requires_list, maxRecursion=5)
+        requires_list = findAndRecursivelyExecuteFunctions(requires_list)
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', requires_list):

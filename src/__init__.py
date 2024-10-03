@@ -339,7 +339,7 @@ class ManualWorld(World):
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
         before_extend_hint_information(hint_data, self, self.multiworld, self.player)
-        
+
         for location in self.multiworld.get_locations(self.player):
             if not location.address:
                 continue
@@ -347,12 +347,17 @@ class ManualWorld(World):
                 if self.player not in hint_data:
                     hint_data.update({self.player: {}})
                 hint_data[self.player][location.address] = self.location_name_to_location[location.name]["hint_entrance"]
-        
+
         after_extend_hint_information(hint_data, self, self.multiworld, self.player)
 
     ###
     # Non-standard AP world methods
     ###
+
+    rules_functions_maximum_recursion: int = 5
+    """Default: 5\n
+    The maximum time a location/region's requirement can loop to check for functions\n
+    One thing to remember is the more you loop the longer generation will take. So probably leave it as is unless you really needs it."""
 
     def add_filler_items(self, item_pool, traps):
         Utils.deprecate("Use adjust_filler_items instead.")
