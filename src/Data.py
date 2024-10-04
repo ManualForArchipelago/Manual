@@ -1,9 +1,7 @@
-import json
 import logging
-import os
-import pkgutil
 
 from .DataValidation import DataValidation, ValidationError
+from .Helpers import load_data_file as helpers_load_data_file
 
 from .hooks.Data import \
     after_load_game_file, \
@@ -11,17 +9,10 @@ from .hooks.Data import \
     after_load_region_file, after_load_category_file, \
     after_load_meta_file
 
-
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
-    fname = os.path.join("data", *args)
-
-    try:
-        filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
-    except:
-        filedata = []
-
-    return filedata
+    logging.warning("Deprecated usage of importing load_data_file from Data.py uses the one from Helper.py instead")
+    return helpers_load_data_file(*args)
 
 def convert_to_list(data, property_name: str) -> list:
     if isinstance(data, dict):
@@ -32,17 +23,17 @@ def convert_to_list(data, property_name: str) -> list:
 class ManualFile:
     filename: str
     data_type: dict|list
-    
+
     def __init__(self, filename, data_type):
         self.filename = filename
         self.data_type = data_type
 
     def load(self):
-        contents = load_data_file(self.filename)
-        
+        contents = helpers_load_data_file(self.filename)
+
         if not contents and type(contents) != self.data_type:
             return self.data_type()
-        
+
         return contents
 
 
