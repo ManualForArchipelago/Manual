@@ -7,7 +7,7 @@ from .Game import starting_index
 # Generate location lookups
 ######################
 
-count = starting_index + 500 # 500 each for items and locations
+count = starting_index
 victory_names: list[str] = []
 
 # add sequential generated ids to the lists
