@@ -444,10 +444,10 @@ def add_client_to_launcher() -> None:
     version = 2024_09_29 # YYYYMMDD
     found = False
 
-    icon_url = "https://cdn.discordapp.com/icons/1097532591650910289/31019cd41a862df824f886c6cefbeb68.png?size=96"
     if "manual" not in icon_paths:
         icon_paths["manual"] = Utils.user_path('data', 'manual.png')
         if not os.path.exists(icon_paths["manual"]):
+            icon_url = "https://manualforarchipelago.github.io/ManualBuilder/images/ap-manual-discord-logo-96x96.png"
             with open(icon_paths["manual"], 'wb') as f:
                 f.write(requests.get(icon_url).content)
 
