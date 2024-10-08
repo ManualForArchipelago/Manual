@@ -354,6 +354,11 @@ class ManualWorld(World):
     # Non-standard AP world methods
     ###
 
+    rules_functions_maximum_recursion: int = 5
+    """Default: 5\n
+    The maximum time a location/region's requirement can loop to check for functions\n
+    One thing to remember is the more you loop the longer generation will take. So probably leave it as is unless you really needs it."""
+
     def add_filler_items(self, item_pool, traps):
         Utils.deprecate("Use adjust_filler_items instead.")
         return self.adjust_filler_items(item_pool, traps)
