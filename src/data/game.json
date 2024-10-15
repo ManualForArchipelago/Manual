@@ -26,6 +26,10 @@
         {
             "items": ["Deadpool"],
             "yaml_option": ["start_with_deadpool"]
+        },
+        {
+            "item_categories": ["Stage"],
+            "yaml_option": ["randomize_stages"]
         }
     ],
     "death_link": false

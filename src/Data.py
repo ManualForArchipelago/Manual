@@ -1,7 +1,8 @@
 import logging
+from typing import Literal
 
 from .DataValidation import DataValidation, ValidationError
-from .Helpers import load_data_file as helpers_load_data_file
+from .Helpers import load_data_file as helpers_load_data_file, load_data_csv
 
 from .hooks.Data import \
     after_load_game_file, \
@@ -23,13 +24,20 @@ def convert_to_list(data, property_name: str) -> list:
 class ManualFile:
     filename: str
     data_type: dict|list
+    filetype: Literal['json', 'csv']
 
-    def __init__(self, filename, data_type):
+    def __init__(self, filename, data_type, filetype='json'):
         self.filename = filename
         self.data_type = data_type
+        self.filetype = filetype
 
     def load(self):
-        contents = helpers_load_data_file(self.filename)
+        if self.filetype == 'json':
+            contents = helpers_load_data_file(self.filename)
+        elif self.filetype == 'csv':
+            contents = load_data_csv(self.filename)
+        else:
+            raise ValueError(f"Unsupported filetype: {self.filetype}")
 
         if not contents and type(contents) != self.data_type:
             return self.data_type()
@@ -43,6 +51,9 @@ location_table = convert_to_list(ManualFile('locations.json', list).load(), 'dat
 region_table = ManualFile('regions.json', dict).load() #dict
 category_table = ManualFile('categories.json', dict).load() #dict
 meta_table = ManualFile('meta.json', dict).load() #dict
+
+item_table.extend(ManualFile('items.csv', list, 'csv').load()) #list
+location_table.extend(ManualFile('locations.csv', list, 'csv').load()) #list
 
 # Removal of schemas in root of tables
 region_table.pop('$schema', '')

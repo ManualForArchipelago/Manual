@@ -5,5 +5,8 @@
     },
     "Example Yaml-option category": {
         "yaml_option": ["DLC_enabled"]
+    },
+    "Stage": {
+        "yaml_option": ["randomize_stages"]
     }
 }
