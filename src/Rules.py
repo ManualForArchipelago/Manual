@@ -78,27 +78,39 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         if requires_list == "":
             return True
 
-        for item in re.findall(r'\{(\w+)\((.*?)\)\}', requires_list):
-            func_name = item[0]
-            func_args = item[1].split(",")
-            if func_args == ['']:
-                func_args.pop()
+        def findAndRecursivelyExecuteFunctions(requires_list: str, recursionDepth: int = 0) -> str:
+            found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
+            if found_functions:
+                if recursionDepth >= world.rules_functions_maximum_recursion:
+                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
+                                         \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
+                                         \n    And the currently processed requires look like this: "{requires_list}"')
+                else:
+                    for item in found_functions:
+                        func_name = item[0]
+                        func_args = item[1].split(",")
+                        if func_args == ['']:
+                            func_args.pop()
 
-            func = globals().get(func_name)
+                        func = globals().get(func_name)
 
-            if func is None:
-                func = getattr(Rules, func_name, None)
+                        if func is None:
+                            func = getattr(Rules, func_name, None)
 
-            if not callable(func):
-                raise ValueError(f"Invalid function `{func_name}` in {area}.")
+                        if not callable(func):
+                            raise ValueError(f"Invalid function `{func_name}` in {area}.")
 
-            convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
-            result = func(world, multiworld, state, player, *func_args)
-            if isinstance(result, bool):
-                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
-            else:
-                requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
+                        convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
+                        result = func(world, multiworld, state, player, *func_args)
+                        if isinstance(result, bool):
+                            requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
+                        else:
+                            requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", str(result))
 
+                requires_list = findAndRecursivelyExecuteFunctions(requires_list, recursionDepth + 1)
+            return requires_list
+
+        requires_list = findAndRecursivelyExecuteFunctions(requires_list)
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', requires_list):
