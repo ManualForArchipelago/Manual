@@ -221,6 +221,9 @@ class ManualWorld(World):
         if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
             classification = ItemClassification.progression_skip_balancing
 
+        if "classification" in item:
+            classification = ItemClassification[item["classification"]]
+
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
 
