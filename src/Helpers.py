@@ -1,8 +1,9 @@
+import csv
 import os
 import pkgutil
 import json
 
-from BaseClasses import MultiWorld, Item, Location
+from BaseClasses import MultiWorld, Item
 from typing import Optional, List, TYPE_CHECKING
 from worlds.AutoWorld import World
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
@@ -21,6 +22,17 @@ def load_data_file(*args) -> dict:
         filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
     except:
         filedata = []
+
+    return filedata
+
+def load_data_csv(*args) -> list[dict]:
+    fname = os.path.join("data", *args)
+
+    try:
+        lines = pkgutil.get_data(__name__, fname).decode().splitlines()
+    except:
+        lines = []
+    filedata = list(csv.DictReader(lines))
 
     return filedata
 
