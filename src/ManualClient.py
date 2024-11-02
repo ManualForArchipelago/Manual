@@ -213,6 +213,18 @@ class ManualContext(SuperContext):
         if events:
             self.ui.update_tracker_and_locations_table(update_highlights=True)
 
+    def run_gui(self):
+        """Import kivy UI system from make_gui() and start running it as self.ui_task."""
+        if hasattr(SuperContext, "make_gui"):
+            # Call the real one if it exists
+            return super().run_gui()
+
+        # This is a copy of 0.5.1's run_gui, because backporting is easier than the alternative.
+        # This entire function can be removed once 0.5.1 is the old enough.
+        ui_class = self.make_gui()
+        self.ui = ui_class(self)
+        self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
+
     def make_gui(self) -> typing.Type["kvui.GameManager"]:
         ui = super().make_gui()  # before the kivy imports so kvui gets loaded first
 
