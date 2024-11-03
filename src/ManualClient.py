@@ -1,12 +1,14 @@
 from __future__ import annotations
-import time
-import sys
-from typing import Any
-import typing
-from worlds import AutoWorldRegister, network_data_package
+import asyncio
 import json
+import os
+import re
+import sys
+import typing
+from typing import Any
 
-import asyncio, re
+import urllib
+from worlds import AutoWorldRegister, network_data_package
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -718,7 +720,18 @@ def read_apmanual_file(apmanual_file):
 
 async def main(args):
     config_file = {}
-    if args.apmanual_file:
+    if args.apmanual_file and args.apmanual_file.startswith("archipelago://"):
+        url = urllib.parse.urlparse(args.apmanual_file)
+        args.connect = url.netloc
+        if url.username:
+            args.name = urllib.parse.unquote(url.username)
+        if url.password:
+            args.password = urllib.parse.unquote(url.password)
+        queries = urllib.parse.parse_qs(url.query)
+        if "game" in queries:
+            config_file['game'] = queries["game"][0]
+
+    elif args.apmanual_file and os.path.exists(args.apmanual_file):
         config_file = read_apmanual_file(args.apmanual_file)
     ctx = ManualContext(args.connect, args.password, config_file.get("game"), config_file.get("player_name"))
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="server loop")

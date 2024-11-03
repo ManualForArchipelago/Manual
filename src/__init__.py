@@ -9,7 +9,7 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, region_table, category_table, meta_table
+from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
@@ -22,9 +22,9 @@ from .Rules import set_rules
 from .Options import manual_options_data
 from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option
 
-from BaseClasses import ItemClassification, Tutorial, Item
+from BaseClasses import ItemClassification, Item
 from Options import PerGameCommonOptions
-from worlds.AutoWorld import World, WebWorld
+from worlds.AutoWorld import World, AutoWorldRegister
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
@@ -444,9 +444,21 @@ class VersionedComponent(Component):
     def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None, icon: Optional[str] = None):
         super().__init__(display_name=display_name, script_name=script_name, func=func, component_type=Type.CLIENT, file_identifier=file_identifier, icon=icon)
         self.version = version
+        self.supports_uri = True
+
+    @property
+    def game_name(self) -> list[str]:
+        return [name for name in AutoWorldRegister.world_types.keys() if name.startswith("Manual_")]
+
+    @game_name.setter
+    def game_name(self, value: str):
+        # This needs to exist because the base class sets it to [] in the __init__ method
+        if value:
+            raise ValueError("Manual Client does not support setting game_name manually.")
+
 
 def add_client_to_launcher() -> None:
-    version = 2024_11_03 # YYYYMMDD
+    version = 2024_11_04 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
@@ -459,6 +471,11 @@ def add_client_to_launcher() -> None:
     for c in components:
         if c.display_name == "Manual Client":
             found = True
+            if not getattr(c, "supports_uri", False):
+                components.remove(c)
+                found = False
+                break
+
             if getattr(c, "version", 0) < version:  # We have a newer version of the Manual Client than the one the last apworld added
                 c.version = version
                 c.func = launch_client
