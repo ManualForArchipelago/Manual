@@ -28,7 +28,7 @@
                 },
                 "category": {
                     "description": "(Optional) A list of categories to be applied to this location.",
-                    "type": "array",
+                    "type": ["string", "array"],
                     "items": {
                         "type": "string"
                     },

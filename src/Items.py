@@ -32,6 +32,9 @@ for key, val in enumerate(item_table):
 
     item_table[key]["id"] = count
     item_table[key]["progression"] = val["progression"] if "progression" in val else False
+    if isinstance(val.get("category", []), str):
+        item_table[key]["category"] = [val["category"]]
+        
     count += 1
 
 for item in item_table:
