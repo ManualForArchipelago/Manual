@@ -229,6 +229,12 @@ class ManualContext(SuperContext):
         from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
         from kivy.core.window import Window
 
+        class ManualTabLayout(BoxLayout):
+            pass
+
+        class ManualControlsLayout(BoxLayout):
+            pass
+
         class TrackerAndLocationsLayout(GridLayout):
             pass
 
@@ -290,7 +296,13 @@ class ManualContext(SuperContext):
                     if child.text == "Manual":
                         panel = child # instead of creating a new TabbedPanelItem, use the one we use above to make the tabs show
 
-                self.tracker_and_locations_panel = panel.content = TrackerAndLocationsLayout(cols = 2)
+                panel.content = ManualTabLayout(orientation="vertical")
+
+                self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
+                self.tracker_and_locations_panel = TrackerAndLocationsLayout(cols = 2)
+
+                panel.content.add_widget(self.controls_panel)
+                panel.content.add_widget(self.tracker_and_locations_panel)
 
                 self.build_tracker_and_locations_table()
 
@@ -356,6 +368,7 @@ class ManualContext(SuperContext):
                 self.update_tracker_and_locations_table()
 
             def build_tracker_and_locations_table(self):
+                self.controls_panel.clear_widgets()
                 self.tracker_and_locations_panel.clear_widgets()
 
                 if not self.ctx.server or not self.ctx.auth:
@@ -364,6 +377,14 @@ class ManualContext(SuperContext):
                     return
 
                 self.clear_lists()
+
+                # build tab-specific controls above the two tracker columns
+                search_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30), width=dp(200))
+                search_label = Label(text="Search:", size_hint_x=None, width=dp(50))
+                search_textbox = TextInput(size_hint=(None, None), width=dp(150), height=dp(30), multiline=False, write_tab=False)
+                search_layout.add_widget(search_label)
+                search_layout.add_widget(search_textbox)
+                self.controls_panel.add_widget(search_layout)
 
                 # seed all category names to start
                 for item in self.ctx.item_table.values() or AutoWorldRegister.world_types[self.ctx.game].item_name_to_item.values():
