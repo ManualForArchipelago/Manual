@@ -246,7 +246,7 @@ class DataValidation():
                     item_count = '1'
 
                 for key, count in item.get("value", {}).items():
-                    if not values_available.get(key.lower().strip()):
+                    if not values_available.get(key):
                         values_available[key] = 0
                     values_available[key] += int(count) * int(item_count)
 
