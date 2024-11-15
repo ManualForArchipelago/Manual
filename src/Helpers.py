@@ -128,10 +128,11 @@ def get_items_for_player(multiworld: MultiWorld, player: int, includePrecollecte
         items.extend(multiworld.precollected_items.get(player, []))
     return items
 
-def get_items_with_value(world: World, multiworld: MultiWorld, value: str, player: Optional[int] = None, force: bool = False) -> dict[str, int]:
+def get_items_with_value(world: World, multiworld: MultiWorld, value: str, player: Optional[int] = None, skipCache: bool = False) -> dict[str, int]:
     """Return a dict of every items with a specific value type present in their respective 'value' dict\n
     Output in the format 'Item Name': 'value count'\n
-    Keep a cache of the result and wont redo unless 'force == True'
+    Keep a cache of the result, it can be skipped with 'skipCache == True'\n
+    To force a Reset of the player's cache of a value do world.item_values[player].pop(value) and then run get_items_with_value(..., value)
     """
     if player is None:
         player = world.player
@@ -143,15 +144,18 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
 
     value = value.lower().strip()
 
-    if not hasattr(world, 'item_values'): #Cache of just the item values
-        world.item_values = {}
+    if not skipCache:
+        if not hasattr(world, 'item_values'): #Cache of just the item values
+            world.item_values = {}
 
-    if not world.item_values.get(player):
-        world.item_values[player] = {}
+        if not world.item_values.get(player):
+            world.item_values[player] = {}
 
-    if value not in world.item_values.get(player, {}).keys() or force:
+    if value not in world.item_values.get(player, {}).keys() or skipCache:
         item_with_values = {i.name: world.item_name_to_item[i.name]['value'].get(value, 0)
                             for i in player_items if i.code is not None
                             and i.name in world.item_name_groups.get(f'has_{value}_value', [])}
+        if skipCache:
+            return item_with_values
         world.item_values[player][value] = item_with_values
     return world.item_values[player].get(value)
