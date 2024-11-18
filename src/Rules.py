@@ -375,21 +375,21 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
     value_name = valueCount[0].lower().strip()
     requested_count = int(valueCount[1].strip())
 
-    if not hasattr(world, 'item_values_cache'): #Cache made for optimization purposes
-        world.item_values_cache = {}
+    if not hasattr(world, 'itemvalue_rule_cache'): #Cache made for optimization purposes
+        world.itemvalue_rule_cache = {}
 
-    if not world.item_values_cache.get(player, {}):
-        world.item_values_cache[player] = {}
+    if not world.itemvalue_rule_cache.get(player, {}):
+        world.itemvalue_rule_cache[player] = {}
 
     if not skipCache:
-        if not world.item_values_cache[player].get(value_name, {}):
-            world.item_values_cache[player][value_name] = {
+        if not world.itemvalue_rule_cache[player].get(value_name, {}):
+            world.itemvalue_rule_cache[player][value_name] = {
                 'state': {},
                 'count': -1,
                 }
 
-    if (skipCache or world.item_values_cache[player][value_name].get('count', -1) == -1
-            or world.item_values_cache[player][value_name].get('state') != dict(state.prog_items[player])):
+    if (skipCache or world.itemvalue_rule_cache[player][value_name].get('count', -1) == -1
+            or world.itemvalue_rule_cache[player][value_name].get('state') != dict(state.prog_items[player])):
         # Run First Time, if state changed since last check or if skipCache has a value
         existing_item_values = get_items_with_value(world, multiworld, value_name)
         total_Count = 0
@@ -399,9 +399,9 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
                 total_Count += count * value
         if skipCache:
             return total_Count >= requested_count
-        world.item_values_cache[player][value_name]['count'] = total_Count
-        world.item_values_cache[player][value_name]['state'] = dict(state.prog_items[player])
-    return world.item_values_cache[player][value_name]['count'] >= requested_count
+        world.itemvalue_rule_cache[player][value_name]['count'] = total_Count
+        world.itemvalue_rule_cache[player][value_name]['state'] = dict(state.prog_items[player])
+    return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
 def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
