@@ -208,19 +208,24 @@ class ManualWorld(World):
         name = before_create_item(name, self, self.multiworld, self.player)
 
         item = self.item_name_to_item[name]
-        classification = ItemClassification.filler
+        filler = ItemClassification.filler
+        trap = ItemClassification.filler
+        useful = ItemClassification.filler
+        progression = ItemClassification.filler
+        progression_skip_balancing = ItemClassification.filler
 
         if "trap" in item and item["trap"]:
-            classification = ItemClassification.trap
+            trap = ItemClassification.trap
 
         if "useful" in item and item["useful"]:
-            classification = ItemClassification.useful
+            useful = ItemClassification.useful
 
         if "progression" in item and item["progression"]:
-            classification = ItemClassification.progression
+            progression = ItemClassification.progression
+        elif "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            progression_skip_balancing = ItemClassification.progression_skip_balancing
 
-        if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
-            classification = ItemClassification.progression_skip_balancing
+        classification = filler | trap | useful | progression | progression_skip_balancing
 
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
