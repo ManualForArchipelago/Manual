@@ -552,6 +552,17 @@ class ManualContext(SuperContext):
                 items_length = len(self.ctx.items_received)
                 locations_length = len(self.ctx.missing_locations)
 
+                if self.ctx.search_term:
+                    items_length = len([
+                        i for i in self.ctx.items_received 
+                            if self.ctx.search_term.lower() in self.ctx.item_names.lookup_in_game(i.item).lower()
+                    ])
+
+                    locations_length = len([
+                        l for l in self.ctx.missing_locations 
+                            if self.ctx.search_term.lower() in self.ctx.location_names.lookup_in_game(l).lower()
+                    ])
+
                 for _, child in enumerate(self.tracker_and_locations_panel.children):
                     #
                     # Structure of items:
