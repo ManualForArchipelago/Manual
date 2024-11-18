@@ -211,6 +211,7 @@ class DataValidation():
     def checkIfEnoughItemsForValue():
         values_available = {}
         values_requested = {}
+        used_regions = set(["Manual"])
 
         # First find the biggest values required by locations
         for location in DataValidation.location_table:
@@ -219,10 +220,38 @@ class DataValidation():
 
             # convert to json so we don't have to guess the data type
             location_requires = json.dumps(location["requires"])
-
+            if location.get('region'):
+                used_regions.add(location['region'])
             DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, location_requires)
-        # Second, check region requires for the presence of item name
+
+        parent_child = {}
+        # First build a parent-child dictionary:
         for region_name in DataValidation.region_table:
+            region = DataValidation.region_table[region_name]
+
+            region_connect_to = region.get("connects_to", [])
+            for child in region_connect_to:
+                if child not in parent_child.keys():
+                    parent_child[child] = []
+                parent_child[child].append(region_name)
+
+        # add parent and their parent to used_regions recursively if any location is present
+        checked_parent = ['Manual']
+        for region_name in set(used_regions):
+            def checkParent(name):
+                if name in checked_parent: #dont check a region twice
+                    return
+                checked_parent.append(name)
+                if name in parent_child.keys():
+                    for parent in parent_child[name]:
+                        checkParent(parent)
+                        used_regions.add(parent)
+                return
+            checkParent(region_name)
+
+        used_regions.remove('Manual')
+        # Second, check region requires of used regions for the presence of ItemValue
+        for region_name in used_regions:
             region = DataValidation.region_table[region_name]
 
             if "requires" not in region:
@@ -263,12 +292,37 @@ class DataValidation():
         from .Helpers import get_items_with_value, get_items_for_player
         player = world.player
         values_requested = {}
+        player_regions = {}
+        used_regions = set(['Manual'])
 
+        #Grab all the player's regions and take note of those with locations
         for region in multiworld.regions:
             if region.player != player:
                 continue
+            player_regions[region.name] = region
+            if region.locations:
+                used_regions.add(region.name)
 
-            manualregion = DataValidation.region_table.get(region.name, {})
+        #Check every known region with location for parent regions
+        checked_parent = ['Manual']
+        for region_name in set(used_regions):
+            def checkParent(name):
+                region = player_regions[name]
+                if name in checked_parent: #dont check a region twice
+                    return
+                checked_parent.append(name)
+                if region.entrances:
+                    for entrance in region.entrances:
+                        checkParent(entrance.parent_region.name)
+                        used_regions.add(entrance.parent_region.name)
+                return
+            checkParent(region_name)
+
+        used_regions.remove('Manual') #Manual shouldn't have any requires so skip it
+        #Check used regions (and their parent(s)) for ItemValue requirement
+        for region_name in used_regions:
+            region = player_regions[region_name]
+            manualregion = DataValidation.region_table.get(region_name, {})
             if "requires" in manualregion and manualregion["requires"]:
                 region_requires = json.dumps(manualregion["requires"])
 
@@ -285,7 +339,7 @@ class DataValidation():
             existing_items = [item for item in get_items_for_player(multiworld, player, True) if item.code is not None and
                         item.classification == ItemClassification.progression or item.classification == ItemClassification.progression_skip_balancing]
             for value, val_count in values_requested.items():
-                items_value = get_items_with_value(world, multiworld, value, player, True)
+                items_value = get_items_with_value(world, multiworld, value, player)
                 found_count = 0
                 if items_value:
                     for item in existing_items:
