@@ -450,8 +450,8 @@ def runPreFillDataValidation(world: World, multiworld: MultiWorld):
     validation_errors = []
 
     # check if there is enough items with values
-    try: DataValidation.preFillCheckIfEnoughItemsForValue(world, multiworld)
-    except ValidationError as e: validation_errors.append(e)
+    #try: DataValidation.preFillCheckIfEnoughItemsForValue(world, multiworld)
+    #except ValidationError as e: validation_errors.append(e)
 
     if validation_errors:
         newline = "\n"
