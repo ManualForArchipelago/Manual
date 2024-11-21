@@ -85,7 +85,7 @@ class ManualContext(SuperContext):
         'deathlink_primed': [1, 1, 1, 1],
         'deathlink_sent': [0, 1, 0, 1],
         'game_select_button': [200/255, 200/255, 200/255, 1],
-        'header_background': [80/255, 118/255, 133/255, 1]
+        'header_background': [15/255, 80/255, 112/255, 1]
     }
 
     def __init__(self, server_address, password, game, player_name) -> None:
@@ -324,7 +324,7 @@ class ManualContext(SuperContext):
 
                 panel.content = ManualTabLayout(orientation="vertical")
 
-                self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
+                self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(40))
                 self.tracker_and_locations_panel = TrackerAndLocationsLayout(cols = 2)
 
                 panel.content.add_widget(self.controls_panel)
@@ -414,9 +414,9 @@ class ManualContext(SuperContext):
                 self.clear_lists()
 
                 # build tab-specific controls above the two tracker columns
-                header_layout = HeaderLayout(orientation="horizontal", size_hint_y=None, height=dp(40), width=dp(200), padding=dp(5), background_color=self.ctx.colors["header_background"])
-                search_layout = BoxLayout(orientation="horizontal", size_hint=(None, None), width=dp(320), height=dp(30))
-                search_label = Label(text="Search:", size_hint=(None, None), width=dp(50), height=dp(30))
+                header_layout = HeaderLayout(orientation="horizontal", size_hint_y=None, height=dp(40), padding=dp(5), background_color=self.ctx.colors["header_background"])
+                search_layout = BoxLayout(orientation="horizontal", size_hint=(None, None), width=dp(320), height=dp(30), spacing=dp(2))
+                search_label = Label(text="Search:", size_hint=(None, None), width=dp(55), height=dp(30), bold=True)
                 self.search_textbox = TextInput(size_hint=(None, None), width=dp(200), height=dp(30), multiline=False, write_tab=False)
                 self.search_textbox.bind(text = self.update_search_from_input)
                 search_button = Button(size_hint=(None, None), width=dp(50), height=dp(30), text="Clear")
@@ -684,16 +684,36 @@ class ManualContext(SuperContext):
 
                                 buttons_to_remove = []
 
+                                # since victory is handled more briefly below, need to pull show/hide into functions here to reuse
+                                def show_button_during_search(btn: TreeViewButton):
+                                    btn.width = dp(400)
+                                    btn.height = dp(30)
+                                    btn.opacity = 1
+                                    btn.disabled = False
+
+                                def hide_button_during_search(btn: TreeViewButton):
+                                    btn.width = 0
+                                    btn.height = 0
+                                    btn.opacity = 0
+                                    btn.disabled = True
+
                                 # Label (for existing item listings)
                                 for location_button in category_grid.children:
                                     if type(location_button) is TreeViewButton:
                                         # should only be true for the victory location button, which has different text
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
-                                            category_count += 1
-                                            if location_button.victory and "__Victory__" in self.ctx.tracker_reachable_events:
-                                                location_button.background_color = self.ctx.colors['location_in_logic']
-                                                reachable_count += 1
-                                            continue
+                                            # if the player is searching for text and the location name doesn't contain it, hide and disable it
+                                            if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
+                                                hide_button_during_search(location_button)                                            
+                                            else:
+                                                show_button_during_search(location_button)
+                                                category_count += 1
+
+                                                if location_button.victory and "__Victory__" in self.ctx.tracker_reachable_events:
+                                                    location_button.background_color = self.ctx.colors['location_in_logic']
+                                                    reachable_count += 1
+
+                                                continue
 
                                         if location_button.id and location_button.id not in self.ctx.missing_locations:
                                             import logging
@@ -712,16 +732,10 @@ class ManualContext(SuperContext):
 
                                         # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                            location_button.width = 0
-                                            location_button.height = 0
-                                            location_button.opacity = 0
-                                            location_button.disabled = True
+                                            hide_button_during_search(location_button)                                            
                                         else:
-                                            location_button.width = dp(400)
-                                            location_button.height = dp(30)
-                                            location_button.opacity = 1
-                                            location_button.disabled = False
-
+                                            show_button_during_search(location_button)
+                                                                                        
                                             if was_reachable:
                                                 reachable_count += 1
 
