@@ -271,7 +271,7 @@ class ManualContext(SuperContext):
         Builder.load_string(
         """
 
-<HeaderLayout>:
+<ManualControlsStyledLayout>:
     canvas:
         Color:
             rgba: root.background_color
@@ -281,7 +281,7 @@ class ManualContext(SuperContext):
 
         """)
 
-        class HeaderLayout(BoxLayout):
+        class ManualControlsStyledLayout(BoxLayout):
             background_color = ColorProperty()
 
         class ManualManager(ui):
@@ -414,7 +414,7 @@ class ManualContext(SuperContext):
                 self.clear_lists()
 
                 # build tab-specific controls above the two tracker columns
-                header_layout = HeaderLayout(orientation="horizontal", size_hint_y=None, height=dp(40), padding=dp(5), background_color=self.ctx.colors["header_background"])
+                controls_styled_layout = ManualControlsStyledLayout(orientation="horizontal", size_hint_y=None, height=dp(40), padding=dp(5), background_color=self.ctx.colors["header_background"])
                 search_layout = BoxLayout(orientation="horizontal", size_hint=(None, None), width=dp(320), height=dp(30), spacing=dp(2))
                 search_label = Label(text="Search:", size_hint=(None, None), width=dp(55), height=dp(30), bold=True)
                 self.search_textbox = TextInput(size_hint=(None, None), width=dp(200), height=dp(30), multiline=False, write_tab=False)
@@ -422,11 +422,11 @@ class ManualContext(SuperContext):
                 search_button = Button(size_hint=(None, None), width=dp(50), height=dp(30), text="Clear")
                 search_button.bind(on_release=lambda *args: self.clear_search_input())
 
-                header_layout.add_widget(search_layout)
+                controls_styled_layout.add_widget(search_layout)
                 search_layout.add_widget(search_label)
                 search_layout.add_widget(self.search_textbox)
                 search_layout.add_widget(search_button)
-                self.controls_panel.add_widget(header_layout)
+                self.controls_panel.add_widget(controls_styled_layout)
 
                 # seed all category names to start
                 for item in self.ctx.item_table.values() or AutoWorldRegister.world_types[self.ctx.game].item_name_to_item.values():
