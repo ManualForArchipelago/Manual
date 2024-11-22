@@ -169,3 +169,40 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
             return item_with_values
         world.item_values[player][value] = item_with_values
     return world.item_values[player].get(value)
+
+def filter_used_regions_for_player(world: World, player_regions: dict|list, player: Optional[int] = None, ) -> set:
+    """Return a set of regions that a player actually uses in Generation. It includes region that have no locations but are required by other regions\n
+    The dict version of the player_regions must be in the format: dict(region name str: region)
+    """
+    if player is None:
+        player = world.player
+    used_regions = set()
+
+    if isinstance(player_regions, list):
+        player_regions = {r.name: r for r in player_regions}
+
+    #Grab all the player's regions and take note of those with locations
+    # if not player_regions: #somehow cause: "MultiWorld object was not de-allocated, it's referenced 10 times. This would be a memory leak."
+    #     for region in world.multiworld.regions:
+    #         if region.player != player:
+    #             continue
+    #         player_regions[region.name] = region
+
+    for region in player_regions.values():
+        if region.locations:
+            used_regions.add(region)
+
+    #Check every known region with location for parent regions
+    checked_parent = []
+    for region in set(used_regions):
+        def checkParent(parent_region):
+            if parent_region.name in checked_parent: #dont check a region twice
+                return
+            checked_parent.append(parent_region.name)
+            used_regions.add(parent_region)
+            for entrance in parent_region.entrances:
+                if player_regions.get(entrance.parent_region.name):
+                    checkParent(entrance.parent_region)
+            return
+        checkParent(region)
+    return used_regions

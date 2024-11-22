@@ -210,49 +210,34 @@ class DataValidation():
 
     @staticmethod
     def preFillCheckIfEnoughItemsForValue(world: World, multiworld: MultiWorld):
-        from .Helpers import get_items_with_value, get_items_for_player
+        from .Helpers import get_items_with_value, get_items_for_player, filter_used_regions_for_player
         player = world.player
         values_requested = {}
-        player_regions = {}
-        used_regions = set(['Manual'])
+        player_regions = []
 
-        #Grab all the player's regions and take note of those with locations
+        #Grab all the player's regions
         for region in multiworld.regions:
             if region.player != player:
                 continue
-            player_regions[region.name] = region
-            if region.locations:
-                used_regions.add(region.name)
+            player_regions.append(region)
 
-        #Check every known region with location for parent regions
-        checked_parent = ['Manual']
-        for region_name in set(used_regions):
-            def checkParent(name):
-                region = player_regions[name]
-                if name in checked_parent: #dont check a region twice
-                    return
-                checked_parent.append(name)
-                if region.entrances:
-                    for entrance in region.entrances:
-                        checkParent(entrance.parent_region.name)
-                        used_regions.add(entrance.parent_region.name)
-                return
-            checkParent(region_name)
+        used_regions = filter_used_regions_for_player(world, player_regions, player)
 
-        used_regions.remove('Manual') #Manual shouldn't have any requires so skip it
+        used_regions = {r for r in set(used_regions) if r.name not in ['Manual', 'Menu']}#Manual shouldn't have any requires so skip it
         #Check used regions (and their parent(s)) for ItemValue requirement
-        for region_name in used_regions:
-            region = player_regions[region_name]
-            manualregion = DataValidation.region_table.get(region_name, {})
-            if "requires" in manualregion and manualregion["requires"]:
-                region_requires = json.dumps(manualregion["requires"])
+        for region in used_regions:
+            manualregion = DataValidation.region_table.get(region.name, {})
+            if manualregion:
+                if "requires" in manualregion and manualregion["requires"]:
+                    region_requires = json.dumps(manualregion["requires"])
 
-                DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, region_requires)
+                    DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, region_requires)
 
-            for location in region.locations:
-                manualLocation = world.location_name_to_location.get(location.name, {})
-                if "requires" in manualLocation and manualLocation["requires"]:
-                    DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, manualLocation["requires"])
+
+                for location in region.locations:
+                    manualLocation = world.location_name_to_location.get(location.name, {})
+                    if "requires" in manualLocation and manualLocation["requires"]:
+                        DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, json.dumps(manualLocation["requires"]))
 
         # compare whats available vs requested but only if there's anything requested
         if values_requested:
