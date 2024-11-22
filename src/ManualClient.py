@@ -1,7 +1,7 @@
 from __future__ import annotations
 import time
 import sys
-from typing import Any
+from typing import Any, Optional
 import typing
 from worlds import AutoWorldRegister, network_data_package
 import json
@@ -282,7 +282,7 @@ class ManualContext(SuperContext):
             active_item_accordion = 0
             active_location_accordion = 0
 
-            update_requested_time: float = None
+            update_requested_time: Optional[float] = None
             update_requested_highlights: bool = False
 
             ctx: ManualContext
