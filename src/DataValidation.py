@@ -223,15 +223,22 @@ class DataValidation():
 
         used_regions = filter_used_regions_for_player(world, player_regions, player)
 
+        used_regions_names = {r.name for r in set(used_regions)}
         used_regions = {r for r in set(used_regions) if r.name not in ['Manual', 'Menu']}#Manual shouldn't have any requires so skip it
         #Check used regions (and their parent(s)) for ItemValue requirement
         for region in used_regions:
             manualregion = DataValidation.region_table.get(region.name, {})
             if manualregion:
                 if "requires" in manualregion and manualregion["requires"]:
-                    region_requires = json.dumps(manualregion["requires"])
+                    DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, json.dumps(manualregion["requires"]))
 
-                    DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, region_requires)
+                for region_entrance, require in manualregion.get('entrance_requires', {}).items():
+                    if region_entrance in used_regions_names:
+                        DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, json.dumps(require))
+
+                for region_exit, require in manualregion.get('exit_requires', {}).items():
+                    if region_exit in used_regions_names:
+                        DataValidation._checkLocationRequiresForItemValueWithRegex(values_requested, json.dumps(require))
 
 
                 for location in region.locations:
