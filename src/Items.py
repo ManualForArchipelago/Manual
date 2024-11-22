@@ -47,8 +47,12 @@ for item in item_table:
             item_name_groups[c] = []
         item_name_groups[c].append(item_name)
 
+    #Just lowercase the values here to remove all the .lower.strip down the line
+    item['value'] = {k.lower().strip(): v
+                     for k, v in item.get('value', {}).items()}
+
     for v in item.get("value", {}).keys():
-        group_name = f"has_{v.lower().strip()}_value"
+        group_name = f"has_{v}_value"
         if group_name not in item_name_groups:
             item_name_groups[group_name] = []
         item_name_groups[group_name].append(item_name)
