@@ -192,11 +192,11 @@ class ManualContext(SuperContext):
                 logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
-            self.ui.update_tracker_and_locations_table(update_highlights=True)
+            self.ui.request_update_tracker_and_locations_table(update_highlights=True)
         elif cmd in {"ReceivedItems"}:
-            self.ui.update_tracker_and_locations_table(update_highlights=True)
+            self.ui.request_update_tracker_and_locations_table(update_highlights=True)
         elif cmd in {"RoomUpdate"}:
-            self.ui.update_tracker_and_locations_table(update_highlights=False)
+            self.ui.request_update_tracker_and_locations_table(update_highlights=False)
 
     def on_deathlink(self, data: typing.Dict[str, typing.Any]) -> None:
         super().on_deathlink(data)
@@ -206,12 +206,12 @@ class ManualContext(SuperContext):
 
     def on_tracker_updated(self, reachable_locations: list[str]):
         self.tracker_reachable_locations = reachable_locations
-        self.ui.update_tracker_and_locations_table(update_highlights=True)
+        self.ui.request_update_tracker_and_locations_table(update_highlights=True)
 
     def on_tracker_events(self, events: list[str]):
         self.tracker_reachable_events = events
         if events:
-            self.ui.update_tracker_and_locations_table(update_highlights=True)
+            self.ui.request_update_tracker_and_locations_table(update_highlights=True)
 
     def run_gui(self):
         """Import kivy UI system from make_gui() and start running it as self.ui_task."""
@@ -281,6 +281,9 @@ class ManualContext(SuperContext):
 
             active_item_accordion = 0
             active_location_accordion = 0
+
+            update_requested_time: float = None
+            update_requested_highlights: bool = False
 
             ctx: ManualContext
 
@@ -369,7 +372,7 @@ class ManualContext(SuperContext):
 
                 if rebuild:
                     self.build_tracker_and_locations_table()
-                self.update_tracker_and_locations_table()
+                self.request_update_tracker_and_locations_table()
 
             def build_tracker_and_locations_table(self):
                 self.tracker_and_locations_panel.clear_widgets()
@@ -438,6 +441,9 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
+                for category in self.listed_locations:
+                    self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
                 tracker_panel = TreeView(root_options=dict(text="Items Received (%d)" % (items_length)), size_hint_y=None)
@@ -501,6 +507,19 @@ class ManualContext(SuperContext):
                 self.tracker_and_locations_panel.add_widget(tracker_panel_scrollable)
                 self.tracker_and_locations_panel.add_widget(locations_panel_scrollable)
 
+            def check_for_requested_update(self):
+                current_time = time.time()
+
+                # wait 0.25 seconds before executing update, in case there are multiple update requests coming in
+                if self.update_requested_time and current_time - self.update_requested_time >= 0.25:
+                    self.update_requested_time = None
+                    self.update_tracker_and_locations_table(self.update_requested_highlights)
+                    self.update_requested_highlights = False
+
+            def request_update_tracker_and_locations_table(self, update_highlights=False):
+                self.update_requested_time = time.time()
+                self.update_requested_highlights = update_highlights or self.update_requested_highlights # if any of the requests wanted highlights, do highlight
+
             def update_tracker_and_locations_table(self, update_highlights=False):
                 items_length = len(self.ctx.items_received)
                 locations_length = len(self.ctx.missing_locations)
@@ -532,7 +551,10 @@ class ManualContext(SuperContext):
                                 category_count = 0
                                 category_unique_name_count = 0
 
-                                # Label (for existing item listings)
+                                existing_item_labels = []
+                                bold_item_labels = []
+
+                                # for items that were already listed, determine if the qty changed. if it did, add them to the list to be bolded
                                 for item in category_grid.children:
                                      if type(item) is Label:
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
@@ -544,28 +566,37 @@ class ManualContext(SuperContext):
                                         # Update the label quantity
                                         item.text="%s (%s)" % (item_name, item_count)
 
-                                        if update_highlights:
-                                            item.bold = True if old_item_text != item.text else False
+                                        if update_highlights and (old_item_text != item.text):
+                                            bold_item_labels.append(item_name)
 
-                                        if item_count > 0:
-                                            category_count += item_count
-                                            category_unique_name_count += 1
+                                        existing_item_labels.append(item_name)
 
-                                # Label (for new item listings)
-                                for network_item in self.ctx.items_received:
-                                    item_name = self.ctx.item_names.lookup_in_game(network_item.item)
+                                # instead of reusing existing item listings, clear it all out and re-draw with the sorted list
+                                category_grid.clear_widgets()
+                                self.listed_items[category_name].clear()
+
+                                # Label (for all item listings)
+                                sorted_items_received = sorted([
+                                    i.item for i in self.ctx.items_received 
+                                ], key=self.ctx.item_names.lookup_in_game)
+
+                                for network_item in sorted_items_received:
+                                    item_name = self.ctx.item_names.lookup_in_game(network_item)
                                     item_data = self.ctx.get_item_by_name(item_name)
 
                                     if "category" not in item_data or not item_data["category"]:
                                         item_data["category"] = ["(No Category)"]
 
-                                    if category_name in item_data["category"] and network_item.item not in self.listed_items[category_name]:
-                                        item_count = len(list(i for i in self.ctx.items_received if i.item == network_item.item))
+                                    if category_name in item_data["category"] and network_item not in self.listed_items[category_name]:
+                                        item_count = len(list(i for i in self.ctx.items_received if i.item == network_item))
                                         item_text = Label(text="%s (%s)" % (item_name, item_count),
                                                     size_hint=(None, None), height=30, width=400, bold=True)
 
+                                        # if the item was previously listed and was bold, or if it wasn't previously listed at all, make it bold
+                                        item_text.bold = (update_highlights and (item_name in bold_item_labels or item_name not in existing_item_labels))
+
                                         category_grid.add_widget(item_text)
-                                        self.listed_items[category_name].append(network_item.item)
+                                        self.listed_items[category_name].append(network_item)
 
                                         category_count += item_count
                                         category_unique_name_count += 1
@@ -687,6 +718,9 @@ class ManualContext(SuperContext):
 
 async def game_watcher_manual(ctx: ManualContext):
     while not ctx.exit_event.is_set():
+        if ctx.ui:
+            ctx.ui.check_for_requested_update()
+
         if ctx.syncing == True:
             sync_msg = [{'cmd': 'Sync'}]
             if ctx.locations_checked:
