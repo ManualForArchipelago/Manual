@@ -142,7 +142,7 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
     """Return a dict of every items with a specific value type present in their respective 'value' dict\n
     Output in the format 'Item Name': 'value count'\n
     Keep a cache of the result, it can be skipped with 'skipCache == True'\n
-    To force a Reset of the player's cache of a value do world.item_values[player].pop(value) and then run get_items_with_value(..., value)
+    To force a Reset of the player's cache of a value use either reset_specific_item_value_cache_for_player or reset_item_value_cache_for_player
     """
     if player is None:
         player = world.player
@@ -182,12 +182,6 @@ def filter_used_regions_for_player(world: World, player_regions: dict|list, play
         player_regions = {r.name: r for r in player_regions}
 
     #Grab all the player's regions and take note of those with locations
-    # if not player_regions: #somehow cause: "MultiWorld object was not de-allocated, it's referenced 10 times. This would be a memory leak."
-    #     for region in world.multiworld.regions:
-    #         if region.player != player:
-    #             continue
-    #         player_regions[region.name] = region
-
     for region in player_regions.values():
         if region.locations:
             used_regions.add(region)
