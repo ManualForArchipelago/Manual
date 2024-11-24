@@ -29,7 +29,7 @@ manual_goal_override = {}
 
 # A list of Currently Supported Option types
 # full support looks like: ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
-supported_option_types = ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
+supported_option_types = ["Toggle", "DefaultOnToggle", "Choice"]
 for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue

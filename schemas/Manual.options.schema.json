@@ -35,7 +35,8 @@
                 "type": {
                     "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
                     "type": "string",
-                    "enum": ["FreeText", "Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
+                    "$full_enum": ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"],
+                    "enum": ["Toggle", "DefaultOnToggle", "Choice"]
                 },
                 "description": {
                     "description": "long description of what this option is for(is shown on hover on the webhost)",
