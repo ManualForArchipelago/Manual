@@ -170,12 +170,10 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
         world.item_values[player][value] = item_with_values
     return world.item_values[player].get(value)
 
-def filter_used_regions_for_player(world: World, player_regions: dict|list, player: Optional[int] = None, ) -> set:
-    """Return a set of regions that a player actually uses in Generation. It includes region that have no locations but are required by other regions\n
+def filter_used_regions(player_regions: dict|list) -> set:
+    """Return a set of regions that are actually used in Generation. It includes region that have no locations but are required by other regions\n
     The dict version of the player_regions must be in the format: dict(region name str: region)
     """
-    if player is None:
-        player = world.player
     used_regions = set()
 
     if isinstance(player_regions, list):

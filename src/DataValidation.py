@@ -210,7 +210,7 @@ class DataValidation():
 
     @staticmethod
     def preFillCheckIfEnoughItemsForValue(world: World, multiworld: MultiWorld):
-        from .Helpers import get_items_with_value, get_items_for_player, filter_used_regions_for_player
+        from .Helpers import get_items_with_value, get_items_for_player, filter_used_regions
         player = world.player
         values_requested = {}
         player_regions = []
@@ -221,7 +221,7 @@ class DataValidation():
                 continue
             player_regions.append(region)
 
-        used_regions = filter_used_regions_for_player(world, player_regions, player)
+        used_regions = filter_used_regions(player_regions)
 
         used_regions_names = {r.name for r in set(used_regions)}
         used_regions = {r for r in set(used_regions) if r.name not in ['Manual', 'Menu']}#Manual shouldn't have any requires so skip it
