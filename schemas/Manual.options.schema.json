@@ -16,7 +16,10 @@
             "type": "object",
             "patternProperties": {
                 "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
-                "^.*$": {"description": "An Option for your World","$ref": "#/definitions/Option"}
+                "^.*$": {
+                    "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle and DefaultOnToggle: None \nChoice and TextChoice: \"value\", \"aliases\" and \"default\"  \nRange: \"range_start\", \"range_end\" and \"default\" \nNamedRange: Same as Range + \"special_range_names\"",
+                    "$ref": "#/definitions/Option"
+                }
             }
         },
         "_comment": {"$ref": "#/definitions/comment"}
@@ -64,7 +67,6 @@
             "required": ["type"],
             "if": {"properties": { "type": {"const": "Choice"}}},
             "then": {
-                "description": "Let the user pick from a list of values",
                 "properties": {
                     "values": {"$ref": "#/definitions/ChoiceValue"},
                     "aliases": {"$ref": "#/definitions/ChoiceAlias"},
@@ -75,7 +77,6 @@
             "else": {
                 "if": {"properties": { "type": {"const": "TextChoice"}}},
                 "then": {
-                    "description": "Like Choice but the player can define their own values",
                     "properties": {
                         "values": {"$ref": "#/definitions/ChoiceValue"},
                         "aliases": {"$ref": "#/definitions/ChoiceAlias"},
@@ -86,7 +87,6 @@
                 "else": {
                     "if": {"properties": { "type": {"const": "Range"}}},
                     "then": {
-                        "description": "Allow the player to specify a value between 'start' and 'end'",
                         "properties": {
                             "range_start": {"$ref": "#/definitions/rangeStart"},
                             "range_end": {"$ref": "#/definitions/rangeEnd"},
@@ -95,33 +95,12 @@
                     },
                     "else": {
                         "if": {"properties": { "type": {"const": "NamedRange"}}},
-                        "then": {"description": "Like a Range, but with your own defined label for certain values",
+                        "then": {
                             "properties": {
                                 "range_start": {"$ref": "#/definitions/rangeStart"},
                                 "range_end": {"$ref": "#/definitions/rangeEnd"},
                                 "default": {"$ref": "#/definitions/DefaultInt"},
                                 "special_range_names":{"$ref": "#/definitions/special_range_names"}
-                            }
-                        },
-                        "else": {
-                            "if": {"properties": { "type": {"const": "Toggle"}}},
-                            "then": {"description": "A simple boolean, the default value is False. Use DefaultOnToggle instead for True"},
-                            "else":{
-                                "if": {"properties": { "type": {"const": "DefaultOnToggle"}}},
-                                "then": {"description": "A simple boolean, the default value is True. Use Toggle instead for False"},
-                                "else":{
-                                    "if": {"properties": { "type": {"const": "FreeText"}}},
-                                    "then": {
-                                        "description": "This Option will return a Player's chosen String",
-                                        "properties": {
-                                            "default": {
-                                                "description": "Default Text value for this option",
-                                                "type": "string",
-                                                "default": ""
-                                            }
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
