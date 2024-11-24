@@ -8,7 +8,6 @@ from .Items import item_table
 from .Game import starting_items
 
 from dataclasses import make_dataclass
-from pydoc import locate
 from typing import List
 import logging
 
@@ -27,6 +26,10 @@ manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 manual_option_groups = {}
 manual_goal_override = {}
+
+# A list of Currently Supported Option types
+# full support looks like: ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
+supported_option_types = ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
 for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
@@ -43,44 +46,50 @@ for option_name, option in option_table.get('data', {}).items():
             manual_goal_override['args']['display_name'] = option.get('display_name', option_name)
             manual_goal_override['description'] = convertToLongString(option.get('description', ''))
         continue
-    if option_name not in manual_options:
-        option_type = locate('Options.' + option['type'])
 
-        if option_type is None:
-            raise Exception(f'Option {option_name} in options.json has an invalid type of "{option["type"]}".\nIt must be one of the folowing: "FreeText", "Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range" or "NamedRange"')
+    if option_name not in manual_options:
+        option_type = option.get('type', None)
+
+        if option_type is None or option_type not in supported_option_types:
+            raise Exception(f'Option {option_name} in options.json has an invalid type of "{option["type"]}".\nIt must be one of the folowing: {supported_option_types}')
 
         args = {'display_name': option.get('display_name', option_name)}
 
-        if issubclass(option_type, Choice):
-            args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
+        if option_type in ["Toggle", "DefaultOnToggle"]:
+            option_class = Toggle if option_type == "Toggle" else DefaultOnToggle
 
-        elif issubclass(option_type, Range):
+        elif option_type in ["Choice", "TextChoice"]:
+            args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
+            option_class = Choice if option_type == "Choice" else TextChoice
+
+        elif option_type in ["Range", "NamedRange"]:
             args['range_start'] = option.get('range_start', 0)
             args['range_end'] = option.get('range_end', 1)
-            if issubclass(option_type, NamedRange):
+            if option_type == "NamedRange":
                 args['special_range_names'] = option.get('special_range_names', {})
                 args['special_range_names']['default'] = option.get('default', args['range_start'])
+            option_class = Range if option_type == "Range" else NamedRange
 
         if option.get('default'):
-            args['default'] = option.get('default')
+            args['default'] = option['default']
 
         if option.get('rich_text_doc',None) is not None:
             args["rich_text_doc"] = option["rich_text_doc"]
 
         if option.get('visibility'):
-            final = Visibility.all
+            visibility = Visibility.all
             if isinstance(option['visibility'], list):
-                final = Visibility.none
+                visibility = Visibility.none
                 for type in option['visibility']:
-                    final += Visibility[type.lower()]
+                    visibility += Visibility[type.lower()]
             elif isinstance(option['visibility'],str):
                 if option['visibility'].startswith('0b'):
-                    final = int(option['visibility'], base=0)
+                    visibility = int(option['visibility'], base=0)
                 else:
-                    final = Visibility[option['visibility'].lower()]
+                    visibility = Visibility[option['visibility'].lower()]
             elif isinstance(option['visibility'], int):
-                final = option['visibility']
-            args['visibility'] = final
+                visibility = option['visibility']
+            args['visibility'] = visibility
 
         manual_options[option_name] = type(option_name, (option_type,), args )
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
