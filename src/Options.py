@@ -77,17 +77,21 @@ for option_name, option in option_table.get('data', {}).items():
 
         if option.get('visibility'):
             visibility = Visibility.all
+
             if isinstance(option['visibility'], list):
                 visibility = Visibility.none
                 for type in option['visibility']:
                     visibility += Visibility[type.lower()]
+
             elif isinstance(option['visibility'],str):
                 if option['visibility'].startswith('0b'):
                     visibility = int(option['visibility'], base=0)
                 else:
                     visibility = Visibility[option['visibility'].lower()]
+
             elif isinstance(option['visibility'], int):
                 visibility = option['visibility']
+
             args['visibility'] = visibility
 
         manual_options[option_name] = type(option_name, (option_class,), args )
@@ -106,7 +110,7 @@ if len(victory_names) > 1:
     if manual_goal_override:
         goal = {**goal, **manual_goal_override['args']}
     manual_options['goal'] = type('goal', (Choice,), goal)
-    manual_options['goal'].__doc__ = manual_goal_override.get('description', '') or "Choose your victory condition."
+    manual_options['goal'].__doc__ = manual_goal_override.get('description', "Choose your victory condition.")
 
 
 if any(item.get('trap') for item in item_table):

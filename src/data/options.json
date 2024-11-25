@@ -28,7 +28,7 @@
         },
         "Range":{
             "type": "Range",
-            "description": ["Currently Useless in Manual's Option.json", "this is a Range","Allow the player to specify a value between 'start' and 'end'",
+            "description": ["Currently unused in Manual proper (outside of hooks)", "this is a Range","Allow the player to specify a value between 'start' and 'end'",
                 "if you include a \"values_label\" you can define the label for certain values"
             ],
             "range_start": 0,
