@@ -28,8 +28,7 @@ manual_option_groups = {}
 manual_goal_override = {}
 
 # A list of Currently Supported Option types
-# full support looks like: ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"]
-supported_option_types = ["Toggle", "DefaultOnToggle", "Choice"]
+supported_option_types = ["Toggle", "Choice", "Range"]
 for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
@@ -47,27 +46,28 @@ for option_name, option in option_table.get('data', {}).items():
         continue
 
     if option_name not in manual_options:
-        option_type = option.get('type', None)
+        option_type = option.get('type', "").title()
 
-        if option_type is None or option_type not in supported_option_types:
+        if option_type not in supported_option_types:
             raise Exception(f'Option {option_name} in options.json has an invalid type of "{option["type"]}".\nIt must be one of the folowing: {supported_option_types}')
 
         args = {'display_name': option.get('display_name', option_name)}
 
-        if option_type in ["Toggle", "DefaultOnToggle"]:
-            option_class = Toggle if option_type == "Toggle" else DefaultOnToggle
+        if option_type == "Toggle":
+            value = option.get('default', False)
+            option_class = DefaultOnToggle if value else Toggle
 
-        elif option_type in ["Choice", "TextChoice"]:
+        elif option_type == "Choice":
             args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
-            option_class = Choice if option_type == "Choice" else TextChoice
+            option_class = TextChoice if option.get("allow_user_input", False) else Choice
 
-        elif option_type in ["Range", "NamedRange"]:
+        elif option_type == "Range":
             args['range_start'] = option.get('range_start', 0)
             args['range_end'] = option.get('range_end', 1)
-            if option_type == "NamedRange":
-                args['special_range_names'] = option.get('special_range_names', {})
+            if option.get('values_label'):
+                args['special_range_names'] = {l.lower(): v for l, v in option['values_label'].items()}
                 args['special_range_names']['default'] = option.get('default', args['range_start'])
-            option_class = Range if option_type == "Range" else NamedRange
+            option_class = NamedRange if option.get('values_label') else Range
 
         if option.get('default'):
             args['default'] = option['default']

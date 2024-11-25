@@ -17,7 +17,7 @@
             "patternProperties": {
                 "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
                 "^.*$": {
-                    "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle and DefaultOnToggle: None \nChoice and TextChoice: \"value\", \"aliases\" and \"default\"  \nRange: \"range_start\", \"range_end\" and \"default\" \nNamedRange: Same as Range + \"special_range_names\"",
+                    "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \nChoice: \"value\", \"aliases\", \"default\" and \"allow_user_input\"  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"special_range_names\"",
                     "$ref": "#/definitions/Option"
                 }
             }
@@ -35,8 +35,7 @@
                 "type": {
                     "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
                     "type": "string",
-                    "$full_enum": ["Toggle", "DefaultOnToggle", "Choice", "TextChoice", "Range", "NamedRange"],
-                    "enum": ["Toggle", "DefaultOnToggle", "Choice"]
+                    "enum": ["Toggle", "Choice", "Range"]
                 },
                 "description": {
                     "description": "long description of what this option is for(is shown on hover on the webhost)",
@@ -66,22 +65,21 @@
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "required": ["type"],
-            "if": {"properties": { "type": {"const": "Choice"}}},
+            "if": {"properties": { "type": {"const": "Toggle"}}},
             "then": {
                 "properties": {
-                    "values": {"$ref": "#/definitions/ChoiceValue"},
-                    "aliases": {"$ref": "#/definitions/ChoiceAlias"},
-                    "default": {"$ref": "#/definitions/DefaultInt"}
+                    "default": { "$ref": "#/definitions/DefaultToggle"}
                 },
-                "required": ["values", "type"]
+                "required": ["default", "type"]
             },
             "else": {
-                "if": {"properties": { "type": {"const": "TextChoice"}}},
+                "if": {"properties": { "type": {"const": "Choice"}}},
                 "then": {
                     "properties": {
                         "values": {"$ref": "#/definitions/ChoiceValue"},
                         "aliases": {"$ref": "#/definitions/ChoiceAlias"},
-                        "default": {"$ref": "#/definitions/DefaultInt"}
+                        "default": {"$ref": "#/definitions/DefaultInt"},
+                        "allow_user_input": { "$ref": "#/definitions/ChoiceUserInput"}
                     },
                     "required": ["values", "type"]
                 },
@@ -91,41 +89,11 @@
                         "properties": {
                             "range_start": {"$ref": "#/definitions/rangeStart"},
                             "range_end": {"$ref": "#/definitions/rangeEnd"},
-                            "default": {"$ref": "#/definitions/DefaultInt"}
-                        }
-                    },
-                    "else": {
-                        "if": {"properties": { "type": {"const": "NamedRange"}}},
-                        "then": {
-                            "properties": {
-                                "range_start": {"$ref": "#/definitions/rangeStart"},
-                                "range_end": {"$ref": "#/definitions/rangeEnd"},
-                                "default": {"$ref": "#/definitions/DefaultInt"},
-                                "special_range_names":{"$ref": "#/definitions/special_range_names"}
-                            }
+                            "default": {"$ref": "#/definitions/DefaultInt"},
+                            "values_label":{"$ref": "#/definitions/special_range_names"}
                         }
                     }
                 }
-            }
-        },
-        "rangeStart": {
-            "type": "integer",
-            "description": "The lowest Value for this range",
-            "default": 0
-        },
-        "rangeEnd": {
-            "type":"integer",
-            "description": "The Highest Value for this range",
-            "default": 1
-        },
-        "special_range_names": {
-            "description": "A Special Dict in the format 'name':int of named values for this range \nAll names need to be lowercase",
-            "type":"object",
-            "patternProperties": {
-                "^.*$": {
-                    "description": "A named numerical value",
-                    "type": "integer"
-                    }
             }
         },
         "ChoiceValue": {
@@ -148,10 +116,42 @@
                 }
             }
         },
+        "ChoiceUserInput": {
+            "description": "Allow the user to set their own string Value",
+            "type": "boolean",
+            "default": false
+        },
+        "rangeStart": {
+            "type": "integer",
+            "description": "The lowest Value for this range",
+            "default": 0
+        },
+        "rangeEnd": {
+            "type":"integer",
+            "description": "The Highest Value for this range",
+            "default": 1
+        },
+        "special_range_names": {
+            "description": "(Optional) A Special Dictionary in the format 'name':int of named values for this range \nAll names need to be lowercase",
+            "type":"object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "A named numerical value",
+                    "type": "integer"
+                    }
+            },
+            "default": {},
+            "examples": [{"test": 1}]
+        },
         "DefaultInt": {
             "description": "the default integer value of this option",
             "type": "integer",
             "default": 0
+        },
+        "DefaultToggle": {
+            "description": "the default value of this Toggle",
+            "type": "boolean",
+            "default": false
         },
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
