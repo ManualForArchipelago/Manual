@@ -28,7 +28,7 @@ manual_option_groups = {}
 def addOptionToGroup(option_name: str, group: str):
     if group not in manual_option_groups.keys():
         manual_option_groups[group] = []
-    if option_name not in manual_option_groups[group]:
+    if manual_options.get(option_name) and manual_options[option_name] not in manual_option_groups[group]:
         manual_option_groups[group].append(manual_options[option_name])
 
 manual_options_override = {}

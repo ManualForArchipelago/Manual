@@ -4,32 +4,40 @@
     "data": {
         "_commented_out_option":{
             "type": "Toggle",
-            "default": true,
-            "_comment": ["Options, whose name start with _ won't be used in manual"]
+            "default": true
         },
         "Toggle":{
-            "description": ["this is a Toggle","A simple boolean, aka True or False set the initial value with \"default\""],
+            "description": [
+                "This is a Toggle",
+                "A simple boolean, aka True or False set the initial value with \"default\""
+            ],
             "type": "Toggle",
             "default": false,
             "group": "Example Options"
         },
         "Choice":{
             "type": "Choice",
-            "description": ["This is a Choice", "Let the user pick from a list of values", "allow_user_input let a player define their own text value",
-            "Currently the only use for choice in Manual outside of hooks is to modify the goal check example bellow (in json file)"
+            "description": [
+                "This is a Choice",
+                "Let the user pick from a list of values",
+                "allow_custom_value let a player define their own text value",
+                "Currently the only use for choice in Manual outside of hooks is the goal"
             ],
             "values": {
                 "start":0,
                 "test":1
              },
             "default": 0,
-            "allow_user_input": false,
+            "allow_custom_value": false,
             "group": "Example Options"
         },
         "Range":{
             "type": "Range",
-            "description": ["Currently unused in Manual proper (outside of hooks)", "this is a Range","Allow the player to specify a value between 'start' and 'end'",
-                "if you include a \"values\" you can define the label for certain values"
+            "description": [
+                "This is a Range",
+                "Allow the player to specify a value between 'start' and 'end'",
+                "if you include a \"values\" you can define the label for certain values",
+                "Currently unused in Manual proper (outside of hooks)"
             ],
             "range_start": 0,
             "default": 1,
@@ -40,13 +48,17 @@
 
         "DLC_enabled":{
             "display_name": "DLC Enabled",
-            "description": ["Is the Dlc enabled?"],
+            "description": "Is the Dlc enabled?",
             "type": "Toggle",
             "default": true
         },
         "goal":{
+            "_comment": [
+                "Using 'goal' as the name of an option let you override some of the generated goal parameters",
+                "Notice the absence of the 'type' parameter"
+            ],
             "display_name": "Goal",
-            "description": ["How to End your Randomized playthrough."]
+            "description": "How to End your Randomized playthrough."
         }
     }
 
