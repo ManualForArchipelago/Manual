@@ -6,19 +6,21 @@
             "type": "DefaultOnToggle",
             "_comment": ["Options, whose name start with _ won't be used in manual"]
         },
-        "_Toggle":{
+        "Toggle":{
             "description": ["this is a Toggle","A simple boolean, the default value is False. Use DefaultOnToggle instead for True"],
             "type": "Toggle",
             "group": "Example Options"
         },
-        "_DefaultOnToggle":{
+        "DefaultOnToggle":{
             "description": ["this is a DefaultOnToggle","A simple boolean, the default value is True. Use Toggle instead for False"],
             "type": "DefaultOnToggle",
             "group": "Example Options"
         },
-        "_Choice":{
+        "Choice":{
             "type": "Choice",
-            "description": ["This is a Choice", "Let the user pick from a list of values", "Currently the only use for choice in Manual is to modify the goal"],
+            "description": ["This is a Choice", "Let the user pick from a list of values",
+            "Currently the only use for choice in Manual outside of hooks is to modify the goal check example bellow (in json file)"
+            ],
             "values": {
                 "start":0,
                 "test":1
