@@ -25,7 +25,13 @@ manual_options = before_options_defined({})
 manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 manual_option_groups = {}
-manual_goal_override = {}
+def addOptionToGroup(option_name: str, group: str):
+    if group not in manual_option_groups.keys():
+        manual_option_groups[group] = []
+    if option_name not in manual_option_groups[group]:
+        manual_option_groups[group].append(manual_options[option_name])
+
+manual_options_override = {}
 
 # A list of Currently Supported Option types
 supported_option_types = ["Toggle", "Choice", "Range"]
@@ -33,16 +39,17 @@ for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
 
-    if option_name in ['goal', 'filler_traps']:
+    if option_name in ['goal', 'filler_traps', 'death_link']:
         if manual_options.get('goal'):
             logging.warning("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
         if option_name == 'goal':
-            if option['type'] != 'Choice':
-                raise Exception("a 'goal' option must be of type 'Choice'")
-            manual_goal_override['args'] = createChoiceOptions({}, option.get('aliases', {}))
-            manual_goal_override['args']['default'] = args['default'] = option.get('default', 0)
-            manual_goal_override['args']['display_name'] = option.get('display_name', option_name)
-            manual_goal_override['description'] = convertToLongString(option.get('description', ''))
+            manual_options_override['goal'] = {}
+            manual_options_override['goal']['args'] = createChoiceOptions({}, option.get('aliases', {}))
+            manual_options_override['goal']['args']['default'] = args['default'] = option.get('default', 0)
+            manual_options_override['goal']['args']['display_name'] = option.get('display_name', option_name)
+            manual_options_override['goal']['group'] = option.get('group', "")
+            manual_options_override['goal']['description'] = convertToLongString(option.get('description', ''))
+        # Possible to add support for overriding deathlink and filler_trap settings
         continue
 
     if option_name not in manual_options:
@@ -59,15 +66,15 @@ for option_name, option in option_table.get('data', {}).items():
 
         elif option_type == "Choice":
             args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
-            option_class = TextChoice if option.get("allow_user_input", False) else Choice
+            option_class = TextChoice if option.get("allow_custom_value", False) else Choice
 
         elif option_type == "Range":
             args['range_start'] = option.get('range_start', 0)
             args['range_end'] = option.get('range_end', 1)
-            if option.get('values_label'):
-                args['special_range_names'] = {l.lower(): v for l, v in option['values_label'].items()}
+            if option.get('values'):
+                args['special_range_names'] = {l.lower(): v for l, v in option['values'].items()}
                 args['special_range_names']['default'] = option.get('default', args['range_start'])
-            option_class = NamedRange if option.get('values_label') else Range
+            option_class = NamedRange if option.get('values') else Range
 
         if option.get('default'):
             args['default'] = option['default']
@@ -98,19 +105,20 @@ for option_name, option in option_table.get('data', {}).items():
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
 
     if option.get('group'):
-        group = option['group']
-        if group not in manual_option_groups.keys():
-            manual_option_groups[group] = []
-        if option_name not in manual_option_groups[group]:
-            manual_option_groups[group].append(manual_options[option_name])
+        addOptionToGroup(option_name, option['group'])
 
 if len(victory_names) > 1:
     goal = {'option_' + v: i for i, v in enumerate(victory_names)}
-    # Check for existing Goal option
-    if manual_goal_override:
-        goal = {**goal, **manual_goal_override['args']}
+    goal_override = manual_options_override.get('goal',{})
+
+    if goal_override.get('args'):
+        goal = {**goal, **goal_override['args']}
+
     manual_options['goal'] = type('goal', (Choice,), goal)
-    manual_options['goal'].__doc__ = manual_goal_override.get('description', "Choose your victory condition.")
+    manual_options['goal'].__doc__ = goal_override.get('description', "Choose your victory condition.")
+
+    if goal_override.get('group'):
+        addOptionToGroup('goal', goal_override['group'])
 
 
 if any(item.get('trap') for item in item_table):

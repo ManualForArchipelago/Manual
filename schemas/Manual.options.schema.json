@@ -16,8 +16,12 @@
             "type": "object",
             "patternProperties": {
                 "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
+                "^goal$": {
+                    "description": "An override for the goal option",
+                    "$ref": "#/definitions/GoalOverride"
+                },
                 "^.*$": {
-                    "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \nChoice: \"value\", \"aliases\", \"default\" and \"allow_user_input\"  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"special_range_names\"",
+                    "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \n Let the player choose between yes or no \nChoice: \"value\", \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"values\"\nAllow the player to specify a number between 'start' and 'end'",
                     "$ref": "#/definitions/Option"
                 }
             }
@@ -79,7 +83,7 @@
                         "values": {"$ref": "#/definitions/ChoiceValue"},
                         "aliases": {"$ref": "#/definitions/ChoiceAlias"},
                         "default": {"$ref": "#/definitions/DefaultInt"},
-                        "allow_user_input": { "$ref": "#/definitions/ChoiceUserInput"}
+                        "allow_custom_value": { "$ref": "#/definitions/ChoiceUserInput"}
                     },
                     "required": ["values", "type"]
                 },
@@ -90,10 +94,21 @@
                             "range_start": {"$ref": "#/definitions/rangeStart"},
                             "range_end": {"$ref": "#/definitions/rangeEnd"},
                             "default": {"$ref": "#/definitions/DefaultInt"},
-                            "values_label":{"$ref": "#/definitions/special_range_names"}
+                            "values":{"$ref": "#/definitions/special_range_names"}
                         }
                     }
                 }
+            }
+        },
+        "GoalOverride": {
+            "type": "object",
+            "properties": {
+                "display_name": {"$ref": "#/definitions/Option/properties/display_name"},
+                "description": {"$ref": "#/definitions/Option/properties/description"},
+                "rich_text_doc": {"$ref": "#/definitions/Option/properties/rich_text_doc"},
+                "group": {"$ref": "#/definitions/Option/properties/group"},
+                "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                "_comment": {"$ref": "#/definitions/comment"}
             }
         },
         "ChoiceValue": {
@@ -117,7 +132,7 @@
             }
         },
         "ChoiceUserInput": {
-            "description": "Allow the user to set their own string Value",
+            "description": "Allow the user to set their own custom string Value",
             "type": "boolean",
             "default": false
         },
