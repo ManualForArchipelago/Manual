@@ -129,5 +129,5 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
 
 def convertToLongString(input: str | list) -> str: #Todo maybe find a better name for this
     if not isinstance(input, str):
-        return str.join("\n", input)
+        return str.join("\n    ", input)
     return input
