@@ -37,7 +37,6 @@ for option_name, option in option_table.get('data', {}).items():
     if option_name in ['goal', 'filler_traps']:
         if manual_options.get('goal'):
             logging.warning("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
-        # todo do something for those situations, maybe convert, maybe warn idk for now
         if option_name == 'goal':
             if option['type'] != 'Choice':
                 raise Exception("a 'goal' option must be of type 'Choice'")
@@ -91,7 +90,7 @@ for option_name, option in option_table.get('data', {}).items():
                 visibility = option['visibility']
             args['visibility'] = visibility
 
-        manual_options[option_name] = type(option_name, (option_type,), args )
+        manual_options[option_name] = type(option_name, (option_class,), args )
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
 
     if option.get('group'):
