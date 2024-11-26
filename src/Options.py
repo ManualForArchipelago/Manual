@@ -38,8 +38,6 @@ def convertOptionVisibility(input) -> Visibility:
         visibility = input
     return visibility
 
-manual_options = before_options_defined({})
-manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 manual_option_groups = {}
 def addOptionToGroup(option_name: str, group: str):
@@ -47,6 +45,13 @@ def addOptionToGroup(option_name: str, group: str):
         manual_option_groups[group] = []
     if manual_options.get(option_name) and manual_options[option_name] not in manual_option_groups[group]:
         manual_option_groups[group].append(manual_options[option_name])
+
+######################
+# Manual's default options
+######################
+
+manual_options = before_options_defined({})
+manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 if len(victory_names) > 1:
     if manual_options.get('goal'):
@@ -65,7 +70,10 @@ if game_table.get("death_link"):
     manual_options["death_link"] = DeathLink
 
 
-# A list of Currently Supported Option types
+######################
+# Option.json options generation
+######################
+
 supported_option_types = ["Toggle", "Choice", "Range"]
 for option_name, option in option_table.get('data', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
@@ -140,6 +148,10 @@ for option_name, option in option_table.get('data', {}).items():
     if option.get('group'):
         addOptionToGroup(option_name, option['group'])
 
+######################
+# category and starting_items options
+######################
+
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
         if option_name[0] == "!":
@@ -157,6 +169,10 @@ if starting_items:
                 if option_name not in manual_options:
                     manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
                     manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
+
+######################
+# OptionGroups Creation
+######################
 
 def make_options_group() -> list[OptionGroup]:
     global manual_option_groups
