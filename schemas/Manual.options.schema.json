@@ -15,18 +15,30 @@
             "description": "dict of options for this apworld",
             "type": "object",
             "patternProperties": {
-                "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
+                "^_.*$": {
+                    "description": "A commented out Option",
+                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
+                    "properties": {
+                        "type": {"$ref": "#/definitions/Option/properties/type"}
+                    }
+                },
                 "^goal$": {
                     "description": "An override for the goal option",
-                    "$ref": "#/definitions/goalOverride"
+                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
+                    "properties": {
+                        "default": {"$ref": "#/definitions/DefaultInt"},
+                        "aliases": {"$ref": "#/definitions/ChoiceAlias"}
+                    }
                 },
                 "^filler_traps$": {
                     "description": "An override for the filler_traps option",
-                    "$ref": "#/definitions/filler_trapsOverride"
+                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
+                    "properties": {"default": {"$ref": "#/definitions/DefaultInt"}}
                 },
                 "^death_link$": {
                     "description": "An override for the death_link option",
-                    "$ref": "#/definitions/death_linkOverride"
+                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
+                    "properties": {"default": {"$ref": "#/definitions/DefaultToggle"}}
                 },
                 "^.*$": {
                     "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \n Let the player choose between yes or no \nChoice: \"value\", \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"values\"\nAllow the player to specify a number between 'start' and 'end'",
@@ -38,44 +50,13 @@
     },
     "definitions": {
         "Option": {
-            "type": "object",
+            "allOf": [{"$ref": "#/definitions/OptionBase"}],
             "properties": {
-                "display_name": {
-                    "description": "The name shown on the webhost.",
-                    "type": "string"
-                },
                 "type": {
                     "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
                     "type": "string",
                     "enum": ["Toggle", "Choice", "Range"]
-                },
-                "description": {
-                    "description": "long description of what this option is for(is shown on hover on the webhost)",
-                    "type": ["array", "string"],
-                    "items": {"type": "string"}
-                },
-                "rich_text_doc": {
-                    "description": "(Optional) support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
-                    "type": "boolean",
-                    "default": false
-                },
-                "group": {
-                    "description": "(Optional) The name of the group this option is a part of on the webhost",
-                    "type": "string",
-                    "default": "Game Options",
-                    "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
-                },
-                "hidden": {"$ref": "#/definitions/hidden"},
-                "visibility": {
-                    "description": "(Optional) (Advanced) Specify where this option can be seen. \nIt can be represented by the value names, an array of those, \nthe binary string representation of that choice (\"0b1111\") or the integer value of the binary \nEvery example values other than 'none' and 'all' gives the same results aka 14 aka 0b1110 aka that array \nMore info at https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-visibility",
-                    "type":["string","array","integer"],
-                    "items": {"type": "string", "enum": [ "template", "simple_ui", "complex_ui", "spoiler"]},
-                    "default": "all",
-                    "examples": ["none", "0b1110", ["spoiler", "simple_ui", "complex_ui"], 14 ],
-                    "if": {"type":"string", "pattern": "0b[01]..."},
-                    "else": {"if": {"type": "string"}, "then": {"enum": ["all", "none", "template", "simple_ui", "complex_ui", "spoiler"]} }
-                },
-                "_comment": {"$ref": "#/definitions/comment"}
+                }
             },
             "required": ["type"],
             "if": {"properties": { "type": {"const": "Toggle"}}},
@@ -109,38 +90,45 @@
                 }
             }
         },
-        "basicOverride": {
+        "OptionBase": {
             "type": "object",
             "properties": {
-                "display_name": {"$ref": "#/definitions/Option/properties/display_name"},
-                "description": {"$ref": "#/definitions/Option/properties/description"},
-                "rich_text_doc": {"$ref": "#/definitions/Option/properties/rich_text_doc"},
-                "group": {"$ref": "#/definitions/Option/properties/group"},
-                "hidden": {"$ref": "#/definitions/hidden"},
-                "visibility": {"$ref": "#/definitions/Option/properties/visibility"},
+                "display_name": {
+                    "description": "The name shown on the webhost.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "long description of what this option is for(is shown on hover on the webhost)",
+                    "type": ["array", "string"],
+                    "items": {"type": "string"}
+                },
+                "rich_text_doc": {
+                    "description": "(Optional) support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
+                    "type": "boolean",
+                    "default": false
+                },
+                "group": {
+                    "description": "(Optional) The name of the group this option is a part of on the webhost",
+                    "type": "string",
+                    "default": "Game Options",
+                    "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
+                },
+                "hidden": {
+                    "description": "(Optional) Should this option be Hidden everywhere? Use Visibility instead for a more precise control",
+                    "type": "boolean",
+                    "default": false
+                },
+                "visibility": {
+                    "description": "(Optional) (Advanced) Specify where this option can be seen. \nIt can be represented by the value names, an array of those, \nthe binary string representation of that choice (\"0b1111\") or the integer value of the binary \nEvery example values other than 'none' and 'all' gives the same results aka 14 aka 0b1110 aka that array \nMore info at https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-visibility",
+                    "type":["string","array","integer"],
+                    "items": {"type": "string", "enum": [ "template", "simple_ui", "complex_ui", "spoiler"]},
+                    "default": "all",
+                    "examples": ["none", "0b1110", ["spoiler", "simple_ui", "complex_ui"], 14 ],
+                    "if": {"type":"string", "pattern": "0b[01]..."},
+                    "else": {"if": {"type": "string"}, "then": {"enum": ["all", "none", "template", "simple_ui", "complex_ui", "spoiler"]} }
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             }
-        },
-        "goalOverride": {
-            "allOf": [ {"$ref": "#/definitions/basicOverride"}],
-            "properties": {
-                "default": {"$ref": "#/definitions/DefaultInt"},
-                "aliases": {"$ref": "#/definitions/ChoiceAlias"}
-            }
-
-        },
-        "death_linkOverride": {
-            "allOf": [{"$ref": "#/definitions/basicOverride"}],
-            "properties": {"default": {"$ref": "#/definitions/DefaultToggle"}}
-        },
-        "filler_trapsOverride": {
-            "allOf": [{"$ref": "#/definitions/basicOverride"}],
-            "properties": {"default": {"$ref": "#/definitions/DefaultInt"}}
-        },
-        "hidden": {
-            "description": "(Optional) Should this option be Hidden everywhere? Use Visibility instead for a more precise control",
-            "type": "boolean",
-            "default": false
         },
         "ChoiceValue": {
             "description": "A dict of possible values in the format 'name':int \nthe default option is, by default the one with 0 as value",
