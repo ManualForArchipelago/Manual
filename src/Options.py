@@ -80,30 +80,31 @@ for option_name, option in option_table.get('data', {}).items():
         continue
 
     if option_name in ['goal', 'filler_traps', 'death_link']:
-        original_doc = str(manual_options[option_name].__doc__)
-        if option_name == 'goal':
-            new_goal = createChoiceOptions({}, option.get('aliases', {}))
-            if new_goal: #only recreate if needed
-                new_goal = {**goal, **new_goal}
-                manual_options['goal'] = type('goal', (Choice,), dict(new_goal))
+        if manual_options.get(option_name):
+            original_doc = str(manual_options[option_name].__doc__)
+            if option_name == 'goal':
+                new_goal = createChoiceOptions({}, option.get('aliases', {}))
+                if new_goal: #only recreate if needed
+                    new_goal = {**goal, **new_goal}
+                    manual_options['goal'] = type('goal', (Choice,), dict(new_goal))
 
-        if option.get('display_name'):
-            manual_options[option_name].display_name = option['display_name']
+            if option.get('display_name'):
+                manual_options[option_name].display_name = option['display_name']
 
-        manual_options[option_name].__doc__ = convertToLongString(option.get('description', original_doc))
-        if option.get('rich_text_doc'):
-            manual_options[option_name].rich_text_doc = option["rich_text_doc"]
+            manual_options[option_name].__doc__ = convertToLongString(option.get('description', original_doc))
+            if option.get('rich_text_doc'):
+                manual_options[option_name].rich_text_doc = option["rich_text_doc"]
 
-        if option.get('default'):
-            manual_options[option_name].default = option['default']
+            if option.get('default'):
+                manual_options[option_name].default = option['default']
 
-        if option.get('hidden'):
-            manual_options[option_name].visibility = Visibility.none
-        elif option.get('visibility'):
-            manual_options[option_name].visibility = convertOptionVisibility(option['visibility'])
+            if option.get('hidden'):
+                manual_options[option_name].visibility = Visibility.none
+            elif option.get('visibility'):
+                manual_options[option_name].visibility = convertOptionVisibility(option['visibility'])
 
-        if option.get('group', ""):
-            addOptionToGroup(option_name, option['group'])
+            if option.get('group', ""):
+                addOptionToGroup(option_name, option['group'])
 
         continue
 
