@@ -21,6 +21,23 @@ def createChoiceOptions(values: dict, aliases: dict) -> dict:
     aliases = {'alias_' + i: v for i, v in aliases.items()}
     return {**values, **aliases}
 
+def convertOptionVisibility(input) -> Visibility:
+    visibility = Visibility.all
+    if isinstance(input, list):
+        visibility = Visibility.none
+        for type in input:
+            visibility |= Visibility[type.lower()]
+
+    elif isinstance(input,str):
+        if input.startswith('0b'):
+            visibility = int(input, base=0)
+        else:
+            visibility = Visibility[input.lower()]
+
+    elif isinstance(input, int):
+        visibility = input
+    return visibility
+
 manual_options = before_options_defined({})
 manual_options["start_inventory_from_pool"] = StartInventoryPool
 
@@ -31,7 +48,22 @@ def addOptionToGroup(option_name: str, group: str):
     if manual_options.get(option_name) and manual_options[option_name] not in manual_option_groups[group]:
         manual_option_groups[group].append(manual_options[option_name])
 
-manual_options_override = {}
+if len(victory_names) > 1:
+    if manual_options.get('goal'):
+        logging.warning("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
+
+    goal = {'option_' + v: i for i, v in enumerate(victory_names)}
+
+    manual_options['goal'] = type('goal', (Choice,), dict(goal))
+    manual_options['goal'].__doc__ = "Choose your victory condition."
+
+
+if any(item.get('trap') for item in item_table):
+    manual_options["filler_traps"] = FillerTrapPercent
+
+if game_table.get("death_link"):
+    manual_options["death_link"] = DeathLink
+
 
 # A list of Currently Supported Option types
 supported_option_types = ["Toggle", "Choice", "Range"]
@@ -40,16 +72,31 @@ for option_name, option in option_table.get('data', {}).items():
         continue
 
     if option_name in ['goal', 'filler_traps', 'death_link']:
-        if manual_options.get('goal'):
-            logging.warning("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
+        original_doc = str(manual_options[option_name].__doc__)
         if option_name == 'goal':
-            manual_options_override['goal'] = {}
-            manual_options_override['goal']['args'] = createChoiceOptions({}, option.get('aliases', {}))
-            manual_options_override['goal']['args']['default'] = args['default'] = option.get('default', 0)
-            manual_options_override['goal']['args']['display_name'] = option.get('display_name', option_name)
-            manual_options_override['goal']['group'] = option.get('group', "")
-            manual_options_override['goal']['description'] = convertToLongString(option.get('description', ''))
-        # Possible to add support for overriding deathlink and filler_trap settings
+            new_goal = createChoiceOptions({}, option.get('aliases', {}))
+            if new_goal: #only recreate if needed
+                new_goal = {**goal, **new_goal}
+                manual_options['goal'] = type('goal', (Choice,), dict(new_goal))
+
+        if option.get('display_name'):
+            manual_options[option_name].display_name = option['display_name']
+
+        manual_options[option_name].__doc__ = convertToLongString(option.get('description', original_doc))
+        if option.get('rich_text_doc'):
+            manual_options[option_name].rich_text_doc = option["rich_text_doc"]
+
+        if option.get('default'):
+            manual_options[option_name].default = option['default']
+
+        if option.get('hidden'):
+            manual_options[option_name].visibility = Visibility.none
+        elif option.get('visibility'):
+            manual_options[option_name].visibility = convertOptionVisibility(option['visibility'])
+
+        if option.get('group', ""):
+            addOptionToGroup(option_name, option['group'])
+
         continue
 
     if option_name not in manual_options:
@@ -82,50 +129,16 @@ for option_name, option in option_table.get('data', {}).items():
         if option.get('rich_text_doc',None) is not None:
             args["rich_text_doc"] = option["rich_text_doc"]
 
-        if option.get('visibility'):
-            visibility = Visibility.all
-
-            if isinstance(option['visibility'], list):
-                visibility = Visibility.none
-                for type in option['visibility']:
-                    visibility += Visibility[type.lower()]
-
-            elif isinstance(option['visibility'],str):
-                if option['visibility'].startswith('0b'):
-                    visibility = int(option['visibility'], base=0)
-                else:
-                    visibility = Visibility[option['visibility'].lower()]
-
-            elif isinstance(option['visibility'], int):
-                visibility = option['visibility']
-
-            args['visibility'] = visibility
+        if option.get('hidden'):
+            args['visibility'] = Visibility.none
+        elif option.get('visibility'):
+            args['visibility'] = convertOptionVisibility(option['visibility'])
 
         manual_options[option_name] = type(option_name, (option_class,), args )
         manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
 
     if option.get('group'):
         addOptionToGroup(option_name, option['group'])
-
-if len(victory_names) > 1:
-    goal = {'option_' + v: i for i, v in enumerate(victory_names)}
-    goal_override = manual_options_override.get('goal',{})
-
-    if goal_override.get('args'):
-        goal = {**goal, **goal_override['args']}
-
-    manual_options['goal'] = type('goal', (Choice,), goal)
-    manual_options['goal'].__doc__ = goal_override.get('description', "Choose your victory condition.")
-
-    if goal_override.get('group'):
-        addOptionToGroup('goal', goal_override['group'])
-
-
-if any(item.get('trap') for item in item_table):
-    manual_options["filler_traps"] = FillerTrapPercent
-
-if game_table.get("death_link"):
-    manual_options["death_link"] = DeathLink
 
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):

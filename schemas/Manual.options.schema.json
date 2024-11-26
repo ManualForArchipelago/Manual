@@ -18,7 +18,15 @@
                 "^_.*$": {"description": "A commented out Option", "$ref": "#/definitions/Option"},
                 "^goal$": {
                     "description": "An override for the goal option",
-                    "$ref": "#/definitions/GoalOverride"
+                    "$ref": "#/definitions/goalOverride"
+                },
+                "^filler_traps$": {
+                    "description": "An override for the filler_traps option",
+                    "$ref": "#/definitions/filler_trapsOverride"
+                },
+                "^death_link$": {
+                    "description": "An override for the death_link option",
+                    "$ref": "#/definitions/death_linkOverride"
                 },
                 "^.*$": {
                     "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \n Let the player choose between yes or no \nChoice: \"value\", \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"values\"\nAllow the player to specify a number between 'start' and 'end'",
@@ -57,6 +65,7 @@
                     "default": "Game Options",
                     "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
                 },
+                "hidden": {"$ref": "#/definitions/hidden"},
                 "visibility": {
                     "description": "(Optional) (Advanced) Specify where this option can be seen. \nIt can be represented by the value names, an array of those, \nthe binary string representation of that choice (\"0b1111\") or the integer value of the binary \nEvery example values other than 'none' and 'all' gives the same results aka 14 aka 0b1110 aka that array \nMore info at https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-visibility",
                     "type":["string","array","integer"],
@@ -100,16 +109,38 @@
                 }
             }
         },
-        "GoalOverride": {
+        "basicOverride": {
             "type": "object",
             "properties": {
                 "display_name": {"$ref": "#/definitions/Option/properties/display_name"},
                 "description": {"$ref": "#/definitions/Option/properties/description"},
                 "rich_text_doc": {"$ref": "#/definitions/Option/properties/rich_text_doc"},
                 "group": {"$ref": "#/definitions/Option/properties/group"},
-                "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                "hidden": {"$ref": "#/definitions/hidden"},
+                "visibility": {"$ref": "#/definitions/Option/properties/visibility"},
                 "_comment": {"$ref": "#/definitions/comment"}
             }
+        },
+        "goalOverride": {
+            "allOf": [ {"$ref": "#/definitions/basicOverride"}],
+            "properties": {
+                "default": {"$ref": "#/definitions/DefaultInt"},
+                "aliases": {"$ref": "#/definitions/ChoiceAlias"}
+            }
+
+        },
+        "death_linkOverride": {
+            "allOf": [{"$ref": "#/definitions/basicOverride"}],
+            "properties": {"default": {"$ref": "#/definitions/DefaultToggle"}}
+        },
+        "filler_trapsOverride": {
+            "allOf": [{"$ref": "#/definitions/basicOverride"}],
+            "properties": {"default": {"$ref": "#/definitions/DefaultInt"}}
+        },
+        "hidden": {
+            "description": "(Optional) Should this option be Hidden everywhere? Use Visibility instead for a more precise control",
+            "type": "boolean",
+            "default": false
         },
         "ChoiceValue": {
             "description": "A dict of possible values in the format 'name':int \nthe default option is, by default the one with 0 as value",
