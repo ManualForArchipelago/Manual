@@ -1,7 +1,27 @@
 {
     "$schema": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json",
     "_comment": "Add a _ before an option name to comment it out and it wont be added to the apworld",
-    "data": {
+    "core": {
+        "goal":{
+            "_comment": [
+                "Using 'goal' as the name of an option let you override some of the generated goal parameters"
+            ],
+            "display_name": "The End Objective",
+            "description": "How to End your Randomized playthrough.",
+            "aliases": {"easiest": 0},
+            "hidden": false
+        },
+        "death_link": {
+            "default": false
+        },
+        "filler_traps": {
+            "_comment": "Using values here let you set a 'recommended' filler_trap percentage or even a default percentage",
+            "values": {
+                "recommended": 20
+            }
+        }
+    },
+    "user": {
         "_commented_out_option":{
             "type": "Toggle",
             "default": true
@@ -21,7 +41,7 @@
                 "This is a Choice",
                 "Let the user pick from a list of values",
                 "allow_custom_value let a player define their own text value",
-                "Currently the only use for choice in Manual outside of hooks is the goal"
+                "Currently the only use for Choice in Manual outside of hooks is the goal"
             ],
             "values": {
                 "start":0,
@@ -37,7 +57,7 @@
                 "This is a Range",
                 "Allow the player to specify a value between 'start' and 'end'",
                 "if you include a \"values\" you can define the label for certain values",
-                "Currently unused in Manual proper (outside of hooks)"
+                "Currently the only use for Range in Manual outside of hooks is 'filler_trap'"
             ],
             "range_start": 0,
             "default": 1,
@@ -50,15 +70,12 @@
             "display_name": "DLC Enabled",
             "description": "Is the Dlc enabled?",
             "type": "Toggle",
-            "default": true
-        },
-        "goal":{
-            "_comment": [
-                "Using 'goal' as the name of an option let you override some of the generated goal parameters",
-                "Notice the absence of the 'type' parameter"
+            "visibility": [
+                "simple_ui",
+                "complex_ui",
+                "template"
             ],
-            "display_name": "Goal",
-            "description": "How to End your Randomized playthrough."
+            "default": true
         }
     }
 

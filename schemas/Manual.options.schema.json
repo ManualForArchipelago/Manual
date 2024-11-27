@@ -3,94 +3,51 @@
     "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json",
     "description": "Schema for Manual's options.json",
     "type": "object",
-    "items": {
-        "$ref": "#/definitions/Option"
-    },
     "properties": {
         "$schema": {
-            "type":"string",
-            "description": "The schema to verify this document against."
+            "description": "The schema to verify this document against.",
+            "type":"string"
+
         },
-        "data": {
-            "description": "dict of options for this apworld",
+        "core": {
+            "description": "Dictionary of the Modifications of Core Options of Manual",
+            "type": "object",
+            "patternProperties": {
+                "^_.*$": {
+                    "description": "A commented out override Option",
+                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
+                    "properties": {
+                        "type": {"$ref": "#/definitions/OptionCore/properties"}
+                    }
+                },
+                "^.*$": {
+                    "description": "An Modification of a Core Option of Manual",
+                    "$ref": "#/definitions/OptionCore"
+                }
+            }
+        },
+        "user": {
+            "description": "Dictionary of options for this apworld",
             "type": "object",
             "patternProperties": {
                 "^_.*$": {
                     "description": "A commented out Option",
                     "allOf": [{"$ref": "#/definitions/OptionBase"}],
                     "properties": {
-                        "type": {"$ref": "#/definitions/Option/properties/type"}
+                        "type": {"$ref": "#/definitions/Type"}
                     }
-                },
-                "^goal$": {
-                    "description": "An override for the goal option",
-                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
-                    "properties": {
-                        "default": {"$ref": "#/definitions/DefaultInt"},
-                        "aliases": {"$ref": "#/definitions/ChoiceAlias"}
-                    }
-                },
-                "^filler_traps$": {
-                    "description": "An override for the filler_traps option",
-                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
-                    "properties": {"default": {"$ref": "#/definitions/DefaultInt"}}
-                },
-                "^death_link$": {
-                    "description": "An override for the death_link option",
-                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
-                    "properties": {"default": {"$ref": "#/definitions/DefaultToggle"}}
                 },
                 "^.*$": {
                     "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \n Let the player choose between yes or no \nChoice: \"value\", \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"values\"\nAllow the player to specify a number between 'start' and 'end'",
-                    "$ref": "#/definitions/Option"
+                    "$ref": "#/definitions/OptionUser"
                 }
             }
         },
         "_comment": {"$ref": "#/definitions/comment"}
     },
     "definitions": {
-        "Option": {
-            "allOf": [{"$ref": "#/definitions/OptionBase"}],
-            "properties": {
-                "type": {
-                    "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
-                    "type": "string",
-                    "enum": ["Toggle", "Choice", "Range"]
-                }
-            },
-            "required": ["type"],
-            "if": {"properties": { "type": {"const": "Toggle"}}},
-            "then": {
-                "properties": {
-                    "default": { "$ref": "#/definitions/DefaultToggle"}
-                },
-                "required": ["default", "type"]
-            },
-            "else": {
-                "if": {"properties": { "type": {"const": "Choice"}}},
-                "then": {
-                    "properties": {
-                        "values": {"$ref": "#/definitions/ChoiceValue"},
-                        "aliases": {"$ref": "#/definitions/ChoiceAlias"},
-                        "default": {"$ref": "#/definitions/DefaultInt"},
-                        "allow_custom_value": { "$ref": "#/definitions/ChoiceUserInput"}
-                    },
-                    "required": ["values", "type"]
-                },
-                "else": {
-                    "if": {"properties": { "type": {"const": "Range"}}},
-                    "then": {
-                        "properties": {
-                            "range_start": {"$ref": "#/definitions/rangeStart"},
-                            "range_end": {"$ref": "#/definitions/rangeEnd"},
-                            "default": {"$ref": "#/definitions/DefaultInt"},
-                            "values":{"$ref": "#/definitions/special_range_names"}
-                        }
-                    }
-                }
-            }
-        },
         "OptionBase": {
+            "$comment": "The basic properties of an Option that are safe to modify",
             "type": "object",
             "properties": {
                 "display_name": {
@@ -130,6 +87,60 @@
                 "_comment": {"$ref": "#/definitions/comment"}
             }
         },
+        "OptionUser": {
+            "type": "object",
+            "$comment": "The version with all the type logic aka normal options",
+            "allOf": [{"$ref": "#/definitions/OptionBase"}],
+            "properties": {
+                "type": {"$ref": "#/definitions/Type"}
+            },
+            "required": ["type"],
+            "if": {"properties": { "type": {"const": "Toggle"}}},
+            "then": {
+                "properties": {
+                    "default": { "$ref": "#/definitions/DefaultToggle"}
+                },
+                "required": ["default", "type"]
+            },
+            "else": {
+                "if": {"properties": { "type": {"const": "Choice"}}},
+                "then": {
+                    "properties": {
+                        "values": {"$ref": "#/definitions/ChoiceValue"},
+                        "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                        "default": {"$ref": "#/definitions/DefaultInt"},
+                        "allow_custom_value": { "$ref": "#/definitions/ChoiceAllowCustomValue"}
+                    },
+                    "required": ["values", "type"]
+                },
+                "else": {
+                    "if": {"properties": { "type": {"const": "Range"}}},
+                    "then": {
+                        "properties": {
+                            "range_start": {"$ref": "#/definitions/RangeStart"},
+                            "range_end": {"$ref": "#/definitions/RangeEnd"},
+                            "default": {"$ref": "#/definitions/DefaultInt"},
+                            "values":{"$ref": "#/definitions/SpecialRangeNames"}
+                        }
+                    }
+                }
+            }
+        },
+        "OptionCore":{
+            "type": "object",
+            "allOf": [{"$ref": "#/definitions/OptionBase"}],
+            "properties": {
+                "default": {"$ref": "#/definitions/DefaultCore"},
+                "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                "values":{"$ref": "#/definitions/SpecialRangeNames_core"}
+            }
+        },
+
+        "Type": {
+            "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
+            "type": "string",
+            "enum": ["Toggle", "Choice", "Range"]
+        },
         "ChoiceValue": {
             "description": "A dict of possible values in the format 'name':int \nthe default option is, by default the one with 0 as value",
             "type":"object",
@@ -150,23 +161,22 @@
                 }
             }
         },
-        "ChoiceUserInput": {
+        "ChoiceAllowCustomValue": {
             "description": "Allow the user to set their own custom string Value",
             "type": "boolean",
             "default": false
         },
-        "rangeStart": {
+        "RangeStart": {
             "type": "integer",
-            "description": "The lowest Value for this range",
+            "description": "(Optional) The lowest Value for this range",
             "default": 0
         },
-        "rangeEnd": {
+        "RangeEnd": {
             "type":"integer",
-            "description": "The Highest Value for this range",
+            "description": "(Optional) The Highest Value for this range",
             "default": 1
         },
-        "special_range_names": {
-            "description": "(Optional) A Special Dictionary in the format 'name':int of named values for this range \nAll names need to be lowercase",
+        "SpecialRangeNames_base": {
             "type":"object",
             "patternProperties": {
                 "^.*$": {
@@ -177,6 +187,14 @@
             "default": {},
             "examples": [{"test": 1}]
         },
+        "SpecialRangeNames": {
+            "description": "(Optional) A Special Dictionary in the format 'name':int of named values for this range \nAll names need to be lowercase",
+            "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
+        },
+        "SpecialRangeNames_core": {
+            "description": "(Optional) A Special Dictionary in the format 'name':int of named values for this range \nAll names need to be lowercase\nForbidden for Options of type Choice",
+            "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
+        },
         "DefaultInt": {
             "description": "the default integer value of this option",
             "type": "integer",
@@ -186,6 +204,10 @@
             "description": "the default value of this Toggle",
             "type": "boolean",
             "default": false
+        },
+        "DefaultCore": {
+            "description": "the default value of this option, its type depend on the type of the option you are overriding",
+            "type": ["integer", "boolean"]
         },
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",

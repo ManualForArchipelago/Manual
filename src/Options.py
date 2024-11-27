@@ -1,5 +1,5 @@
 from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
-    OptionGroup, StartInventoryPool, Visibility, item_and_loc_options
+    OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
 from .Helpers import convertToLongString
@@ -38,6 +38,14 @@ def convertOptionVisibility(input) -> Visibility:
         visibility = input
     return visibility
 
+def getOriginalOptionArguments(option: Option) -> dict:
+    args = {}
+    args['default'] = option.default
+    if hasattr(option, 'display_name'): args['display'] = option.display_name
+    args['rich_text_doc'] = option.rich_text_doc
+    args['default'] = option.default
+    args['visibility'] = option.visibility
+    return args
 
 manual_option_groups = {}
 def addOptionToGroup(option_name: str, group: str):
@@ -71,21 +79,52 @@ if game_table.get("death_link"):
 
 
 ######################
-# Option.json options generation
+# Option.json options
 ######################
 
-supported_option_types = ["Toggle", "Choice", "Range"]
-for option_name, option in option_table.get('data', {}).items():
+for option_name, option in option_table.get('core', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
 
-    if manual_options.get(option_name): #Override Mode
-        original_doc = str(manual_options[option_name].__doc__)
-        if option_name == 'goal':
-            new_goal = createChoiceOptions({}, option.get('aliases', {}))
-            if new_goal: #only recreate if needed
-                new_goal = {**goal, **new_goal}
-                manual_options['goal'] = type('goal', (Choice,), dict(new_goal))
+    if manual_options.get(option_name):
+        original_option: Option = manual_options[option_name]
+        original_doc = str(original_option.__doc__)
+
+        if issubclass(original_option, Toggle):
+            if option.get('default', None) is not None:
+                option_type = DefaultOnToggle if option['default'] else Toggle
+
+                if original_option.__base__ != option_type: #only recreate if needed
+                    args = getOriginalOptionArguments(original_option)
+                    manual_options[option_name] = type(option_name, (option_type,), dict(args))
+                    logging.debug(f"Manual: Option.json converted option '{option_name}' into a {option_type}")
+
+        elif issubclass(original_option, Choice):
+            if option.get("values"):
+                raise Exception(f"You cannot modify the values of the '{option_name}' option since they cannot have their value changed by Option.json")
+
+            if option.get('aliases'):
+                new_aliases = createChoiceOptions({}, option.get('aliases', {}))
+
+                if new_aliases: #only recreate if needed
+                    option_type = TextChoice if issubclass(original_option, TextChoice) else Choice
+                    args = {**getOriginalOptionArguments(original_option), **createChoiceOptions(original_option.options, original_option.aliases)}
+                    args = {**args, **new_aliases}
+
+                    manual_options[option_name] = type(option_name, (option_type,), dict(args))
+                    logging.debug(f"Manual: Option.json converted option '{option_name}' into a {option_type}")
+
+        elif issubclass(original_option, Range):
+            if option.get('values'): #let user add named values
+                args = getOriginalOptionArguments(original_option)
+                if original_option.__base__ == NamedRange:
+                    args['special_range_names'] = dict(original_option.special_range_names)
+                args['range_start'] = original_option.range_start
+                args['range_end'] = original_option.range_end
+                args['special_range_names'] = {**args.get('special_range_names',{}), **{l.lower(): v for l, v in option['values'].items()}}
+
+                manual_options[option_name] = type(option_name, (NamedRange,), dict(args))
+                logging.debug(f"Manual: Option.json converted option '{option_name}' into a {NamedRange}")
 
         if option.get('display_name'):
             manual_options[option_name].display_name = option['display_name']
@@ -101,13 +140,19 @@ for option_name, option in option_table.get('data', {}).items():
             manual_options[option_name].visibility = Visibility.none
         elif option.get('visibility'):
             manual_options[option_name].visibility = convertOptionVisibility(option['visibility'])
+    else:
+        logging.debug(f"Manual: Option.json just tried to modify the option '{option_name}' but it doesn't currently exists")
 
-        if option.get('group', ""):
-            addOptionToGroup(option_name, option['group'])
 
+supported_option_types = ["Toggle", "Choice", "Range"]
+for option_name, option in option_table.get('user', {}).items():
+    if option_name.startswith('_'): #To allow commenting out options
         continue
 
-    if option_name not in manual_options:
+    if manual_options.get(option_name):
+        logging.warning(f"Manual: An option with the name '{option_name}' cannot be added since it already exists in Manual Core Options. \nTo modify an existing option move it to the 'core' section of Option.json")
+
+    else:
         option_type = option.get('type', "").title()
 
         if option_type not in supported_option_types:
