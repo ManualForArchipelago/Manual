@@ -25,10 +25,9 @@ def raise_logic_error(location_or_region: dict, source: LogicErrorSource):
     object_type = "location/region"
     object_name = location_or_region.get("name", "Unknown")
 
-    if "region_name" in location_or_region or "starting" in location_or_region or "connects_to" in location_or_region:
+    if location_or_region.get("is_region", False) or "starting" in location_or_region or "connects_to" in location_or_region:
         object_type = "region"
-        object_name = location_or_region['region_name']
-    elif "name" in location_or_region or "region" in location_or_region:
+    elif "region" in location_or_region or "category" in location_or_region:
         object_type = "location"
 
     if source == LogicErrorSource.INFIX_TO_POSTFIX:
@@ -297,7 +296,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
         if locationRegion:
-            locationRegion['region_name'] = location['region']
+            locationRegion['name'] = location['region']
+            locationRegion['is_region'] = True
 
         if "requires" in location: # Location has requires, check them alongside the region requires
             def checkBothLocationAndRegion(state: CollectionState, location=location, region=locationRegion):
