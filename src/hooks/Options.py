@@ -1,6 +1,5 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup
-
+from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
 
@@ -39,22 +38,25 @@ def before_options_defined(options: dict) -> dict:
     return options
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
-def after_options_defined(options: dict) -> dict:
+def after_options_defined(options: PerGameCommonOptions):
+    # To access a modifiable version of options check the dict in options.__annotations__
+
     # The generated goal option will not keep your defined values or documentation string you'll need to add them here:
     # To automatically convert your own goal to alias of the generated goal uncomment the lines below and replace 'Goal' with your own option of type Choice
 
     # your_goal_class = Goal #Your Goal class here
-    # generated_goal = options.get('goal', {})
+    # generated_goal = options.__annotations__.get('goal', {})
     # if generated_goal and issubclass(your_goal_class, Choice) and not issubclass(generated_goal, your_goal_class):
-    #     goals = {'option_' + i: v for i, v in generated_goal.options.items() if i != 'default'}
-    #     for option, value in your_goal_class.options.items():
-    #         if option == 'default':
-    #             continue
-    #         goals[f"alias_{option}"] = value
-    #     options['goal'] = type('goal', (Choice,), goals)
-    #     options['goal'].default = your_goal_class.options.get('default', generated_goal.default)
-    #     options['goal'].__doc__ = your_goal_class.__doc__ or options['goal'].__doc__
-    return options
+    #     values = {**your_goal_class.options, **your_goal_class.aliases}
+    #     for option, value in values.items():
+    #         generated_goal.aliases[f"{option}"] = value
+    #     generated_goal.options.update(generated_goal.aliases) #for an alias to be valid it must be in both
+    #     if hasattr(your_goal_class, 'default'):
+    #         generated_goal.default = your_goal_class.default
+    #     if hasattr(your_goal_class, 'display_name'):
+    #         generated_goal.display_name = your_goal_class.display_name
+    #     generated_goal.__doc__ = your_goal_class.__doc__ or options['goal'].__doc__
+    pass
 
 # Use this Hook if you want to add your Option to an Option group (existing or not)
 def before_option_groups_created(groups: dict[str, list[Option]]) -> dict[str, list[Option]]:
