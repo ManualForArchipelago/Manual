@@ -33,6 +33,12 @@ class TotalCharactersToWinWith(Range):
     range_end = 50
     default = 50
 
+class Goal(Choice): #Don't add this in before_options_defined as "goal" or you will get a warning in the console if you have multiple victory locations
+    """Example to convert"""
+    option_test = 0
+    option_b = 1
+    alias_c = 1
+    default = 1
 
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(options: dict) -> dict:
@@ -40,20 +46,25 @@ def before_options_defined(options: dict) -> dict:
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
 def after_options_defined(options: dict) -> dict:
-    # The generated goal option will not keep your defined values or documentation string you'll need to add them here:
-    # To automatically convert your own goal to alias of the generated goal uncomment the lines below and replace 'Goal' with your own option of type Choice
+    # The generated goal option will not keep your defined values or documentation string unless you add them to option.json or you add them here:
+    # To automatically convert your own Goal class to alias of the generated goal uncomment the lines below and replace 'Goal' with your own option of type Choice
 
     # your_goal_class = Goal #Your Goal class here
     # generated_goal = options.get('goal', {})
-    # if generated_goal and issubclass(your_goal_class, Choice) and not issubclass(generated_goal, your_goal_class):
-    #     goals = {'option_' + i: v for i, v in generated_goal.options.items() if i != 'default'}
-    #     for option, value in your_goal_class.options.items():
-    #         if option == 'default':
-    #             continue
-    #         goals[f"alias_{option}"] = value
-    #     options['goal'] = type('goal', (Choice,), goals)
-    #     options['goal'].default = your_goal_class.options.get('default', generated_goal.default)
-    #     options['goal'].__doc__ = your_goal_class.__doc__ or options['goal'].__doc__
+    # if generated_goal and not issubclass(generated_goal, your_goal_class): #if it exist and not the exact same
+    #     values = { **your_goal_class.options, **your_goal_class.aliases } #group your option and alias to be converted
+    #     for option, value in values.items():
+    #         generated_goal.aliases[f"{option}"] = value
+    #     generated_goal.options.update(generated_goal.aliases)  #for an alias to be valid it must also be in options
+    #
+    #     if hasattr(your_goal_class, "default"):
+    #         generated_goal.default = your_goal_class.default
+    #
+    #     if hasattr(your_goal_class, "display_name"):
+    #         generated_goal.display_name = your_goal_class.display_name
+    #
+    #     generated_goal.__doc__ = your_goal_class.__doc__ or generated_goal.__doc__
+
     return options
 
 # Use this Hook if you want to add your Option to an Option group (existing or not)
