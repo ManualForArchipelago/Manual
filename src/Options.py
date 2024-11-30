@@ -117,11 +117,13 @@ for option_name, option in option_table.get('core', {}).items():
         elif issubclass(original_option, Range):
             if option.get('values'): #let user add named values
                 args = getOriginalOptionArguments(original_option)
+                args['special_range_names'] = {}
                 if original_option.__base__ == NamedRange:
                     args['special_range_names'] = dict(original_option.special_range_names)
+                args['special_range_names']['default'] = option.get('default', args['special_range_names'].get('default', args['default']))
                 args['range_start'] = original_option.range_start
                 args['range_end'] = original_option.range_end
-                args['special_range_names'] = {**args.get('special_range_names',{}), **{l.lower(): v for l, v in option['values'].items()}}
+                args['special_range_names'] = {**args['special_range_names'], **{l.lower(): v for l, v in option['values'].items()}}
 
                 manual_options[option_name] = type(option_name, (NamedRange,), dict(args))
                 logging.debug(f"Manual: Option.json converted option '{option_name}' into a {NamedRange}")
@@ -229,8 +231,8 @@ def make_options_group() -> list[OptionGroup]:
 
     if manual_option_groups:
         if 'Item & Location Options' in manual_option_groups.keys():
-            base_item_loc_group.extend(manual_option_groups['Item & Location Options'])
-            manual_option_groups.pop('Item & Location Options')
+            base_item_loc_group = manual_option_groups.pop('Item & Location Options') #Put the custom options before the base AP options
+            base_item_loc_group.extend(item_and_loc_options)
 
         for group, options in manual_option_groups.items():
             option_groups.append(OptionGroup(group, options))
