@@ -21,7 +21,7 @@ class LogicErrorSource(IntEnum):
     EVALUATE_POSTFIX = 2 # includes missing pipes and missing value on either side of AND/OR
     EVALUATE_STACK_SIZE = 3 # includes missing curly brackets
 
-def raise_logic_error(location_or_region: dict, source: LogicErrorSource):
+def construct_logic_error(location_or_region: dict, source: LogicErrorSource) -> KeyError:
     object_type = "location/region"
     object_name = location_or_region.get("name", "Unknown")
 
@@ -39,7 +39,7 @@ def raise_logic_error(location_or_region: dict, source: LogicErrorSource):
     else:
         source_text = "This requires includes invalid syntax."
 
-    raise KeyError(f"Invalid 'requires' for {object_type} '{object_name}': {source_text} (ERROR {source})")
+    return KeyError(f"Invalid 'requires' for {object_type} '{object_name}': {source_text} (ERROR {source})")
 
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}
@@ -64,7 +64,7 @@ def infix_to_postfix(expr, location):
         while stack:
             postfix += stack.pop()
     except Exception:
-        raise_logic_error(location, LogicErrorSource.INFIX_TO_POSTFIX)
+        raise construct_logic_error(location, LogicErrorSource.INFIX_TO_POSTFIX)
 
     return postfix
 
@@ -90,10 +90,10 @@ def evaluate_postfix(expr: str, location: str) -> bool:
                 op = stack.pop()
                 stack.append(not op)
     except Exception:
-        raise_logic_error(location, LogicErrorSource.EVALUATE_POSTFIX)
+        raise construct_logic_error(location, LogicErrorSource.EVALUATE_POSTFIX)
 
     if len(stack) != 1:
-        raise_logic_error(location, LogicErrorSource.EVALUATE_STACK_SIZE)
+        raise construct_logic_error(location, LogicErrorSource.EVALUATE_STACK_SIZE)
 
     return stack.pop()
 
