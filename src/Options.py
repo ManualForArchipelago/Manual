@@ -104,15 +104,11 @@ for option_name, option in option_table.get('core', {}).items():
                 raise Exception(f"You cannot modify the values of the '{option_name}' option since they cannot have their value changed by Option.json")
 
             if option.get('aliases'):
-                new_aliases = createChoiceOptions({}, option.get('aliases', {}))
+                for alias, value in option['aliases'].items():
+                    original_option.aliases[alias] = value
+                original_option.options.update(original_option.aliases)  #for an alias to be valid it must also be in options
 
-                if new_aliases: #only recreate if needed
-                    option_type = TextChoice if issubclass(original_option, TextChoice) else Choice
-                    args = {**getOriginalOptionArguments(original_option), **createChoiceOptions(original_option.options, original_option.aliases)}
-                    args = {**args, **new_aliases}
-
-                    manual_options[option_name] = type(option_name, (option_type,), dict(args))
-                    logging.debug(f"Manual: Option.json converted option '{option_name}' into a {option_type}")
+                logging.debug(f"Manual: Option.json modified option '{option_name}''s aliases")
 
         elif issubclass(original_option, Range):
             if option.get('values'): #let user add named values

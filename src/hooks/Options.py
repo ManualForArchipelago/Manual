@@ -53,8 +53,8 @@ def after_options_defined(options: dict) -> dict:
     # generated_goal = options.get('goal', {})
     # if generated_goal and not issubclass(generated_goal, your_goal_class): #if it exist and not the exact same
     #     values = { **your_goal_class.options, **your_goal_class.aliases } #group your option and alias to be converted
-    #     for option, value in values.items():
-    #         generated_goal.aliases[f"{option}"] = value
+    #     for alias, value in values.items():
+    #         generated_goal.aliases[alias] = value
     #     generated_goal.options.update(generated_goal.aliases)  #for an alias to be valid it must also be in options
     #
     #     if hasattr(your_goal_class, "default"):
