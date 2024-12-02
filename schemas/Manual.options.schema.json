@@ -14,14 +14,14 @@
             "type": "object",
             "patternProperties": {
                 "^_.*$": {
-                    "description": "A commented out override Option",
+                    "description": "A commented out Option Modification",
                     "allOf": [{"$ref": "#/definitions/OptionBase"}],
                     "properties": {
                         "type": {"$ref": "#/definitions/OptionCore/properties"}
                     }
                 },
                 "^.*$": {
-                    "description": "An Modification of a Core Option of Manual",
+                    "description": "A Modification of a Core Option of Manual",
                     "$ref": "#/definitions/OptionCore"
                 }
             }
@@ -38,7 +38,7 @@
                     }
                 },
                 "^.*$": {
-                    "description": "An Option for your World, the possible Parameters depend on the type of option you set in \"type\"\nToggle: \"default\" \n Let the player choose between yes or no \nChoice: \"value\", \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an optional \"values\"\nAllow the player to specify a number between 'start' and 'end'",
+                    "description": "An Option for your World, the possible properties depend on the type of option you set in \"type\"\nToggle: \"default\"* \n Let the player choose between yes or no \nChoice: \"values\"*, \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an \"values\"\nAllow the player to specify a number between 'start' and 'end'",
                     "$ref": "#/definitions/OptionUser"
                 }
             }
@@ -51,16 +51,16 @@
             "type": "object",
             "properties": {
                 "display_name": {
-                    "description": "The name shown on the webhost.",
+                    "description": "(Optional) The name shown on the webhost",
                     "type": "string"
                 },
                 "description": {
-                    "description": "long description of what this option is for(is shown on hover on the webhost)",
+                    "description": "(Optional) A long description of what this option is for(is shown on hover on the webhost)",
                     "type": ["array", "string"],
                     "items": {"type": "string"}
                 },
                 "rich_text_doc": {
-                    "description": "(Optional) support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
+                    "description": "(Optional) Enables support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
                     "type": "boolean",
                     "default": false
                 },
@@ -137,12 +137,12 @@
         },
 
         "Type": {
-            "description": "The type of this options, check the official Archipelago docs for the options types here: \nhttps://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes",
+            "description": "The type of this options. \nHover your mouse on any uncommented option's name to get a list of valid types for Manual options and a short description for each",
             "type": "string",
             "enum": ["Toggle", "Choice", "Range"]
         },
         "ChoiceValue": {
-            "description": "A dict of possible values in the format 'name':int \nthe default option is, by default the one with 0 as value",
+            "description": "A dictionary of possible values in the format {\"name\":0, \"other name\":2} \nUnless the default is changed, there need to be a defined value of 0.",
             "type":"object",
             "patternProperties": {
                 "^.*$": {
@@ -150,19 +150,20 @@
                     "type": "integer"
                 }
             }
+
         },
         "ChoiceAlias": {
-            "description": "A dict of possible values in the format 'name':int/the name of a value from 'values'",
+            "description": "(Optional) A dictionary of aliases in the format {\"name\":0, \"other name\":2} or {\"name\":\"name of another value/alias\"}",
             "type": "object",
             "patternProperties": {
                 "^.*$": {
-                    "description": "An alias for a value declared in 'values'",
+                    "description": "An alias for one of this option's value",
                     "type": ["integer", "string"]
                 }
             }
         },
         "ChoiceAllowCustomValue": {
-            "description": "Allow the user to set their own custom string Value",
+            "description": "(Optional) Allow the user to set their own custom string Value",
             "type": "boolean",
             "default": false
         },
@@ -188,25 +189,25 @@
             "examples": [{"test": 1}]
         },
         "SpecialRangeNames": {
-            "description": "(Optional) A Special Dictionary in the format 'name':int of named values for this range \nAll names need to be lowercase",
+            "description": "(Optional) A Special Dictionary in the format {\"name\":0, \"other name\":2} of named values for this range \nAll names need to be lowercase",
             "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
         },
         "SpecialRangeNames_core": {
-            "description": "(Optional) A Special Dictionary in the format 'name':int of named values for this range \nAll names need to be lowercase\nForbidden for Options of type Choice",
+            "description": "(Optional) A Special Dictionary in the format {\"name\":0, \"other name\":2} of named values for this range \nAll names need to be lowercase \nForbidden for Options of type Choice",
             "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
         },
         "DefaultInt": {
-            "description": "the default integer value of this option",
+            "description": "(Optional) The default integer value of this option",
             "type": "integer",
             "default": 0
         },
         "DefaultToggle": {
-            "description": "the default value of this Toggle",
+            "description": "The default value of this Toggle",
             "type": "boolean",
             "default": false
         },
         "DefaultCore": {
-            "description": "the default value of this option, its type depend on the type of the option you are overriding",
+            "description": "The default value of this option, its type depend on the type of the option you are overriding",
             "type": ["integer", "boolean"]
         },
         "comment": {
