@@ -3,6 +3,7 @@ import logging
 import os
 import json
 from typing import Callable, Optional
+import webbrowser
 
 import requests
 import Utils
@@ -459,6 +460,7 @@ def add_client_to_launcher() -> None:
             with open(icon_paths["manual"], 'wb') as f:
                 f.write(requests.get(icon_url).content)
 
+    discord_component = None
     for c in components:
         if c.display_name == "Manual Client":
             found = True
@@ -466,8 +468,13 @@ def add_client_to_launcher() -> None:
                 c.version = version
                 c.func = launch_client
                 c.icon = "manual"
-                return
+        elif c.display_name == "Manual Discord Server":
+            discord_component = c
+
     if not found:
         components.append(VersionedComponent("Manual Client", "ManualClient", func=launch_client, version=version, file_identifier=SuffixIdentifier('.apmanual'), icon="manual"))
+    if not discord_component:
+        components.append(Component("Manual Discord Server", "ManualDiscord", func=lambda: webbrowser.open("https://discord.gg/hm4rQnTzQ5"), icon="discord", component_type=Type.ADJUSTER))
+
 
 add_client_to_launcher()
