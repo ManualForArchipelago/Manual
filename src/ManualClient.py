@@ -414,12 +414,12 @@ class ManualContext(SuperContext):
 
             def update_search_from_input(self, instance, text: str):
                 self.ctx.set_search(text)
-                self.request_update_tracker_and_locations_table()
+                self.request_update_tracker_and_locations_table() # if we want search to be "snappier", we can just make this update
 
             def clear_search_input(self):
                 self.search_textbox.text = ""
                 self.ctx.clear_search()
-                self.request_update_tracker_and_locations_table()
+                self.request_update_tracker_and_locations_table() # if we want search to be "snappier", we can just make this update
 
             def build_tracker_and_locations_table(self):
                 self.controls_panel.clear_widgets()
