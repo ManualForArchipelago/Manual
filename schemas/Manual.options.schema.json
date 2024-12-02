@@ -51,11 +51,11 @@
             "type": "object",
             "properties": {
                 "display_name": {
-                    "description": "(Optional) The name shown on the webhost",
+                    "description": "(Optional) The name shown in the spoiler logs and on the website options pages",
                     "type": "string"
                 },
                 "description": {
-                    "description": "(Optional) A long description of what this option is for(is shown on hover on the webhost)",
+                    "description": "(Optional) A long description of what this option is for, as shown in the yaml template or on hover of the (?) on the website options pages",
                     "type": ["array", "string"],
                     "items": {"type": "string"}
                 },
@@ -65,7 +65,7 @@
                     "default": false
                 },
                 "group": {
-                    "description": "(Optional) The name of the group this option is a part of on the webhost",
+                    "description": "(Optional) The name of the group this option is a part of on the website options pages",
                     "type": "string",
                     "default": "Game Options",
                     "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
