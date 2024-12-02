@@ -215,16 +215,15 @@ class ManualWorld(World):
         classification = ItemClassification.filler
 
         if "trap" in item and item["trap"]:
-            classification = ItemClassification.trap
+            classification |= ItemClassification.trap
 
         if "useful" in item and item["useful"]:
-            classification = ItemClassification.useful
-
-        if "progression" in item and item["progression"]:
-            classification = ItemClassification.progression
+            classification |= ItemClassification.useful
 
         if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
-            classification = ItemClassification.progression_skip_balancing
+            classification |= ItemClassification.progression_skip_balancing
+        elif "progression" in item and item["progression"]:
+            classification |= ItemClassification.progression
 
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
@@ -388,12 +387,21 @@ class ManualWorld(World):
                 item_pool.append(extra_item)
         elif extras < 0:
             logging.warning(f"{self.game} has more items than locations. {abs(extras)} non-progression items will be removed at random.")
+            # Filler is only assigned if the item doesn't have any other tags, so it only has to be covered by itself.
+            # Skip Balancing is also not covered due to how it's only supported when paired with Progression.
+            # As a result, these cover every possible combination can be removed.
             fillers = [item for item in item_pool if item.classification == ItemClassification.filler]
             traps = [item for item in item_pool if item.classification == ItemClassification.trap]
             useful = [item for item in item_pool if item.classification == ItemClassification.useful]
+            # Useful + Trap is classified separately so that it can have a unique priority ranking.
+            useful_traps = [item for item in item_pool if
+                            ItemClassification.progression not in item.classification
+                            and ItemClassification.useful in item.classification
+                            and ItemClassification.trap in item.classification]
             self.random.shuffle(fillers)
             self.random.shuffle(traps)
             self.random.shuffle(useful)
+            self.random.shuffle(useful_traps)
             for _ in range(0, abs(extras)):
                 popped = None
                 if fillers:
@@ -402,6 +410,8 @@ class ManualWorld(World):
                     popped = traps.pop()
                 elif useful:
                     popped = useful.pop()
+                elif useful_traps:
+                    popped = useful_traps.pop()
                 else:
                     logging.warning("Could not remove enough non-progression items from the pool.")
                     break
