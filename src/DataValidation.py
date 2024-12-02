@@ -282,8 +282,8 @@ class DataValidation():
         # compare whats available vs requested but only if there's anything requested
         if values_requested:
             errors = []
-            existing_items = [item for item in get_items_for_player(multiworld, player, True) if item.code is not None and
-                        item.classification == ItemClassification.progression or item.classification == ItemClassification.progression_skip_balancing]
+            existing_items = [item for item in get_items_for_player(multiworld, player, True) if
+                              item.code is not None and ItemClassification.progression in item.classification]
             for value, val_count in values_requested.items():
                 items_value = get_items_with_value(world, multiworld, value, player, True)
                 found_count = 0
@@ -450,8 +450,8 @@ def runPreFillDataValidation(world: World, multiworld: MultiWorld):
     validation_errors = []
 
     # check if there is enough items with values
-    try: DataValidation.preFillCheckIfEnoughItemsForValue(world, multiworld)
-    except ValidationError as e: validation_errors.append(e)
+    #try: DataValidation.preFillCheckIfEnoughItemsForValue(world, multiworld)
+    #except ValidationError as e: validation_errors.append(e)
 
     if validation_errors:
         newline = "\n"

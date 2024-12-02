@@ -28,5 +28,6 @@
             "yaml_option": ["start_with_deadpool"]
         }
     ],
-    "death_link": false
+    "death_link": false,
+    "starting_index": 1
 }

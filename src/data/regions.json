@@ -6,6 +6,12 @@
     },
     "Second Region": {
         "requires": "|@Characters:1|",
+        "connects_to": ["Third Region"],
+        "exit_requires": {
+            "Third Region": "|@Characters:5|"
+        }
+    },
+    "Third Region": {
         "connects_to": []
     }
 }
