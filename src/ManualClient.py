@@ -5,6 +5,7 @@ from typing import Any, Optional
 import typing
 from worlds import AutoWorldRegister, network_data_package
 import json
+import traceback
 
 import asyncio, re
 
@@ -212,6 +213,26 @@ class ManualContext(SuperContext):
         self.tracker_reachable_events = events
         if events:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
+
+    def handle_connection_loss(self, msg: str) -> None:
+        """Helper for logging and displaying a loss of connection. Must be called from an except block."""
+        exc_info = sys.exc_info()
+        logger.exception(msg, exc_info=exc_info, extra={'compact_gui': True})
+        tracker_error = False
+        e = exc_info[2]
+        formatted_tb = ''.join(traceback.format_tb(e))
+        while e:
+            if '/tracker/' in e.tb_frame.f_code.co_filename:
+                tracker_error = True
+                break
+            e = e.tb_next
+
+        if tracker_error:
+            self._messagebox_connection_loss = self.gui_error(
+                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.", 
+                formatted_tb)
+        else:
+            self._messagebox_connection_loss = self.gui_error(msg, formatted_tb)
 
     def run_gui(self):
         """Import kivy UI system from make_gui() and start running it as self.ui_task."""
