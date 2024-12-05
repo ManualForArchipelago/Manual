@@ -46,6 +46,8 @@ def before_options_defined(options: dict) -> dict:
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
 def after_options_defined(options: PerGameCommonOptions):
     # To access a modifiable version of options check the dict in options.__annotations__
+    # For example if you want to change DLC_enabled's display name you would do:
+    # options.__annotations__["DLC_enabled"].display_name = "New Display Name"
 
     # The generated goal option will not keep your defined values or documentation string you'll need to add them here:
     # To automatically convert your own goal to alias of the generated goal uncomment the lines below and replace 'Goal' with your own option of type Choice
