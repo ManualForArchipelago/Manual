@@ -7,7 +7,7 @@ from .Game import starting_index
 # Generate location lookups
 ######################
 
-count = starting_index + 500 # 500 each for items and locations
+count = starting_index
 victory_names: list[str] = []
 
 # add sequential generated ids to the lists
@@ -24,8 +24,11 @@ for key, _ in enumerate(location_table):
 
     location_table[key]["id"] = count
 
-    if not "region" in location_table[key]:
+    if "region" not in location_table[key]:
         location_table[key]["region"] = "Manual" # all locations are in the same region for Manual
+
+    if isinstance(location_table[key].get("category", []), str):
+        location_table[key]["category"] = [location_table[key]["category"]]
 
     count += 1
 

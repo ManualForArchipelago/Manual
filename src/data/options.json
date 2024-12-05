@@ -26,7 +26,7 @@
             "type": "Toggle",
             "default": true
         },
-        "Toggle":{
+        "Example_Toggle":{
             "description": [
                 "This is a Toggle",
                 "A simple boolean, aka True or False set the initial value with \"default\""
@@ -35,7 +35,7 @@
             "default": false,
             "group": "Example Options"
         },
-        "Choice":{
+        "Example_Choice":{
             "type": "Choice",
             "description": [
                 "This is a Choice",
@@ -51,7 +51,7 @@
             "allow_custom_value": false,
             "group": "Example Options"
         },
-        "Range":{
+        "Example_Range":{
             "type": "Range",
             "description": [
                 "This is a Range",

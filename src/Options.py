@@ -2,7 +2,7 @@ from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Cho
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
-from .Helpers import convertToLongString
+from .Helpers import convert_to_long_string
 from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
@@ -104,15 +104,11 @@ for option_name, option in option_table.get('core', {}).items():
                 raise Exception(f"You cannot modify the values of the '{option_name}' option since they cannot have their value changed by Option.json")
 
             if option.get('aliases'):
-                new_aliases = createChoiceOptions({}, option.get('aliases', {}))
+                for alias, value in option['aliases'].items():
+                    original_option.aliases[alias] = value
+                original_option.options.update(original_option.aliases)  #for an alias to be valid it must also be in options
 
-                if new_aliases: #only recreate if needed
-                    option_type = TextChoice if issubclass(original_option, TextChoice) else Choice
-                    args = {**getOriginalOptionArguments(original_option), **createChoiceOptions(original_option.options, original_option.aliases)}
-                    args = {**args, **new_aliases}
-
-                    manual_options[option_name] = type(option_name, (option_type,), dict(args))
-                    logging.debug(f"Manual: Option.json converted option '{option_name}' into a {option_type}")
+                logging.debug(f"Manual: Option.json modified option '{option_name}''s aliases")
 
         elif issubclass(original_option, Range):
             if option.get('values'): #let user add named values
@@ -131,7 +127,7 @@ for option_name, option in option_table.get('core', {}).items():
         if option.get('display_name'):
             manual_options[option_name].display_name = option['display_name']
 
-        manual_options[option_name].__doc__ = convertToLongString(option.get('description', original_doc))
+        manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', original_doc))
         if option.get('rich_text_doc'):
             manual_options[option_name].rich_text_doc = option["rich_text_doc"]
 
@@ -190,7 +186,7 @@ for option_name, option in option_table.get('user', {}).items():
             args['visibility'] = convertOptionVisibility(option['visibility'])
 
         manual_options[option_name] = type(option_name, (option_class,), args )
-        manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
+        manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', "an Option"))
 
     if option.get('group'):
         addOptionToGroup(option_name, option['group'])

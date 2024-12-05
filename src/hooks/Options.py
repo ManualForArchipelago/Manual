@@ -32,6 +32,12 @@ class TotalCharactersToWinWith(Range):
     range_end = 50
     default = 50
 
+class Goal(Choice): #Don't add this in before_options_defined as "goal" or you will get a warning in the console if you have multiple victory locations
+    """Example to convert"""
+    option_test = 0
+    option_b = 1
+    alias_c = 1
+    default = 1
 
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(options: dict) -> dict:
@@ -46,16 +52,20 @@ def after_options_defined(options: PerGameCommonOptions):
 
     # your_goal_class = Goal #Your Goal class here
     # generated_goal = options.__annotations__.get('goal', {})
-    # if generated_goal and issubclass(your_goal_class, Choice) and not issubclass(generated_goal, your_goal_class):
-    #     values = {**your_goal_class.options, **your_goal_class.aliases}
-    #     for option, value in values.items():
-    #         generated_goal.aliases[f"{option}"] = value
-    #     generated_goal.options.update(generated_goal.aliases) #for an alias to be valid it must be in both
-    #     if hasattr(your_goal_class, 'default'):
+    # if generated_goal and not issubclass(generated_goal, your_goal_class): #if it exist and not the exact same
+    #     values = { **your_goal_class.options, **your_goal_class.aliases } #group your option and alias to be converted
+    #     for alias, value in values.items():
+    #         generated_goal.aliases[alias] = value
+    #     generated_goal.options.update(generated_goal.aliases)  #for an alias to be valid it must also be in options
+    #
+    #     if hasattr(your_goal_class, "default"):
     #         generated_goal.default = your_goal_class.default
-    #     if hasattr(your_goal_class, 'display_name'):
+    #
+    #     if hasattr(your_goal_class, "display_name"):
     #         generated_goal.display_name = your_goal_class.display_name
-    #     generated_goal.__doc__ = your_goal_class.__doc__ or options['goal'].__doc__
+    #
+    #     generated_goal.__doc__ = your_goal_class.__doc__ or generated_goal.__doc__
+
     pass
 
 # Use this Hook if you want to add your Option to an Option group (existing or not)
