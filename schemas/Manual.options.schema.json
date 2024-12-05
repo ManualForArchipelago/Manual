@@ -1,0 +1,219 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json",
+    "description": "Schema for Manual's options.json",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema to verify this document against.",
+            "type":"string"
+
+        },
+        "core": {
+            "description": "Dictionary of the Modifications of Core Options of Manual",
+            "type": "object",
+            "patternProperties": {
+                "^_.*$": {
+                    "description": "A commented out Option Modification",
+                    "$ref": "#/definitions/OptionCore"
+                },
+                "^.*$": {
+                    "description": "A Modification of a Core Option of Manual",
+                    "$ref": "#/definitions/OptionCore"
+                }
+            }
+        },
+        "user": {
+            "description": "Dictionary of options for this apworld",
+            "type": "object",
+            "patternProperties": {
+                "^_.*$": {
+                    "description": "A commented out Option",
+                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
+                    "properties": {
+                        "type": {"$ref": "#/definitions/Type"}
+                    }
+                },
+                "^.*$": {
+                    "description": "An Option for your World, the possible properties depend on the type of option you set in \"type\"\nToggle: \"default\"* \n Let the player choose between yes or no \nChoice: \"values\"*, \"aliases\", \"default\" and \"allow_custom_value\" \n Let the player pick from a list of values  \nRange: \"range_start\", \"range_end\", \"default\" and an \"values\"\nAllow the player to specify a number between 'start' and 'end'",
+                    "$ref": "#/definitions/OptionUser"
+                }
+            }
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
+    },
+    "definitions": {
+        "OptionBase": {
+            "$comment": "The basic properties of an Option that are safe to modify",
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "description": "(Optional) The name shown in the spoiler logs and on the website options pages",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "(Optional) A long description of what this option is for, as shown in the yaml template or on hover of the (?) on the website options pages",
+                    "type": ["array", "string"],
+                    "items": {"type": "string"}
+                },
+                "rich_text_doc": {
+                    "description": "(Optional) Enables support for HTML generated from the standard Python reStructuredText format for your description. \nfor more info: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-documentation",
+                    "type": "boolean",
+                    "default": false
+                },
+                "group": {
+                    "description": "(Optional) The name of the group this option is a part of on the website options pages",
+                    "type": "string",
+                    "default": "Game Options",
+                    "examples": ["Item & Location Options", "Example Options", "Option Group Name"]
+                },
+                "hidden": {
+                    "description": "(Optional) Should this option be Hidden everywhere? Use Visibility instead for a more precise control",
+                    "type": "boolean",
+                    "default": false
+                },
+                "visibility": {
+                    "description": "(Optional) (Advanced) Specify where this option can be seen. \nIt can be represented by the value names, an array of those, \nthe binary string representation of that choice (\"0b1111\") or the integer value of the binary \nEvery example values other than 'none' and 'all' gives the same results aka 14 aka 0b1110 aka that array \nMore info at https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#option-visibility",
+                    "type":["string","array","integer"],
+                    "items": {"type": "string", "enum": [ "template", "simple_ui", "complex_ui", "spoiler"]},
+                    "default": "all",
+                    "examples": ["none", "0b1110", ["spoiler", "simple_ui", "complex_ui"], 14 ],
+                    "if": {"type":"string", "pattern": "0b[01]..."},
+                    "else": {"if": {"type": "string"}, "then": {"enum": ["all", "none", "template", "simple_ui", "complex_ui", "spoiler"]} }
+                },
+                "_comment": {"$ref": "#/definitions/comment"}
+            }
+        },
+        "OptionUser": {
+            "type": "object",
+            "$comment": "The version with all the type logic aka normal options",
+            "allOf": [{"$ref": "#/definitions/OptionBase"}],
+            "properties": {
+                "type": {"$ref": "#/definitions/Type"}
+            },
+            "required": ["type"],
+            "if": {"properties": { "type": {"const": "Toggle"}}},
+            "then": {
+                "properties": {
+                    "default": { "$ref": "#/definitions/DefaultToggle"}
+                },
+                "required": ["default", "type"]
+            },
+            "else": {
+                "if": {"properties": { "type": {"const": "Choice"}}},
+                "then": {
+                    "properties": {
+                        "values": {"$ref": "#/definitions/ChoiceValue"},
+                        "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                        "default": {"$ref": "#/definitions/DefaultInt"},
+                        "allow_custom_value": { "$ref": "#/definitions/ChoiceAllowCustomValue"}
+                    },
+                    "required": ["values", "type"]
+                },
+                "else": {
+                    "if": {"properties": { "type": {"const": "Range"}}},
+                    "then": {
+                        "properties": {
+                            "range_start": {"$ref": "#/definitions/RangeStart"},
+                            "range_end": {"$ref": "#/definitions/RangeEnd"},
+                            "default": {"$ref": "#/definitions/DefaultInt"},
+                            "values":{"$ref": "#/definitions/SpecialRangeNames"}
+                        }
+                    }
+                }
+            }
+        },
+        "OptionCore":{
+            "type": "object",
+            "allOf": [{"$ref": "#/definitions/OptionBase"}],
+            "properties": {
+                "default": {"$ref": "#/definitions/DefaultCore"},
+                "aliases": {"$ref": "#/definitions/ChoiceAlias"},
+                "values":{"$ref": "#/definitions/SpecialRangeNames_core"}
+            }
+        },
+
+        "Type": {
+            "description": "The type of this options. \nHover your mouse on any uncommented option's name to get a list of valid types for Manual options and a short description for each",
+            "type": "string",
+            "enum": ["Toggle", "Choice", "Range"]
+        },
+        "ChoiceValue": {
+            "description": "A dictionary of possible values in the format {\"name\":0, \"other name\":2} \nUnless the default is changed, there need to be a defined value of 0.",
+            "type":"object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "An int value this option can have",
+                    "type": "integer"
+                }
+            }
+
+        },
+        "ChoiceAlias": {
+            "description": "(Optional) A dictionary of aliases in the format {\"name\":0, \"other name\":2} or {\"name\":\"name of another value/alias\"}",
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "An alias for one of this option's value",
+                    "type": ["integer", "string"]
+                }
+            }
+        },
+        "ChoiceAllowCustomValue": {
+            "description": "(Optional) Allow the user to set their own custom string Value",
+            "type": "boolean",
+            "default": false
+        },
+        "RangeStart": {
+            "type": "integer",
+            "description": "(Optional) The lowest Value for this range",
+            "default": 0
+        },
+        "RangeEnd": {
+            "type":"integer",
+            "description": "(Optional) The Highest Value for this range",
+            "default": 1
+        },
+        "SpecialRangeNames_base": {
+            "type":"object",
+            "patternProperties": {
+                "^.*$": {
+                    "description": "A named numerical value",
+                    "type": "integer"
+                    }
+            },
+            "default": {},
+            "examples": [{"test": 1}]
+        },
+        "SpecialRangeNames": {
+            "description": "(Optional) A Special Dictionary in the format {\"name\":0, \"other name\":2} of named values for this range \nAll names need to be lowercase",
+            "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
+        },
+        "SpecialRangeNames_core": {
+            "description": "(Optional) A Special Dictionary in the format {\"name\":0, \"other name\":2} of named values for this range \nAll names need to be lowercase \nForbidden for Options of type Choice",
+            "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
+        },
+        "DefaultInt": {
+            "description": "(Optional) The default integer value of this option",
+            "type": "integer",
+            "default": 0
+        },
+        "DefaultToggle": {
+            "description": "The default value of this Toggle",
+            "type": "boolean",
+            "default": false
+        },
+        "DefaultCore": {
+            "description": "The default value of this option, its type depend on the type of the option you are overriding",
+            "type": ["integer", "boolean"]
+        },
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
+        }
+    }
+}

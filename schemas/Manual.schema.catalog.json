@@ -36,7 +36,13 @@
             "description": "meta.json schema file for APWorlds created with Manual",
             "fileMatch": [ "**/manual*/data/meta.json" ],
             "url": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.meta.schema.json"
+        },
+        {
+            "name": "Manual options.json",
+            "description": "options.json schema file for APWorlds created with Manual",
+            "fileMatch": [ "**/manual*/data/options.json" ],
+            "url": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.options.schema.json"
         }
     ],
-    "version": 20240429.01
+    "version": 20240721.01
 }
