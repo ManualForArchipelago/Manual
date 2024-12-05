@@ -15,10 +15,7 @@
             "patternProperties": {
                 "^_.*$": {
                     "description": "A commented out Option Modification",
-                    "allOf": [{"$ref": "#/definitions/OptionBase"}],
-                    "properties": {
-                        "type": {"$ref": "#/definitions/OptionCore/properties"}
-                    }
+                    "$ref": "#/definitions/OptionCore"
                 },
                 "^.*$": {
                     "description": "A Modification of a Core Option of Manual",

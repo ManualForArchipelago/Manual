@@ -156,7 +156,8 @@ def get_items_with_value(world: World, multiworld: MultiWorld, value: str, playe
         world.item_values[player][value] = item_with_values
     return world.item_values[player].get(value)
 
-def convertToLongString(input: str | list) -> str: #Todo maybe find a better name for this
+def convert_to_long_string(input: str | list[str]) -> str:
+    """Verify that the input is a str. If it's a list[str] then it combine them into a str in a way that works with yaml template/website options descriptions"""
     if not isinstance(input, str):
         return str.join("\n    ", input)
     return input

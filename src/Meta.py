@@ -2,7 +2,7 @@
 from BaseClasses import Tutorial
 from worlds.AutoWorld import World, WebWorld
 from .Data import meta_table
-from .Helpers import convertToLongString
+from .Helpers import convert_to_long_string
 
 ##############
 # Meta Classes
@@ -22,7 +22,7 @@ class ManualWeb(WebWorld):
 ######################################
 def set_world_description(base_doc: str) -> str:
     if meta_table.get("docs", {}).get("apworld_description"):
-        return convertToLongString(meta_table["docs"]["apworld_description"])
+        return convert_to_long_string(meta_table["docs"]["apworld_description"])
 
     return base_doc
 

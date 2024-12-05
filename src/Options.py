@@ -2,7 +2,7 @@ from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Cho
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
-from .Helpers import convertToLongString
+from .Helpers import convert_to_long_string
 from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
@@ -127,7 +127,7 @@ for option_name, option in option_table.get('core', {}).items():
         if option.get('display_name'):
             manual_options[option_name].display_name = option['display_name']
 
-        manual_options[option_name].__doc__ = convertToLongString(option.get('description', original_doc))
+        manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', original_doc))
         if option.get('rich_text_doc'):
             manual_options[option_name].rich_text_doc = option["rich_text_doc"]
 
@@ -186,7 +186,7 @@ for option_name, option in option_table.get('user', {}).items():
             args['visibility'] = convertOptionVisibility(option['visibility'])
 
         manual_options[option_name] = type(option_name, (option_class,), args )
-        manual_options[option_name].__doc__ = convertToLongString(option.get('description', "an Option"))
+        manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', "an Option"))
 
     if option.get('group'):
         addOptionToGroup(option_name, option['group'])
