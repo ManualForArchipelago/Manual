@@ -49,24 +49,9 @@ def after_options_defined(options: PerGameCommonOptions):
     # For example if you want to change DLC_enabled's display name you would do:
     # options.__annotations__["DLC_enabled"].display_name = "New Display Name"
 
-    # The generated goal option will not keep your defined values or documentation string you'll need to add them here:
-    # To automatically convert your own goal to alias of the generated goal uncomment the lines below and replace 'Goal' with your own option of type Choice
-
-    # your_goal_class = Goal #Your Goal class here
-    # generated_goal = options.__annotations__.get('goal', {})
-    # if generated_goal and not issubclass(generated_goal, your_goal_class): #if it exist and not the exact same
-    #     values = { **your_goal_class.options, **your_goal_class.aliases } #group your option and alias to be converted
-    #     for alias, value in values.items():
-    #         generated_goal.aliases[alias] = value
-    #     generated_goal.options.update(generated_goal.aliases)  #for an alias to be valid it must also be in options
-    #
-    #     if hasattr(your_goal_class, "default"):
-    #         generated_goal.default = your_goal_class.default
-    #
-    #     if hasattr(your_goal_class, "display_name"):
-    #         generated_goal.display_name = your_goal_class.display_name
-    #
-    #     generated_goal.__doc__ = your_goal_class.__doc__ or generated_goal.__doc__
+    #  Here's an example on how to add your aliases to the generated goal
+    # options.__annotations__['goal'].aliases.update(Goal.aliases)
+    # options.__annotations__['goal'].options.update(Goal.aliases)  #for an alias to be valid it must also be in options
 
     pass
 
