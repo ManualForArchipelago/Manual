@@ -32,13 +32,6 @@ class TotalCharactersToWinWith(Range):
     range_end = 50
     default = 50
 
-class Goal(Choice): #Don't add this in before_options_defined as "goal" or you will get a warning in the console if you have multiple victory locations
-    """Example to convert"""
-    option_test = 0
-    option_b = 1
-    alias_c = 1
-    default = 1
-
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(options: dict) -> dict:
     return options
@@ -50,8 +43,8 @@ def after_options_defined(options: PerGameCommonOptions):
     # options.__annotations__["DLC_enabled"].display_name = "New Display Name"
 
     #  Here's an example on how to add your aliases to the generated goal
-    # options.__annotations__['goal'].aliases.update(Goal.aliases)
-    # options.__annotations__['goal'].options.update(Goal.aliases)  #for an alias to be valid it must also be in options
+    # options.__annotations__['goal'].aliases.update({"example": 0, "second_alias": 1})
+    # options.__annotations__['goal'].options.update({"example": 0, "second_alias": 1})  #for an alias to be valid it must also be in options
 
     pass
 
