@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING, Optional
+from enum import IntEnum
 from worlds.generic.Rules import set_rule, add_rule
 from .Regions import regionMap
 from .hooks import Rules
+
 from BaseClasses import MultiWorld, CollectionState
 from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
 from worlds.AutoWorld import World
@@ -14,9 +16,33 @@ import logging
 if TYPE_CHECKING:
     from . import ManualWorld
 
+class LogicErrorSource(IntEnum):
+    INFIX_TO_POSTFIX = 1 # includes more closing parentheses than opening (but not the opposite)
+    EVALUATE_POSTFIX = 2 # includes missing pipes and missing value on either side of AND/OR
+    EVALUATE_STACK_SIZE = 3 # includes missing curly brackets
+
+def construct_logic_error(location_or_region: dict, source: LogicErrorSource) -> KeyError:
+    object_type = "location/region"
+    object_name = location_or_region.get("name", "Unknown")
+
+    if location_or_region.get("is_region", False) or "starting" in location_or_region or "connects_to" in location_or_region:
+        object_type = "region"
+    elif "region" in location_or_region or "category" in location_or_region:
+        object_type = "location"
+
+    if source == LogicErrorSource.INFIX_TO_POSTFIX:
+        source_text = "There may be mismatched parentheses, or other invalid syntax for the requires."
+    elif source == LogicErrorSource.EVALUATE_POSTFIX:
+        source_text = "There may be missing || around item names, or an AND/OR that is missing a value on one side, or other invalid syntax for the requires."
+    elif source == LogicErrorSource.EVALUATE_STACK_SIZE:
+        source_text = "There may be missing {} around requirement functions like YamlEnabled() / YamlDisabled(), or other invalid syntax for the requires." 
+    else:
+        source_text = "This requires includes invalid syntax."
+
+    return KeyError(f"Invalid 'requires' for {object_type} '{object_name}': {source_text} (ERROR {source})")
+
 def infix_to_postfix(expr, location):
     prec = {"&": 2, "|": 2, "!": 3}
-
     stack = []
     postfix = ""
 
@@ -34,15 +60,18 @@ def infix_to_postfix(expr, location):
                 while stack and stack[-1] != "(":
                     postfix += stack.pop()
                 stack.pop()
+
         while stack:
             postfix += stack.pop()
     except Exception:
-        raise KeyError("Invalid logic format for location/region {}.".format(location))
+        raise construct_logic_error(location, LogicErrorSource.INFIX_TO_POSTFIX)
+
     return postfix
 
 
 def evaluate_postfix(expr: str, location: str) -> bool:
     stack = []
+
     try:
         for c in expr:
             if c == "0":
@@ -61,10 +90,11 @@ def evaluate_postfix(expr: str, location: str) -> bool:
                 op = stack.pop()
                 stack.append(not op)
     except Exception:
-        raise KeyError("Invalid logic format for location/region {}.".format(location))
+        raise construct_logic_error(location, LogicErrorSource.EVALUATE_POSTFIX)
 
     if len(stack) != 1:
-        raise KeyError("Invalid logic format for location/region {}.".format(location))
+        raise construct_logic_error(location, LogicErrorSource.EVALUATE_STACK_SIZE)
+
     return stack.pop()
 
 def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
@@ -264,6 +294,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         locFromWorld = multiworld.get_location(location["name"], player)
 
         locationRegion = regionMap[location["region"]] if "region" in location else None
+
+        if locationRegion:
+            locationRegion['name'] = location['region']
+            locationRegion['is_region'] = True
 
         if "requires" in location: # Location has requires, check them alongside the region requires
             def checkBothLocationAndRegion(state: CollectionState, location=location, region=locationRegion):
