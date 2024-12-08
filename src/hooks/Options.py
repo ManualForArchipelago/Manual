@@ -1,9 +1,8 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup
-
+from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
-
+from typing import Type
 
 
 ####################################################################
@@ -33,39 +32,21 @@ class TotalCharactersToWinWith(Range):
     range_end = 50
     default = 50
 
-class Goal(Choice): #Don't add this in before_options_defined as "goal" or you will get a warning in the console if you have multiple victory locations
-    """Example to convert"""
-    option_test = 0
-    option_b = 1
-    alias_c = 1
-    default = 1
-
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(options: dict) -> dict:
     return options
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
-def after_options_defined(options: dict) -> dict:
-    # The generated goal option will not keep your defined values or documentation string unless you add them to option.json or you add them here:
-    # To automatically convert your own Goal class to alias of the generated goal uncomment the lines below and replace 'Goal' with your own option of type Choice
+def after_options_defined(options: Type[PerGameCommonOptions]):
+    # To access a modifiable version of options check the dict in options.type_hints
+    # For example if you want to change DLC_enabled's display name you would do:
+    # options.type_hints["DLC_enabled"].display_name = "New Display Name"
 
-    # your_goal_class = Goal #Your Goal class here
-    # generated_goal = options.get('goal', {})
-    # if generated_goal and not issubclass(generated_goal, your_goal_class): #if it exist and not the exact same
-    #     values = { **your_goal_class.options, **your_goal_class.aliases } #group your option and alias to be converted
-    #     for alias, value in values.items():
-    #         generated_goal.aliases[alias] = value
-    #     generated_goal.options.update(generated_goal.aliases)  #for an alias to be valid it must also be in options
-    #
-    #     if hasattr(your_goal_class, "default"):
-    #         generated_goal.default = your_goal_class.default
-    #
-    #     if hasattr(your_goal_class, "display_name"):
-    #         generated_goal.display_name = your_goal_class.display_name
-    #
-    #     generated_goal.__doc__ = your_goal_class.__doc__ or generated_goal.__doc__
+    #  Here's an example on how to add your aliases to the generated goal
+    # options.type_hints['goal'].aliases.update({"example": 0, "second_alias": 1})
+    # options.type_hints['goal'].options.update({"example": 0, "second_alias": 1})  #for an alias to be valid it must also be in options
 
-    return options
+    pass
 
 # Use this Hook if you want to add your Option to an Option group (existing or not)
 def before_option_groups_created(groups: dict[str, list[Option]]) -> dict[str, list[Option]]:
