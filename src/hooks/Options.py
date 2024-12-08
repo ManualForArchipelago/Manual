@@ -2,7 +2,7 @@
 from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
-
+from typing import Type
 
 
 ####################################################################
@@ -43,8 +43,8 @@ def after_options_defined(options: Type[PerGameCommonOptions]):
     # options.type_hints["DLC_enabled"].display_name = "New Display Name"
 
     #  Here's an example on how to add your aliases to the generated goal
-    # options.__annotations__['goal'].aliases.update({"example": 0, "second_alias": 1})
-    # options.__annotations__['goal'].options.update({"example": 0, "second_alias": 1})  #for an alias to be valid it must also be in options
+    # options.type_hints['goal'].aliases.update({"example": 0, "second_alias": 1})
+    # options.type_hints['goal'].options.update({"example": 0, "second_alias": 1})  #for an alias to be valid it must also be in options
 
     pass
 
