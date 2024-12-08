@@ -225,6 +225,9 @@ class ManualWorld(World):
         elif "progression" in item and item["progression"]:
             classification |= ItemClassification.progression
 
+        if "classification" in item:
+            classification = ItemClassification[item["classification"]]
+
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
 
