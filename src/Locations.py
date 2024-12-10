@@ -24,8 +24,11 @@ for key, _ in enumerate(location_table):
 
     location_table[key]["id"] = count
 
-    if not "region" in location_table[key]:
+    if "region" not in location_table[key]:
         location_table[key]["region"] = "Manual" # all locations are in the same region for Manual
+
+    if isinstance(location_table[key].get("category", []), str):
+        location_table[key]["category"] = [location_table[key]["category"]]
 
     count += 1
 

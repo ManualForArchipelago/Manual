@@ -7,7 +7,7 @@ from .hooks.Data import \
     after_load_game_file, \
     after_load_item_file, after_load_location_file, \
     after_load_region_file, after_load_category_file, \
-    after_load_meta_file
+    after_load_option_file, after_load_meta_file
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
@@ -18,7 +18,6 @@ def convert_to_list(data, property_name: str) -> list:
     if isinstance(data, dict):
         data = data.get(property_name, [])
     return data
-
 
 class ManualFile:
     filename: str
@@ -42,6 +41,7 @@ item_table = convert_to_list(ManualFile('items.json', list).load(), 'data') #lis
 location_table = convert_to_list(ManualFile('locations.json', list).load(), 'data') #list
 region_table = ManualFile('regions.json', dict).load() #dict
 category_table = ManualFile('categories.json', dict).load() #dict
+option_table = ManualFile('options.json', dict).load() #dict
 meta_table = ManualFile('meta.json', dict).load() #dict
 
 # Removal of schemas in root of tables
@@ -54,6 +54,7 @@ item_table = after_load_item_file(item_table)
 location_table = after_load_location_file(location_table)
 region_table = after_load_region_file(region_table)
 category_table = after_load_category_file(category_table)
+option_table = after_load_option_file(option_table)
 meta_table = after_load_meta_file(meta_table)
 
 # seed all of the tables for validation
