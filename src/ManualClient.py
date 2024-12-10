@@ -1,7 +1,7 @@
 from __future__ import annotations
 import time
 import sys
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 import typing
 from worlds import AutoWorldRegister, network_data_package
 import json
@@ -237,7 +237,7 @@ class ManualContext(SuperContext):
 
         if tracker_error:
             self._messagebox_connection_loss = self.gui_error(
-                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.", 
+                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.",
                 formatted_tb)
         else:
             self._messagebox_connection_loss = self.gui_error(msg, formatted_tb)
@@ -377,7 +377,7 @@ class ManualContext(SuperContext):
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
                 self.item_categories = ["(No Category)"]
-                self.listed_locations = {"(No Category)": [], "(Hinted)": []}
+                self.listed_locations: Dict[str, List[int]] = {"(No Category)": [], "(Hinted)": []}
                 self.location_categories = ["(No Category)", "(Hinted)"]
 
             def set_active_item_accordion(self, instance):
@@ -525,8 +525,14 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
-                for category in self.listed_locations:
-                    self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                if getattr(AutoWorldRegister.world_types[self.ctx.game], "sort_locations_alphabetically", True):
+                    # sort by location name
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                else:
+                    # sort by location ID
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort()
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -610,12 +616,12 @@ class ManualContext(SuperContext):
 
                 if self.ctx.search_term:
                     items_length = len([
-                        i for i in self.ctx.items_received 
+                        i for i in self.ctx.items_received
                             if self.ctx.search_term.lower() in self.ctx.item_names.lookup_in_game(i.item).lower()
                     ])
 
                     locations_length = len([
-                        l for l in self.ctx.missing_locations 
+                        l for l in self.ctx.missing_locations
                             if self.ctx.search_term.lower() in self.ctx.location_names.lookup_in_game(l).lower()
                     ])
 
@@ -685,9 +691,16 @@ class ManualContext(SuperContext):
                                 self.listed_items[category_name].clear()
 
                                 # Label (for all item listings)
-                                sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received 
-                                ], key=self.ctx.item_names.lookup_in_game)
+                                if getattr(AutoWorldRegister.world_types[self.ctx.game], "sort_items_alphabetically", True):
+                                    # sort by item name
+                                    sorted_items_received = sorted([
+                                        i.item for i in self.ctx.items_received
+                                    ], key=self.ctx.item_names.lookup_in_game)
+                                else:
+                                    # sort by item ID
+                                    sorted_items_received = sorted([
+                                        i.item for i in self.ctx.items_received
+                                    ])
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
@@ -776,7 +789,7 @@ class ManualContext(SuperContext):
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
                                             # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                             if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                                hide_button_during_search(location_button)                                            
+                                                hide_button_during_search(location_button)
                                             else:
                                                 show_button_during_search(location_button)
                                                 category_count += 1
@@ -804,10 +817,10 @@ class ManualContext(SuperContext):
 
                                         # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                            hide_button_during_search(location_button)                                            
+                                            hide_button_during_search(location_button)
                                         else:
                                             show_button_during_search(location_button)
-                                                                                        
+
                                             if was_reachable:
                                                 reachable_count += 1
 

@@ -69,3 +69,6 @@ world_description: str = set_world_description("""
 world_webworld: ManualWeb = set_world_webworld(ManualWeb())
 
 enable_region_diagram = bool(meta_table.get("enable_region_diagram", False))
+
+sort_items_alphabetically = bool(meta_table.get("sort_items_alphabetically", True))
+sort_locations_alphabetically = bool(meta_table.get("sort_locations_alphabetically", True))
