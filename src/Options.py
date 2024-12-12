@@ -7,10 +7,13 @@ from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
 
+from .manual.ManualHooks import ManualHooks
+
 from dataclasses import make_dataclass
 from typing import List
 import logging
 
+hooks = ManualHooks()
 
 class FillerTrapPercent(Range):
     """How many fillers will be replaced with traps. 0 means no additional traps, 100 means all fillers are traps."""
@@ -58,7 +61,7 @@ def addOptionToGroup(option_name: str, group: str):
 # Manual's default options
 ######################
 
-manual_options = before_options_defined({})
+manual_options = hooks("before_options_defined", {})
 manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 if len(victory_names) > 1:
@@ -237,5 +240,6 @@ def make_options_group() -> list[OptionGroup]:
 
     return after_option_groups_created(option_groups)
 
-manual_options = after_options_defined(manual_options)
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))
+manual_options = hooks("after_options_defined", manual_options_data)
+

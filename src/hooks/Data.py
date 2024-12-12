@@ -1,6 +1,10 @@
+from worlds.AutoWorld import World
+from BaseClasses import MultiWorld
+
 # called after the game.json file has been loaded
 def after_load_game_file(game_table: dict) -> dict:
     return game_table
+
 # called after the items.json file has been loaded, before any item loading or processing has occurred
 # if you need access to the items after processing to add ids, etc., you should use the hooks in World.py
 def after_load_item_file(item_table: list) -> list:
@@ -39,5 +43,5 @@ def after_load_meta_file(meta_table: dict) -> dict:
 # called when an external tool (eg Universal Tracker) ask for slot data to be read
 # use this if you want to restore more data
 # return True if you want to trigger a regeneration if you changed anything
-def hook_interpret_slot_data(world, player: int, slot_data: dict[str, any]) -> dict | bool:
+def hook_interpret_slot_data(slot_data: dict[str, any], world: World, multiworld: MultiWorld, player: int) -> dict | bool:
     return False

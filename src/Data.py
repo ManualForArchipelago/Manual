@@ -3,11 +3,9 @@ import logging
 from .DataValidation import DataValidation, ValidationError
 from .Helpers import load_data_file as helpers_load_data_file
 
-from .hooks.Data import \
-    after_load_game_file, \
-    after_load_item_file, after_load_location_file, \
-    after_load_region_file, after_load_category_file, \
-    after_load_option_file, after_load_meta_file
+from .manual.ManualHooks import ManualHooks
+
+hooks = ManualHooks()
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
@@ -49,13 +47,13 @@ region_table.pop('$schema', '')
 category_table.pop('$schema', '')
 
 # hooks
-game_table = after_load_game_file(game_table)
-item_table = after_load_item_file(item_table)
-location_table = after_load_location_file(location_table)
-region_table = after_load_region_file(region_table)
-category_table = after_load_category_file(category_table)
-option_table = after_load_option_file(option_table)
-meta_table = after_load_meta_file(meta_table)
+game_table = hooks("after_load_game_file", game_table)
+item_table = hooks("after_load_item_file", item_table)
+location_table = hooks("after_load_location_file", location_table)
+region_table = hooks("after_load_region_file", region_table)
+category_table = hooks("after_load_category_file", category_table)
+option_table = hooks("after_load_option_file", option_table)
+meta_table = hooks("after_load_meta_file", meta_table)
 
 # seed all of the tables for validation
 DataValidation.game_table = game_table
@@ -84,3 +82,5 @@ if len(validation_errors) > 0:
     logging.error("\nValidationError(s): \n\n%s\n\n" % ("\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
     print("\n\nYou can close this window.\n")
     keeping_terminal_open = input("If you are running from a terminal, press Ctrl-C followed by ENTER to break execution.")
+
+hooks = None
