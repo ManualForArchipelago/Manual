@@ -83,6 +83,7 @@ if game_table.get("death_link"):
 ######################
 
 for option_name, option in option_table.get('core', {}).items():
+    option_name = option_name.strip().replace(" ", "_")
     if option_name.startswith('_'): #To allow commenting out options
         continue
 
@@ -144,6 +145,7 @@ for option_name, option in option_table.get('core', {}).items():
 
 supported_option_types = ["Toggle", "Choice", "Range"]
 for option_name, option in option_table.get('user', {}).items():
+    option_name = option_name.strip().replace(" ", "_")
     if option_name.startswith('_'): #To allow commenting out options
         continue
 
@@ -197,6 +199,7 @@ for option_name, option in option_table.get('user', {}).items():
 
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
+        option_name = option_name.strip().replace(" ", "_")
         if option_name[0] == "!":
             option_name = option_name[1:]
         if option_name not in manual_options:
@@ -207,6 +210,7 @@ if starting_items:
     for starting_items in starting_items:
         if starting_items.get("yaml_option"):
             for option_name in starting_items["yaml_option"]:
+                option_name = option_name.strip().replace(" ", "_")
                 if option_name[0] == "!":
                     option_name = option_name[1:]
                 if option_name not in manual_options:
