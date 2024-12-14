@@ -2,7 +2,7 @@ from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Cho
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
-from .Helpers import convert_to_long_string
+from .Helpers import convert_to_long_string, format_to_valid_identifier
 from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
@@ -83,9 +83,9 @@ if game_table.get("death_link"):
 ######################
 
 for option_name, option in option_table.get('core', {}).items():
-    option_name = option_name.strip().replace(" ", "_")
     if option_name.startswith('_'): #To allow commenting out options
         continue
+    option_name = format_to_valid_identifier(option_name)
 
     if manual_options.get(option_name):
         original_option: Option = manual_options[option_name]
@@ -145,10 +145,9 @@ for option_name, option in option_table.get('core', {}).items():
 
 supported_option_types = ["Toggle", "Choice", "Range"]
 for option_name, option in option_table.get('user', {}).items():
-    option_name = option_name.strip().replace(" ", "_")
     if option_name.startswith('_'): #To allow commenting out options
         continue
-
+    option_name = format_to_valid_identifier(option_name)
     if manual_options.get(option_name):
         logging.warning(f"Manual: An option with the name '{option_name}' cannot be added since it already exists in Manual Core Options. \nTo modify an existing option move it to the 'core' section of Option.json")
 
@@ -199,9 +198,9 @@ for option_name, option in option_table.get('user', {}).items():
 
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
-        option_name = option_name.strip().replace(" ", "_")
         if option_name[0] == "!":
             option_name = option_name[1:]
+        option_name = format_to_valid_identifier(option_name)
         if option_name not in manual_options:
             manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
@@ -210,9 +209,9 @@ if starting_items:
     for starting_items in starting_items:
         if starting_items.get("yaml_option"):
             for option_name in starting_items["yaml_option"]:
-                option_name = option_name.strip().replace(" ", "_")
                 if option_name[0] == "!":
                     option_name = option_name[1:]
+                option_name = format_to_valid_identifier(option_name)
                 if option_name not in manual_options:
                     manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
                     manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"

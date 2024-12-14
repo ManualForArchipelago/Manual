@@ -68,12 +68,12 @@ def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str)
 def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
-            option_name = option_name.strip().replace(" ", "_")
             required = True
             if option_name.startswith("!"):
                 option_name = option_name[1:]
                 required = False
 
+            option_name = format_to_valid_identifier(option_name)
             if is_option_enabled(multiworld, player, option_name) != required:
                 return False
     return True
@@ -206,3 +206,10 @@ def convert_to_long_string(input: str | list[str]) -> str:
     if not isinstance(input, str):
         return str.join("\n    ", input)
     return input
+
+def format_to_valid_identifier(input: str) -> str:
+    """Make sure the input is a valid python identifier"""
+    input = input.strip()
+    if input[:1].isdigit():
+        input = "_" + input
+    return input.replace(" ", "_")
