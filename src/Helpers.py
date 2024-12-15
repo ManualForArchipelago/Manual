@@ -241,10 +241,10 @@ def convert_string_to_type(input: str, target_type: type) -> any:
             if value.lower() == 'none':
                 return None
         elif issubclass(value_type, bool):
-            if value.lower() in ['true', '1']:
+            if value.lower() in ['true', '1', 'on']:
                 return True
 
-            elif value.lower() in ['false', '0']:
+            elif value.lower() in ['false', '0', 'off']:
                 return False
 
             else:
