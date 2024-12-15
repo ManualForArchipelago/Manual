@@ -216,7 +216,6 @@ def convert_string_to_type(input: str, target_type: type) -> any:
     \nif you want this to possibly fail without Exceptions include str in target_type, your input should get returned if all the other conversions fails
     """
     types = []
-
     if issubclass(type(target_type), type): #is it a single type (str, list, etc)
         types.append(target_type)
 
@@ -230,16 +229,23 @@ def convert_string_to_type(input: str, target_type: type) -> any:
             if str in args_list:
                 types.remove(str) # Sort str to the back
                 types.append(str)
+
+        elif target_type.__module__ == "builtins":
+            types.append(target_type.__origin__) #hopefully this catch list[str] and dict{str:int}
+
         else:
             raise Exception(f"'{value}' cannot be converted to {target_type} since its not a supported type")
 
     value = input.strip()
     i = 0
+    errors = []
     for value_type in types:
         i += 1
         if issubclass(value_type, type(None)):
             if value.lower() == 'none':
                 return None
+            errors.append(str(value_type) + ": value was not 'none'")
+
         elif issubclass(value_type, bool):
             if value.lower() in ['true', '1', 'on']:
                 return True
@@ -250,12 +256,23 @@ def convert_string_to_type(input: str, target_type: type) -> any:
             else:
                 if i == len(types):
                     return value_type(value) #if its the last type might as well try and convert to bool
+                errors.append(str(value_type) + ": value was not in either ['true', '1', 'on'] or ['false', '0', 'off']")
+
+        elif issubclass(value_type, list) or issubclass(value_type, dict):
+            try:
+                return eval(value)
+
+            except Exception as e:
+                errors.append(str(value_type) + ": " + str(e))
+                continue
 
         else:
             try:
                 return value_type(value)
 
-            except ValueError:
+            except ValueError as e:
+                errors.append(str(value_type) + ": " + str(e))
                 continue
 
-    raise Exception(f"'{value}' could not be converted to {target_type}")
+    newline = "\n"
+    raise Exception(f"'{value}' could not be converted to {target_type}, here's the conversion failure message(s):\n\n{newline.join([' - ' + str(validation_error) for validation_error in errors])}\n\n")
