@@ -555,7 +555,7 @@ class ManualContext(SuperContext):
                     locations_in_category = len(self.listed_locations[location_category])
 
                     if (location_category in victory_categories) or \
-                        (len(victory_categories) == 0 and location_category == "(No Category)"):
+                        (not victory_categories and location_category == "(No Category)"):
                         locations_in_category += 1
 
                     category_tree = locations_panel.add_node(
