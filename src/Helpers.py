@@ -215,26 +215,30 @@ def convert_string_to_type(input: str, target_type: type) -> any:
     - If bool is the last type in target_type it also run the input directly through bool(input) if previous fails
     \nif you want this to possibly fail without Exceptions include str in target_type, your input should get returned if all the other conversions fails
     """
-    types = []
-    if issubclass(type(target_type), type): #is it a single type (str, list, etc)
-        types.append(target_type)
-
-    else:
-        if target_type.__module__ in ['typing', 'types']:
-            args_list = list(target_type.__args__)
-            if type(None) in args_list:
-                types.append(type(None)) # Sort None to the front
-                args_list.remove(type(None))
-            types.extend(args_list)
-            if str in args_list:
-                types.remove(str) # Sort str to the back
-                types.append(str)
-
-        elif target_type.__module__ == "builtins":
-            types.append(target_type.__origin__) #hopefully this catch list[str] and dict{str:int}
+    def checktype(target_type, types: set, initial: bool = True):
+        if issubclass(type(target_type), type): #is it a single type (str, list, etc)
+            types.add(target_type)
 
         else:
-            raise Exception(f"'{value}' cannot be converted to {target_type} since its not a supported type")
+            if target_type.__module__ in ['typing', 'types']:
+                args_list = list(target_type.__args__)
+
+                if initial: #dont loop more than once
+                    for arg in args_list:
+                        checktype(arg, types, False)
+
+            elif target_type.__module__ == "builtins":
+                types.add(target_type.__origin__) #hopefully this catch list[str] and dict{str:int}
+
+            else:
+                raise Exception(f"'{value}' cannot be converted to {target_type} since its not a supported type")
+    types = set()
+    checktype(target_type, types)
+
+    original_input_type_requested = False
+    if str in types: #do it last
+        types.remove(str)
+        original_input_type_requested = True
 
     value = input.strip()
     i = 0
@@ -270,9 +274,12 @@ def convert_string_to_type(input: str, target_type: type) -> any:
             try:
                 return value_type(value)
 
-            except ValueError as e:
+            except Exception as e:
                 errors.append(str(value_type) + ": " + str(e))
                 continue
+
+    if original_input_type_requested:
+        return input
 
     newline = "\n"
     raise Exception(f"'{value}' could not be converted to {target_type}, here's the conversion failure message(s):\n\n{newline.join([' - ' + str(validation_error) for validation_error in errors])}\n\n")
