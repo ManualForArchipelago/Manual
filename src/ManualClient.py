@@ -520,7 +520,7 @@ class ManualContext(SuperContext):
                     if category not in self.listed_locations:
                         self.listed_locations[category] = []
                 
-                if len(victory_categories) == 0:
+                if not victory_categories:
                     victory_categories.add("(No Category)")
 
                 for category in self.listed_locations:
