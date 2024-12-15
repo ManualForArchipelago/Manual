@@ -205,3 +205,57 @@ def convert_to_long_string(input: str | list[str]) -> str:
     if not isinstance(input, str):
         return str.join("\n    ", input)
     return input
+
+def convert_string_to_type(input: str, target_type: type) -> any:
+    """Take a string and attempt to convert it to {target_type}
+    \ntarget_type can be a single type(ex. str), an union (int|str), an Optional type (Optional[str]) or a combo of any of those (Optional[int|str])
+    \nSpecial logic:
+    - When target_type is Optional or contains None: it will check if input.lower() is "none"
+    - When target_type contains bool: it will check if input.lower() is "true", "1", "false" or "0"
+    - If bool is the last type in target_type it also run the input directly through bool(input) if previous fails
+    \nif you want this to possibly fail without Exceptions include str in target_type, your input should get returned if all the other conversions fails
+    """
+    types = []
+
+    if issubclass(type(target_type), type): #is it a single type (str, list, etc)
+        types.append(target_type)
+
+    else:
+        if target_type.__module__ in ['typing', 'types']:
+            args_list = list(target_type.__args__)
+            if type(None) in args_list:
+                types.append(type(None)) # Sort None to the front
+                args_list.remove(type(None))
+            types.extend(args_list)
+            if str in args_list:
+                types.remove(str) # Sort str to the back
+                types.append(str)
+        else:
+            raise Exception(f"'{value}' cannot be converted to {target_type} since its not a supported type")
+
+    value = input.strip()
+    i = 0
+    for value_type in types:
+        i += 1
+        if issubclass(value_type, type(None)):
+            if value.lower() == 'none':
+                return None
+        elif issubclass(value_type, bool):
+            if value.lower() in ['true', '1']:
+                return True
+
+            elif value.lower() in ['false', '0']:
+                return False
+
+            else:
+                if i == len(types):
+                    return value_type(value) #if its the last type might as well try and convert to bool
+
+        else:
+            try:
+                return value_type(value)
+
+            except ValueError:
+                continue
+
+    raise Exception(f"'{value}' could not be converted to {target_type}")
