@@ -2,7 +2,7 @@ from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Cho
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
-from .Helpers import convert_to_long_string
+from .Helpers import convert_to_long_string, format_to_valid_identifier
 from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
@@ -85,6 +85,8 @@ if game_table.get("death_link"):
 for option_name, option in option_table.get('core', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
+    option_display_name = option_name
+    option_name = format_to_valid_identifier(option_name)
 
     if manual_options.get(option_name):
         original_option: Option = manual_options[option_name]
@@ -97,18 +99,18 @@ for option_name, option in option_table.get('core', {}).items():
                 if original_option.__base__ != option_type: #only recreate if needed
                     args = getOriginalOptionArguments(original_option)
                     manual_options[option_name] = type(option_name, (option_type,), dict(args))
-                    logging.debug(f"Manual: Option.json converted option '{option_name}' into a {option_type}")
+                    logging.debug(f"Manual: Option.json converted option '{option_display_name}' into a {option_type}")
 
         elif issubclass(original_option, Choice):
             if option.get("values"):
-                raise Exception(f"You cannot modify the values of the '{option_name}' option since they cannot have their value changed by Option.json")
+                raise Exception(f"You cannot modify the values of the '{option_display_name}' option since they cannot have their value changed by Option.json")
 
             if option.get('aliases'):
                 for alias, value in option['aliases'].items():
                     original_option.aliases[alias] = value
                 original_option.options.update(original_option.aliases)  #for an alias to be valid it must also be in options
 
-                logging.debug(f"Manual: Option.json modified option '{option_name}''s aliases")
+                logging.debug(f"Manual: Option.json modified option '{option_display_name}''s aliases")
 
         elif issubclass(original_option, Range):
             if option.get('values'): #let user add named values
@@ -122,10 +124,13 @@ for option_name, option in option_table.get('core', {}).items():
                 args['special_range_names'] = {**args['special_range_names'], **{l.lower(): v for l, v in option['values'].items()}}
 
                 manual_options[option_name] = type(option_name, (NamedRange,), dict(args))
-                logging.debug(f"Manual: Option.json converted option '{option_name}' into a {NamedRange}")
+                logging.debug(f"Manual: Option.json converted option '{option_display_name}' into a {NamedRange}")
 
         if option.get('display_name'):
             manual_options[option_name].display_name = option['display_name']
+
+        elif option_name != option_display_name:
+            manual_options[option_name].display_name = option_display_name
 
         manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', original_doc))
         if option.get('rich_text_doc'):
@@ -139,24 +144,25 @@ for option_name, option in option_table.get('core', {}).items():
         elif option.get('visibility'):
             manual_options[option_name].visibility = convertOptionVisibility(option['visibility'])
     else:
-        logging.debug(f"Manual: Option.json just tried to modify the option '{option_name}' but it doesn't currently exists")
+        logging.debug(f"Manual: Option.json just tried to modify the option '{option_display_name}' but it doesn't currently exists")
 
 
 supported_option_types = ["Toggle", "Choice", "Range"]
 for option_name, option in option_table.get('user', {}).items():
     if option_name.startswith('_'): #To allow commenting out options
         continue
-
+    option_display_name =  option_name
+    option_name = format_to_valid_identifier(option_name)
     if manual_options.get(option_name):
-        logging.warning(f"Manual: An option with the name '{option_name}' cannot be added since it already exists in Manual Core Options. \nTo modify an existing option move it to the 'core' section of Option.json")
+        logging.warning(f"Manual: An option with the name '{option_display_name}' cannot be added since it already exists in Manual Core Options. \nTo modify an existing option move it to the 'core' section of Option.json")
 
     else:
         option_type = option.get('type', "").title()
 
         if option_type not in supported_option_types:
-            raise Exception(f'Option {option_name} in options.json has an invalid type of "{option["type"]}".\nIt must be one of the folowing: {supported_option_types}')
+            raise Exception(f'Option {option_display_name} in options.json has an invalid type of "{option["type"]}".\nIt must be one of the folowing: {supported_option_types}')
 
-        args = {'display_name': option.get('display_name', option_name)}
+        args = {'display_name': option.get('display_name', option_display_name)}
 
         if option_type == "Toggle":
             value = option.get('default', False)
@@ -199,6 +205,7 @@ for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
         if option_name[0] == "!":
             option_name = option_name[1:]
+        option_name = format_to_valid_identifier(option_name)
         if option_name not in manual_options:
             manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
@@ -209,6 +216,7 @@ if starting_items:
             for option_name in starting_items["yaml_option"]:
                 if option_name[0] == "!":
                     option_name = option_name[1:]
+                option_name = format_to_valid_identifier(option_name)
                 if option_name not in manual_options:
                     manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
                     manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
