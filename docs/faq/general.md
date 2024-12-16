@@ -34,6 +34,8 @@ If the locations/items would normally be 18+, you'll need to change those.
 
 Beyond that, you can make a Manual apworld of anything, even something that's 18+.
 
+If your Manual can only be played on the After Dark server, we ask that you use the After Dark tag on your thread.
+
 ## What is the difference between a progression item, a useful item, and a filler item?
 **A:**
 - Progression items unlock or help to unlock a location check. Any location can have an important item, so these unlocking items need to be marked as progression.
