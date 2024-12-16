@@ -48,9 +48,6 @@ In terms of generation, the world generation will prioritize progression items t
 ## Can I share save files, patches, or mods that help with a Manual implementation?
 Yes! All three of those are fine, as long as the patches or mods do not contain material that is not allowed in our Discord rules. The patches or mods also cannot be a solution for game piracy, which is also disallowed by our rules.
 
-## Are there any requirements for game.json entries for "game" and "creator" ("player" in legacy versions)?
-Yes, the "game" entry must each contain at least 5 letters or numbers, and the "creator" / "player" entry must contain at least 3.
-
 ## Is the code for Manual publicly available?
 Yes! The code for Manual exists in its own repository on Github here: https://github.com/ManualForArchipelago/Manual
 
