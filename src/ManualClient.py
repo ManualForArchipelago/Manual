@@ -511,17 +511,15 @@ class ManualContext(SuperContext):
                         self.listed_locations["(No Category)"].append(location_id)
 
                 victory_location =  self.ctx.goal_location
-                victory_categories = set()
+                victory_categories = set(victory_location.get("category", []))
 
-                if "category" in victory_location and len(victory_location["category"]) > 0:
-                    for category in victory_location["category"]:
-                        if category not in self.location_categories:
-                            self.location_categories.append(category)
+                for category in victory_categories:
+                    if category not in self.location_categories:
+                        self.location_categories.append(category)
 
-                        if category not in self.listed_locations:
-                            self.listed_locations[category] = []
-                            victory_categories.add(category)
-
+                    if category not in self.listed_locations:
+                        self.listed_locations[category] = []
+                
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
@@ -556,8 +554,8 @@ class ManualContext(SuperContext):
                 for location_category in sorted(self.listed_locations.keys()):
                     locations_in_category = len(self.listed_locations[location_category])
 
-                    if ("category" in victory_location and location_category in victory_location["category"]) or \
-                        ("category" not in victory_location and location_category == "(No Category)"):
+                    if (location_category in victory_categories) or \
+                        (not victory_categories and location_category == "(No Category)"):
                         locations_in_category += 1
 
                     category_tree = locations_panel.add_node(
