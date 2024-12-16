@@ -37,7 +37,6 @@ Beyond that, you can make a Manual apworld of anything, even something that's 18
 If your Manual can only be played on the After Dark server, we ask that you use the After Dark tag on your thread.
 
 ## What is the difference between a progression item, a useful item, and a filler item?
-**A:**
 - Progression items unlock or help to unlock a location check. Any location can have an important item, so these unlocking items need to be marked as progression.
 - Useful items are items that you would prefer to get in the game, but that don't unlock any location checks. Stronger armor and weapons would be examples of things in this category.
 - Filler items are items that can be found, but these items neither unlock location checks or meaningfully assist the player in completing the game.
