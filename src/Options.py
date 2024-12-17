@@ -1,16 +1,20 @@
 from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
-from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
 from .Data import category_table, game_table, option_table
 from .Helpers import convert_to_long_string, format_to_valid_identifier
 from .Locations import victory_names
 from .Items import item_table
 from .Game import starting_items
 
+from .manual.Hooks import OptionsHooks
+
 from dataclasses import make_dataclass
 from typing import List
 import logging
 
+hooks = {
+    "options": OptionsHooks()
+}
 
 class FillerTrapPercent(Range):
     """How many fillers will be replaced with traps. 0 means no additional traps, 100 means all fillers are traps."""
@@ -58,7 +62,7 @@ def addOptionToGroup(option_name: str, group: str):
 # Manual's default options
 ######################
 
-manual_options = before_options_defined({})
+manual_options = hooks["options"].call('before_options_defined', {}) or {}
 manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 if len(victory_names) > 1:
@@ -227,7 +231,7 @@ if starting_items:
 
 def make_options_group() -> list[OptionGroup]:
     global manual_option_groups
-    manual_option_groups = before_option_groups_created(manual_option_groups)
+    manual_option_groups = hooks["options"].call('before_option_groups_created', manual_option_groups) or manual_option_groups
     option_groups: List[OptionGroup] = []
 
     # For some reason, unless they are added manually, the base item and loc option don't get grouped as they should
@@ -243,7 +247,7 @@ def make_options_group() -> list[OptionGroup]:
 
     option_groups.append(OptionGroup('Item & Location Options', base_item_loc_group, True))
 
-    return after_option_groups_created(option_groups)
+    return hooks["options"].call('after_option_groups_created', option_groups) or option_groups
 
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))
-after_options_defined(manual_options_data)
+hooks["options"].call('after_options_defined', manual_options_data)

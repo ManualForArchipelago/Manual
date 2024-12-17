@@ -6,13 +6,17 @@ import json
 from BaseClasses import MultiWorld, Item
 from typing import Optional, List, TYPE_CHECKING
 from worlds.AutoWorld import World
-from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
+from .manual.Hooks import HelpersHooks
 
 from typing import Union
 
 if TYPE_CHECKING:
     from .Items import ManualItem
     from .Locations import ManualLocation
+
+hooks = {
+    "helpers": HelpersHooks()
+}
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
@@ -58,7 +62,7 @@ def clamp(value, min, max):
 def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> bool:
     from .Data import category_table
     """Check if a category has been disabled by a yaml option."""
-    hook_result = before_is_category_enabled(multiworld, player, category_name)
+    hook_result = hooks["helpers"].before_is_category_enabled(multiworld, player, category_name) or None
     if hook_result is not None:
         return hook_result
 
@@ -88,7 +92,7 @@ def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) ->
 
 def is_item_enabled(multiworld: MultiWorld, player: int, item: "ManualItem") -> bool:
     """Check if an item has been disabled by a yaml option."""
-    hook_result = before_is_item_enabled(multiworld, player, item)
+    hook_result = hooks["helpers"].before_is_item_enabled(multiworld, player, item) or None
     if hook_result is not None:
         return hook_result
 
@@ -104,7 +108,7 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
 
 def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLocation") -> bool:
     """Check if a location has been disabled by a yaml option."""
-    hook_result = before_is_location_enabled(multiworld, player, location)
+    hook_result = hooks["helpers"].before_is_location_enabled(multiworld, player, location) or None
     if hook_result is not None:
         return hook_result
 

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
 from worlds.generic.Rules import set_rule, add_rule
 from .Regions import regionMap
-from .hooks import Rules
+from .manual.Hooks import RulesHooks
 
 from BaseClasses import MultiWorld, CollectionState
 from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
@@ -125,7 +125,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         func = globals().get(func_name)
 
                         if func is None:
-                            func = getattr(Rules, func_name, None)
+                            func = getattr(RulesHooks, func_name, None)
 
                         if not callable(func):
                             raise ValueError(f"Invalid function `{func_name}` in {area}.")
