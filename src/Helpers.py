@@ -242,10 +242,9 @@ def convert_string_to_type(input: str, target_type: type) -> any:
     found_types = []
     checktype(target_type, found_types)
 
-    original_input_type_requested = False
     if str in found_types: #do it last
         found_types.remove(str)
-        original_input_type_requested = True
+        found_types.append(str)
 
     value = input.strip()
     i = 0
@@ -288,9 +287,6 @@ def convert_string_to_type(input: str, target_type: type) -> any:
             except Exception as e:
                 errors.append(str(value_type) + ": " + str(e))
                 continue
-
-    if original_input_type_requested:
-        return input
 
     newline = "\n"
     raise Exception(f"'{value}' could not be converted to {target_type}, here's the conversion failure message(s):\n\n{newline.join([' - ' + str(validation_error) for validation_error in errors])}\n\n")
