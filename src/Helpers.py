@@ -4,11 +4,10 @@ import pkgutil
 import json
 
 from BaseClasses import MultiWorld, Item
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, Union, get_args, get_origin
+from types import GenericAlias
 from worlds.AutoWorld import World
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
-
-from typing import Union
 
 if TYPE_CHECKING:
     from .Items import ManualItem
@@ -213,3 +212,81 @@ def format_to_valid_identifier(input: str) -> str:
     if input[:1].isdigit():
         input = "_" + input
     return input.replace(" ", "_")
+
+def convert_string_to_type(input: str, target_type: type) -> any:
+    """Take a string and attempt to convert it to {target_type}
+    \ntarget_type can be a single type(ex. str), an union (int|str), an Optional type (Optional[str]) or a combo of any of those (Optional[int|str])
+    \nSpecial logic:
+    - When target_type is Optional or contains None: it will check if input.lower() is "none"
+    - When target_type contains bool: it will check if input.lower() is "true", "1", "false" or "0"
+    - If bool is the last type in target_type it also run the input directly through bool(input) if previous fails
+    \nif you want this to possibly fail without Exceptions include str in target_type, your input should get returned if all the other conversions fails
+    """
+    def checktype(target_type, found_types: list):
+        if issubclass(type(target_type), type): #is it a single type (str, list, etc)
+            if target_type not in found_types:
+                found_types.append(target_type)
+
+        elif issubclass(type(target_type), GenericAlias): #is it something like list[str] and dict{str:int}
+            if target_type not in found_types and get_origin(target_type) not in found_types: #dont add 'dict[str]' if we already search for 'dict'
+                found_types.append(target_type)
+
+        elif issubclass(type(target_type), type(str|int)) \
+            or issubclass(type(target_type), type(Union[str|int])): #Support both version of Union, and Optional and other alike
+            for arg in get_args(target_type):
+                checktype(arg, found_types)
+
+        else:
+            raise Exception(f"'{value}' cannot be converted to {target_type} since its not a supported type \nAsk about it in #Manual-support and it might be added.")
+
+    found_types = []
+    checktype(target_type, found_types)
+
+    if str in found_types: #do it last
+        found_types.remove(str)
+        found_types.append(str)
+
+    value = input.strip()
+    i = 0
+    errors = []
+    for value_type in found_types:
+        i += 1
+        if issubclass(value_type, type(None)):
+            if value.lower() == 'none':
+                return None
+            errors.append(str(value_type) + ": value was not 'none'")
+
+        elif issubclass(value_type, bool):
+            if value.lower() in ['true', '1', 'on']:
+                return True
+
+            elif value.lower() in ['false', '0', 'off']:
+                return False
+
+            else:
+                if i == len(found_types):
+                    return value_type(value) #if its the last type might as well try and convert to bool
+                errors.append(str(value_type) + ": value was not in either ['true', '1', 'on'] or ['false', '0', 'off']")
+
+        elif issubclass(value_type, list) or issubclass(value_type, dict) \
+            or issubclass(value_type, set) or issubclass(type(value_type), GenericAlias):
+            try:
+                converted_value = eval(value)
+                compareto = get_origin(value_type) if issubclass(type(value_type), GenericAlias) else value_type
+                if issubclass(compareto, type(converted_value)):
+                    return converted_value
+                else:
+                    errors.append(str(value_type) + f": value '{value}' was not a valid {str(compareto)}")
+            except Exception as e:
+                errors.append(str(value_type) + ": " + str(e))
+                continue
+        else:
+            try:
+                return value_type(value)
+
+            except Exception as e:
+                errors.append(str(value_type) + ": " + str(e))
+                continue
+
+    newline = "\n"
+    raise Exception(f"'{value}' could not be converted to {target_type}, here's the conversion failure message(s):\n\n{newline.join([' - ' + str(validation_error) for validation_error in errors])}\n\n")
