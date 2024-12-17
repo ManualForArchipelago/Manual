@@ -214,6 +214,9 @@ class ManualWorld(World):
         item = self.item_name_to_item[name]
         classification = ItemClassification.filler
 
+        if "classification" in item and item["classification"]:
+            classification |= ItemClassification[item["classification"]]
+
         if "trap" in item and item["trap"]:
             classification |= ItemClassification.trap
 
