@@ -16,6 +16,10 @@ import logging
 if TYPE_CHECKING:
     from . import ManualWorld
 
+hooks = {
+    "rules": RulesHooks()
+}
+
 class LogicErrorSource(IntEnum):
     INFIX_TO_POSTFIX = 1 # includes more closing parentheses than opening (but not the opposite)
     EVALUATE_POSTFIX = 2 # includes missing pipes and missing value on either side of AND/OR
@@ -125,7 +129,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         func = globals().get(func_name)
 
                         if func is None:
-                            func = getattr(RulesHooks, func_name, None)
+                            func = getattr(hooks["rules"], func_name, None)
 
                         if not callable(func):
                             raise ValueError(f"Invalid function `{func_name}` in {area}.")

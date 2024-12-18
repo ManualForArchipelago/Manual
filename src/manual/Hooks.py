@@ -30,6 +30,17 @@ class Hooks:
         if self.module_name == "Rules":
             self.is_extended = False # user-defined hooks are original, not extending preexisting methods
 
+    def __getattr__(self, hook_func_name: str):
+        try:
+            module = importlib.import_module(f"{self.package_name}.{self.module_name}", self.package_name)
+            module_func = getattr(module, hook_func_name)
+        except ModuleNotFoundError: # the hook file itself doesn't exist
+            return # nothing to do because no hook file, return
+        except AttributeError: # the hook function doesn't exist in the user's specific hooks file
+            return # nothing to do because no hook, return
+
+        return module_func
+
     def call(self, hook_func_name: str, *args):
         if self.__class__.__name__ == "Hooks":
             raise TypeError("It is not intended to use the base Hooks class to call hook methods. Use the appropriate hook class instead.")
