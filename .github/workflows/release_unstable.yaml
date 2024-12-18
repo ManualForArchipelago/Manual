@@ -58,5 +58,5 @@ jobs:
           name: "Unstable - ${{ env.CURRENT_DATE_VERSION }}"
           bodyFile: bodyFile.txt
           tag: ${{ env.BASENAME }}
-          commit: main
+          commit: ${{ env.GITHUB_REF }}
           artifacts: "${{ env.BASENAME }}.apworld"
