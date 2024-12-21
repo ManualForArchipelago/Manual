@@ -1,11 +1,9 @@
-import importlib
 import inspect
-import os
 
 from typing import Type, Optional, TYPE_CHECKING
 
 from worlds.AutoWorld import World
-from BaseClasses import MultiWorld, Item, Location
+from BaseClasses import MultiWorld
 from Options import Option, OptionGroup, PerGameCommonOptions
 
 if TYPE_CHECKING:
@@ -26,14 +24,16 @@ class Hooks:
         
         self.package_name = ".".join([path.worlds_dir_name, path.world_name, self.hooks_dir_name])
         self.module_name = module_name
+        self.module = path.load_module(self.hooks_dir_name, self.module_name)
 
         if self.module_name == "Rules":
             self.is_extended = False # user-defined hooks are original, not extending preexisting methods
 
     def __getattr__(self, hook_func_name: str):
+        if self.module is None:
+            return
         try:
-            module = importlib.import_module(f"{self.package_name}.{self.module_name}", self.package_name)
-            module_func = getattr(module, hook_func_name)
+            module_func = getattr(self.module, hook_func_name)
         except ModuleNotFoundError: # the hook file itself doesn't exist
             return # nothing to do because no hook file, return
         except AttributeError: # the hook function doesn't exist in the user's specific hooks file
@@ -42,6 +42,8 @@ class Hooks:
         return module_func
 
     def call(self, hook_func_name: str, *args):
+        if self.module is None:
+            return
         if self.__class__.__name__ == "Hooks":
             raise TypeError("It is not intended to use the base Hooks class to call hook methods. Use the appropriate hook class instead.")
 
@@ -52,8 +54,7 @@ class Hooks:
                 raise AttributeError(f"The {self.module_name} hook '{hook_func_name}' is either misspelled or does not exist.")
 
         try:
-            module = importlib.import_module(f"{self.package_name}.{self.module_name}", self.package_name)
-            module_func = getattr(module, hook_func_name)
+            module_func = getattr(self.module, hook_func_name)
         except ModuleNotFoundError: # the hook file itself doesn't exist
             return # nothing to do because no hook file, return
         except AttributeError: # the hook function doesn't exist in the user's specific hooks file
