@@ -9,7 +9,7 @@ from ..Locations import ManualLocation
 # Raw JSON data from the Manual apworld, respectively:
 #          data/game.json, data/items.json, data/locations.json, data/regions.json
 #
-from ..Data import game_table, item_table, location_table, region_table
+# from ..Data import game_table, item_table, location_table, region_table  # this will likely break some hooks unfortnite
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value

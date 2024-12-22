@@ -15,11 +15,13 @@ if TYPE_CHECKING:
     from .Locations import ManualLocation
 
 # blatantly copied from the minecraft ap world because why not
-def load_data_file(*args) -> dict:
+def load_data_file(*args, source="") -> dict:
+    if not source:
+        source = __name__
     fname = os.path.join("data", *args)
 
     try:
-        filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
+        filedata = json.loads(pkgutil.get_data(source, fname).decode())
     except:
         filedata = []
 

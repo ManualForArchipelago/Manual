@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
 from worlds.generic.Rules import set_rule, add_rule
-from .Regions import regionMap
+# from .Regions import regionMap
 from .hooks import Rules
 
 from BaseClasses import MultiWorld, CollectionState
@@ -269,19 +269,19 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     used_location_names = []
     # Region access rules
-    for region in regionMap.keys():
+    for region in world.regionMap.keys():
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
             for exitRegion in multiworld.get_region(region, player).exits:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
+                def fullRegionCheck(state: CollectionState, region=world.regionMap[region]):
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
-            entrance_rules = regionMap[region].get("entrance_requires", {})
+            entrance_rules = world.regionMap[region].get("entrance_requires", {})
             for e in entrance_rules:
                 entrance = world.get_entrance(f'{e}To{region}')
                 add_rule(entrance, lambda state, rule={"requires": entrance_rules[e]}: fullLocationOrRegionCheck(state, rule))
-            exit_rules = regionMap[region].get("exit_requires", {})
+            exit_rules = world.regionMap[region].get("exit_requires", {})
             for e in exit_rules:
                 exit = world.get_entrance(f'{region}To{e}')
                 add_rule(exit, lambda state, rule={"requires": exit_rules[e]}: fullLocationOrRegionCheck(state, rule))
@@ -293,7 +293,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
         locFromWorld = multiworld.get_location(location["name"], player)
 
-        locationRegion = regionMap[location["region"]] if "region" in location else None
+        locationRegion = world.regionMap[location["region"]] if "region" in location else None
 
         if locationRegion:
             locationRegion['name'] = location['region']
