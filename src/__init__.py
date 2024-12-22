@@ -450,11 +450,15 @@ class ManualWorld():
 
 from worlds import user_folder
 
+manual_worlds = []
+
 for entry in os.scandir(user_folder):
     if entry.is_file() and entry.name.endswith(".manuworld"):
         data = get_data_Namespace(path=entry, safe=True)  # TODO write the other codepath
         manual_options_data = build_options(data)
-        base_world = type('base_world', (ManualWorld, World, ), {
+        world_name = data.game_name
+
+        manual_worlds.append(type(world_name, (ManualWorld, World, ), {
                 "__doc__": data.world_description,
                 "game": data.game_name,
                 "web": data.world_webworld,
@@ -489,7 +493,7 @@ for entry in os.scandir(user_folder):
 
                 # UT (the universal-est of trackers) can now generate without a YAML
                 "ut_can_gen_without_yaml": True,
-            })
+            }))
 
 
 ###
