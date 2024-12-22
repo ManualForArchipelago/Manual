@@ -2,7 +2,7 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional
+from typing import Callable, Optional, ClassVar
 import webbrowser
 
 import requests
@@ -10,17 +10,17 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, region_table, category_table, meta_table
-from .Game import game_name, filler_item_name, starting_items
-from .Meta import world_description, world_webworld, enable_region_diagram
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
-from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
-from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
+from .Data import get_data_Namespace
+# from .Game import game_name, filler_item_name, starting_items
+# from .Meta import world_description, world_webworld, enable_region_diagram
+# from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
+# from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
+from .DataValidation import DataValidation
 
 from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
-from .Options import manual_options_data
+from .Options import build_options  # manual_options_data
 from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option
 
 from BaseClasses import ItemClassification, Tutorial, Item
@@ -37,38 +37,44 @@ from .hooks.World import \
     before_extend_hint_information, after_extend_hint_information
 from .hooks.Data import hook_interpret_slot_data
 
-class ManualWorld(World):
-    __doc__ = world_description
-    game: str = game_name
-    web = world_webworld
 
-    options_dataclass = manual_options_data
-    data_version = 2
-    required_client_version = (0, 3, 4)
+class ManualWorld():
+    # __doc__ = data.world_description
+    # game: str = data.game_name
+    # web = data.world_webworld
 
-    # These properties are set from the imports of the same name above.
-    item_table = item_table
-    location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
-    category_table = category_table
+    # options_dataclass = manual_options_data
+    # data_version = 2
+    # required_client_version = (0, 3, 4)
 
-    item_id_to_name = item_id_to_name
-    item_name_to_id = item_name_to_id
-    item_name_to_item = item_name_to_item
-    item_name_groups = item_name_groups
+    # # These properties are set from the imports of the same name above.
+    # item_table = data.item_table
+    # location_table = data.location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+    # category_table = data.category_table
+    # data = data
 
-    filler_item_name = filler_item_name
+    # item_id_to_name = data.item_id_to_name
+    # item_name_to_id = data.item_name_to_id
+    # item_name_to_item = data.item_name_to_item
+    # item_name_groups = data.item_name_groups
 
-    item_counts = {}
-    start_inventory = {}
+    # filler_item_name = data.filler_item_name
 
-    location_id_to_name = location_id_to_name
-    location_name_to_id = location_name_to_id
-    location_name_to_location = location_name_to_location
-    location_name_groups = location_name_groups
-    victory_names = victory_names
+    # item_counts = {}
+    # start_inventory = {}
 
-    # UT (the universal-est of trackers) can now generate without a YAML
-    ut_can_gen_without_yaml = True
+    # location_id_to_name = data.location_id_to_name
+    # location_name_to_id = data.location_name_to_id
+    # location_name_to_location = data.location_name_to_location
+    # location_name_groups = data.location_name_groups
+    # victory_names = data.victory_names
+
+    # enable_region_diagram = data.enable_region_diagram
+
+    # # UT (the universal-est of trackers) can now generate without a YAML
+    # ut_can_gen_without_yaml = True
+
+    data_validation: ClassVar[DataValidation]
 
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
@@ -87,7 +93,7 @@ class ManualWorld(World):
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
-        runGenerationDataValidation()
+        cls.data_validation.runGenerationDataValidation()
 
 
     def create_regions(self):
@@ -95,10 +101,10 @@ class ManualWorld(World):
 
         create_regions(self, self.multiworld, self.player)
 
-        location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
+        location_game_complete = self.multiworld.get_location(self.victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
 
-        for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
+        for unused_goal in [self.multiworld.get_location(name, self.player) for name in self.victory_names if name != location_game_complete.name]:
             unused_goal.parent_region.locations.remove(unused_goal)
 
         location_game_complete.place_locked_item(
@@ -116,7 +122,7 @@ class ManualWorld(World):
             # victory gets placed via place_locked_item at the victory location in create_regions
             if name == "__Victory__": continue
             # the game.json filler item name is added to the item lookup, so skip it until it's potentially needed later
-            if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
+            if name == self.filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item  # ignoring this comment but using the classvar because i don't see why they should be different
 
             item = self.item_name_to_item[name]
             item_count = int(item.get("count", 1))
@@ -163,8 +169,8 @@ class ManualWorld(World):
 
         items_started = []
 
-        if starting_items:
-            for starting_item_block in starting_items:
+        if self.data.starting_items:
+            for starting_item_block in self.data.starting_items:
                 if not resolve_yaml_option(self.multiworld, self.player, starting_item_block):
                     continue
                 # if there's a condition on having a previous item, check for any of them
@@ -243,23 +249,23 @@ class ManualWorld(World):
         before_generate_basic(self, self.multiworld, self.player)
 
         # Handle item forbidding
-        manual_locations_with_forbid = {location['name']: location for location in location_name_to_location.values() if "dont_place_item" in location or "dont_place_item_category" in location}
+        manual_locations_with_forbid = {location['name']: location for location in self.location_name_to_location.values() if "dont_place_item" in location or "dont_place_item_category" in location}
         locations_with_forbid = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_forbid.keys()]
         for location in locations_with_forbid:
             manual_location = manual_locations_with_forbid[location.name]
             forbidden_item_names = []
 
             if manual_location.get("dont_place_item"):
-                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
+                forbidden_item_names.extend([i["name"] for i in self.item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
 
             if manual_location.get("dont_place_item_category"):
-                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
+                forbidden_item_names.extend([i["name"] for i in self.item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
 
             if forbidden_item_names:
                 forbid_items_for_player(location, set(forbidden_item_names), self.player)
 
         # Handle specific item placements using fill_restrictive
-        manual_locations_with_placements = {location['name']: location for location in location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
+        manual_locations_with_placements = {location['name']: location for location in self.location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
         locations_with_placements = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_placements.keys()]
         for location in locations_with_placements:
             manual_location = manual_locations_with_placements[location.name]
@@ -275,7 +281,7 @@ class ManualWorld(World):
                 place_messages.append('", "'.join(manual_location["place_item"]))
 
             if manual_location.get("place_item_category"):
-                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
+                eligible_item_names += [i["name"] for i in self.item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
                 place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
 
             # Second we check for forbidden items names
@@ -284,7 +290,7 @@ class ManualWorld(World):
                 forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
 
             if manual_location.get("dont_place_item_category"):
-                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
+                forbidden_item_names += [i["name"] for i in self.item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
                 forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
 
             # If we forbid some names, check for those in the possible names and remove them
@@ -310,13 +316,13 @@ class ManualWorld(World):
         after_generate_basic(self, self.multiworld, self.player)
 
         # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
-        if enable_region_diagram:
+        if self.enable_region_diagram:
             from Utils import visualize_regions
             visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
 
     def pre_fill(self):
         # DataValidation after all the hooks are done but before fill
-        runPreFillDataValidation(self, self.multiworld)
+        cls.data_validation.runPreFillDataValidation(self, self.multiworld)
 
     def fill_slot_data(self):
         slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
@@ -437,9 +443,54 @@ class ManualWorld(World):
             'items': self.item_name_to_item,
             'locations': self.location_name_to_location,
             # todo: extract connections out of multiworld.get_regions() instead, in case hooks have modified the regions.
-            'regions': region_table,
-            'categories': category_table
+            'regions': self.data.region_table,
+            'categories': self.data.category_table
         }
+
+
+from worlds import user_folder
+
+for entry in os.scandir(user_folder):
+    if entry.is_file() and entry.name.endswith(".manuworld"):
+        data = get_data_Namespace(path=entry, safe=True)  # TODO write the other codepath
+        manual_options_data = build_options(data)
+        base_world = type('base_world', (ManualWorld, World, ), {
+                "__doc__": data.world_description,
+                "game": data.game_name,
+                "web": data.world_webworld,
+
+                "options_dataclass": manual_options_data,
+                "data_version": 2,
+                "required_client_version": (0, 3, 4),
+
+                # These properties are set from the imports of the same name above.
+                "item_table": data.item_table,
+                "location_table": data.location_table, # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+                "category_table": data.category_table,
+                "data": data,
+
+                "item_id_to_name": data.item_id_to_name,
+                "item_name_to_id": data.item_name_to_id,
+                "item_name_to_item": data.item_name_to_item,
+                "item_name_groups": data.item_name_groups,
+
+                "filler_item_name": data.filler_item_name,
+
+                "item_counts": {},
+                "start_inventory": {},
+
+                "location_id_to_name": data.location_id_to_name,
+                "location_name_to_id": data.location_name_to_id,
+                "location_name_to_location": data.location_name_to_location,
+                "location_name_groups": data.location_name_groups,
+                "victory_names": data.victory_names,
+
+                "enable_region_diagram": data.enable_region_diagram,
+
+                # UT (the universal-est of trackers) can now generate without a YAML
+                "ut_can_gen_without_yaml": True,
+            })
+
 
 ###
 # Non-world client methods
