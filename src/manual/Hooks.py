@@ -10,28 +10,23 @@ if TYPE_CHECKING:
     from ..Items import ManualItem
     from ..Locations import ManualLocation
 
-from .Path import Path
+from .Module import Module
 
 class Hooks:
     hooks_dir_name: str = "hooks"
-    package_name: str
+    is_extended: bool = True
     module_name: str
 
-    is_extended: bool = True
-
     def __init__(self, module_name: str):
-        path = Path()
+        module = Module()
         
-        self.package_name = ".".join([path.worlds_dir_name, path.world_name, self.hooks_dir_name])
         self.module_name = module_name
-        self.module = path.load_module(self.hooks_dir_name, self.module_name)
-
-        if self.module_name == "Rules":
-            self.is_extended = False # user-defined hooks are original, not extending preexisting methods
+        self.module = module.load(self.hooks_dir_name, self.module_name)
 
     def __getattr__(self, hook_func_name: str):
         if self.module is None:
             return
+
         try:
             module_func = getattr(self.module, hook_func_name)
         except ModuleNotFoundError: # the hook file itself doesn't exist
@@ -44,6 +39,7 @@ class Hooks:
     def call(self, hook_func_name: str, *args):
         if self.module is None:
             return
+
         if self.__class__.__name__ == "Hooks":
             raise TypeError("It is not intended to use the base Hooks class to call hook methods. Use the appropriate hook class instead.")
 
@@ -116,6 +112,7 @@ class OptionsHooks(Hooks):
 class RulesHooks(Hooks):
     def __init__(self):
         super().__init__("Rules")
+        self.is_extended = False; # note that rules hooks are entirely user-created (and not extending other methods), for the purposes of reporting more accurate errors
 
 class WorldHooks(Hooks):
     def __init__(self):
