@@ -334,7 +334,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             index += 1
             target_type = parameter.annotation
 
-            if index < len(args) and args[index].strip() != "":
+            if index < len(args) and args[index] != "":
                 value = args[index].strip()
             else:
                 if parameter.default is not inspect.Parameter.empty:
