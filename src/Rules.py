@@ -326,28 +326,28 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     def convert_req_function_args(func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownArguments = ["world", "multiworld", "state", "player"]
+        knownParameters = ["world", "multiworld", "state", "player"]
         index = -1
-        for parameter, info in parameters.items():
-            if parameter in knownArguments:
+        for parameter in parameters.values():
+            if parameter.name in knownParameters:
                 continue
             index += 1
-            target_type = info.annotation
+            target_type = parameter.annotation
 
             if index < len(args) and args[index].strip() != "":
                 value = args[index].strip()
             else:
-                if info.default is not inspect.Parameter.empty:
+                if parameter.default is not inspect.Parameter.empty:
                     if index < len(args):
-                        args[index] = info.default
+                        args[index] = parameter.default
                     continue
                 else:
-                    if info.annotation is inspect.Parameter.empty:
-                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value for its argument \"{info.name}\" but it's missing.")
+                    if parameter.annotation is inspect.Parameter.empty:
+                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value for its argument \"{parameter.name}\" but it's missing.")
                     else:
-                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type} for its argument \"{info.name}\" but it's missing.")
+                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type} for its argument \"{parameter.name}\" but it's missing.")
 
-            if target_type == str or info.annotation is inspect.Parameter.empty: #Don't convert since its already a string or if we don't know the type to convert to
+            if target_type == str or parameter.annotation is inspect.Parameter.empty: #Don't convert since its already a string or if we don't know the type to convert to
                 args[index] = value
                 continue
 
@@ -355,7 +355,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 value = convert_string_to_type(value, target_type)
 
             except Exception as e:
-                raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type}\nfor its argument \"{info.name}\" but its value \"{value}\" cannot be converted to {target_type} \nOriginal Error:'{e}'")
+                raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type}\nfor its argument \"{parameter.name}\" but its value \"{value}\" cannot be converted to {target_type} \nOriginal Error:'{e}'")
 
             args[index] = value
 
