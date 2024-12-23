@@ -334,7 +334,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             target_type = info.annotation
 
-            if issubclass(type(target_type), type(str)): #Don't convert since its already a string
+            if target_type == str or info is inspect.Parameter.empty: #Don't convert since its already a string and if we don't know the type to convert to
                 continue
 
             if index < len(args):
