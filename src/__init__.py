@@ -4,6 +4,7 @@ import os
 import json
 from typing import Callable, Optional
 import webbrowser
+import sys
 
 import requests
 import Utils
@@ -486,5 +487,5 @@ def add_client_to_launcher() -> None:
     if not discord_component:
         components.append(Component("Manual Discord Server", "ManualDiscord", func=lambda: webbrowser.open("https://discord.gg/hm4rQnTzQ5"), icon="discord", component_type=Type.ADJUSTER))
 
-
-add_client_to_launcher()
+if 'Launcher' in sys.modules:
+    add_client_to_launcher()
