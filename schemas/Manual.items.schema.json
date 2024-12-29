@@ -37,7 +37,8 @@
                 },
                 "count": {
                     "description": "(Optional) Total number of this item that will be in the itempool for randomization.",
-                    "type": "integer",
+                    "type": ["string", "integer"],
+                    "pattern": "^[0-9]+$",
                     "default": 1
                 },
                 "value": {
