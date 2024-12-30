@@ -5,7 +5,7 @@ from .Regions import regionMap
 from .hooks import Rules
 
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
+from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type
 from worlds.AutoWorld import World
 
 import re
@@ -324,76 +324,41 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(func, args: list[str], areaName: str, warn: bool = False):
+    def convert_req_function_args(func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownArguments = ["world", "multiworld", "state", "player"]
-        index = 0
-        for parameter, info in parameters.items():
-            if parameter in knownArguments:
+        knownParameters = ["world", "multiworld", "state", "player"]
+        index = -1
+        for parameter in parameters.values():
+            if parameter.name in knownParameters:
+                continue
+            index += 1
+            target_type = parameter.annotation
+
+            if index < len(args) and args[index] != "":
+                value = args[index].strip()
+            else:
+                if parameter.default is not inspect.Parameter.empty:
+                    if index < len(args):
+                        args[index] = parameter.default
+                    continue
+                else:
+                    if parameter.annotation is inspect.Parameter.empty:
+                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value for its argument \"{parameter.name}\" but it's missing.")
+                    else:
+                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type} for its argument \"{parameter.name}\" but it's missing.")
+
+            if target_type == str or parameter.annotation is inspect.Parameter.empty: #Don't convert since its already a string or if we don't know the type to convert to
+                args[index] = value
                 continue
 
-            argType = info.annotation
-            optional = False
             try:
-                if issubclass(argType, inspect._empty): #if not set then it wont get converted but still be checked for valid data at index
-                    argType = str
+                value = convert_string_to_type(value, target_type)
 
-            except TypeError: # Optional
-                if argType.__module__ == 'typing' and argType._name == 'Optional':
-                    optional = True
-                    argType = argType.__args__[0]
-                else:
-                    #Implementing complex typing is not simple so ill skip it for now
-                    index += 1
-                    continue
+            except Exception as e:
+                raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type}\nfor its argument \"{parameter.name}\" but its value \"{value}\" cannot be converted to {target_type} \nOriginal Error:'{e}'")
 
-            try:
-                value = args[index].strip()
+            args[index] = value
 
-            except IndexError:
-                if info is not inspect.Parameter.empty:
-                    value = info.default
-
-                else:
-                    raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its missing")
-
-            if optional:
-                if isinstance(value, type(None)):
-                    index += 1
-                    continue
-                elif isinstance(value, str):
-                    if value.lower() == 'none':
-                        value = None
-                        args[index] = value
-                        index += 1
-                        continue
-
-
-            if not isinstance(value, argType):
-                if issubclass(argType, bool):
-                    #Special conversion to bool
-                    if value.lower() in ['true', '1']:
-                        value = True
-
-                    elif value.lower() in ['false', '0']:
-                        value = False
-
-                    else:
-                        value = bool(value)
-                        if warn:
-                        # warning here spam the console if called from rules.py, might be worth to make it a data validation instead
-                            logging.warning(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed and thus converted to {value}")
-
-                else:
-                    try:
-                        value = argType(value)
-
-                    except ValueError:
-                        raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its value '{value}' cannot be converted to {argType}")
-
-                args[index] = value
-
-            index += 1
 
 def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
     """When passed a string with this format: 'valueName:int',
