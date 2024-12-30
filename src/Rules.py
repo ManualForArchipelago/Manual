@@ -111,7 +111,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         def findAndRecursivelyExecuteFunctions(requires_list: str, recursionDepth: int = 0) -> str:
             found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
             if found_functions:
-                if recursionDepth >= world.rules_functions_maximum_recursion:
+                if recursionDepth > world.rules_functions_maximum_recursion:
                     raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
                                          \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
                                          \n    And the currently processed requires look like this: "{requires_list}"')
@@ -131,7 +131,13 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                             raise ValueError(f"Invalid function `{func_name}` in {area}.")
 
                         convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
-                        result = func(world, multiworld, state, player, *func_args)
+                        try:
+                            result = func(world, multiworld, state, player, *func_args)
+                        except Exception as e:
+                            raise RuntimeError(f"The function `{func_name}` in the {'region' if area.get("is_region",False) else 'location'} named \"{area.get("name", f"with these parameters: {area}")}\"'s requires raised an Exception. \
+                                                \nUnless it was called by another function, in {'region' if area.get("is_region",False) else 'location'}.json it looks something like {{{func_name}({', '.join(func_args)})}}. \
+                                                \nFull error message: \
+                                                \n{e}")
                         if isinstance(result, bool):
                             requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
                         else:
