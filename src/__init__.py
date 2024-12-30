@@ -28,15 +28,12 @@ from BaseClasses import ItemClassification, Tutorial, Item
 from Options import PerGameCommonOptions
 from worlds.AutoWorld import World, WebWorld
 
-from .hooks.World import \
-    hook_get_filler_item_name, before_create_regions, after_create_regions, \
-    before_create_items_starting, before_create_items_filler, after_create_items, \
-    before_create_item, after_create_item, \
-    before_set_rules, after_set_rules, \
-    before_generate_basic, after_generate_basic, \
-    before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
-    before_extend_hint_information, after_extend_hint_information
-from .hooks.Data import hook_interpret_slot_data
+from .manual.Hooks import DataHooks, WorldHooks
+
+hooks = {
+    "data": DataHooks(),
+    "world": WorldHooks()
+}
 
 class ManualWorld(World):
     __doc__ = world_description
@@ -72,7 +69,7 @@ class ManualWorld(World):
     ut_can_gen_without_yaml = True
 
     def get_filler_item_name(self) -> str:
-        return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
+        return hooks["world"].call('hook_get_filler_item_name', self, self.multiworld, self.player) or self.filler_item_name
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
@@ -83,16 +80,15 @@ class ManualWorld(World):
                 getattr(self.options, key).value = value
                 regen = True
 
-        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        regen = hooks["data"].call('hook_interpret_slot_data', self, self.player, slot_data) or regen
         return regen
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
         runGenerationDataValidation()
 
-
     def create_regions(self):
-        before_create_regions(self, self.multiworld, self.player)
+        hooks["world"].call('before_create_regions', self, self.multiworld, self.player)
 
         create_regions(self, self.multiworld, self.player)
 
@@ -105,7 +101,7 @@ class ManualWorld(World):
         location_game_complete.place_locked_item(
             ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
 
-        after_create_regions(self, self.multiworld, self.player)
+        hooks["world"].call('after_create_regions', self, self.multiworld, self.player)
 
     def create_items(self):
         # Generate item pool
@@ -160,7 +156,7 @@ class ManualWorld(World):
                     raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
 
 
-        pool = before_create_items_starting(pool, self, self.multiworld, self.player)
+        pool = hooks["world"].call('before_create_items_starting', pool, self, self.multiworld, self.player) or pool
 
         items_started = []
 
@@ -201,16 +197,16 @@ class ManualWorld(World):
 
         self.start_inventory = {i.name: items_started.count(i) for i in items_started}
 
-        pool = before_create_items_filler(pool, self, self.multiworld, self.player)
+        pool = hooks["world"].call('before_create_items_filler', pool, self, self.multiworld, self.player) or pool
         pool = self.adjust_filler_items(pool, traps)
-        pool = after_create_items(pool, self, self.multiworld, self.player)
+        pool = hooks["world"].call('after_create_items', pool, self, self.multiworld, self.player) or pool
 
         # need to put all of the items in the pool so we can have a full state for placement
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
 
     def create_item(self, name: str) -> Item:
-        name = before_create_item(name, self, self.multiworld, self.player)
+        name = hooks["world"].call('before_create_item', name, self, self.multiworld, self.player) or name
 
         item = self.item_name_to_item[name]
         classification = ItemClassification.filler
@@ -229,19 +225,19 @@ class ManualWorld(World):
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
 
-        item_object = after_create_item(item_object, self, self.multiworld, self.player)
+        item_object = hooks["world"].call('after_create_item', item_object, self, self.multiworld, self.player) or item_object
 
         return item_object
 
     def set_rules(self):
-        before_set_rules(self, self.multiworld, self.player)
+        hooks["world"].call('before_set_rules', self, self.multiworld, self.player)
 
         set_rules(self, self.multiworld, self.player)
 
-        after_set_rules(self, self.multiworld, self.player)
+        hooks["world"].call('after_set_rules', self, self.multiworld, self.player)
 
     def generate_basic(self):
-        before_generate_basic(self, self.multiworld, self.player)
+        hooks["world"].call('before_generate_basic', self, self.multiworld, self.player)
 
         # Handle item forbidding
         manual_locations_with_forbid = {location['name']: location for location in location_name_to_location.values() if "dont_place_item" in location or "dont_place_item_category" in location}
@@ -308,7 +304,7 @@ class ManualWorld(World):
             self.multiworld.itempool.remove(item_to_place)
 
 
-        after_generate_basic(self, self.multiworld, self.player)
+        hooks["world"].call('after_generate_basic', self, self.multiworld, self.player)
 
         # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
         if enable_region_diagram:
@@ -320,7 +316,7 @@ class ManualWorld(World):
         runPreFillDataValidation(self, self.multiworld)
 
     def fill_slot_data(self):
-        slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
+        slot_data = hooks["world"].call('before_fill_slot_data', {}, self, self.multiworld, self.player) or {}
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
         common_options = set(PerGameCommonOptions.type_hints.keys())
@@ -329,7 +325,7 @@ class ManualWorld(World):
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
 
-        slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
+        slot_data = hooks["world"].call('after_fill_slot_data', slot_data, self, self.multiworld, self.player) or slot_data
 
         return slot_data
 
@@ -340,10 +336,10 @@ class ManualWorld(World):
             f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
 
     def write_spoiler(self, spoiler_handle):
-        before_write_spoiler(self, self.multiworld, spoiler_handle)
+        hooks["world"].call('before_write_spoiler', self, self.multiworld, spoiler_handle)
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
-        before_extend_hint_information(hint_data, self, self.multiworld, self.player)
+        hooks["world"].call('before_extend_hint_information', hint_data, self, self.multiworld, self.player)
 
         for location in self.multiworld.get_locations(self.player):
             if not location.address:
@@ -353,7 +349,7 @@ class ManualWorld(World):
                     hint_data.update({self.player: {}})
                 hint_data[self.player][location.address] = self.location_name_to_location[location.name]["hint_entrance"]
 
-        after_extend_hint_information(hint_data, self, self.multiworld, self.player)
+        hooks["world"].call('after_extend_hint_information', hint_data, self, self.multiworld, self.player)
 
     ###
     # Non-standard AP world methods
