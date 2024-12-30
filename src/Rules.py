@@ -134,8 +134,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         try:
                             result = func(world, multiworld, state, player, *func_args)
                         except Exception as e:
-                            raise RuntimeError(f"The function `{func_name}` in the {'region' if area.get("is_region",False) else 'location'} named \"{area.get("name", f"with these parameters: {area}")}\"'s requires raised an Exception. \
-                                                \nUnless it was called by another function, in {'region' if area.get("is_region",False) else 'location'}.json it looks something like {{{func_name}({', '.join(func_args)})}}. \
+                            raise RuntimeError(f"A call to the function `{func_name}` in the {'region' if area.get("is_region",False) else 'location'} named \"{area.get("name", f"with these parameters: {area}")}\"'s requires raised an Exception. \
+                                                \nUnless it was called by another function, it looks like {{{func_name}({item[1]})}} in {'region' if area.get("is_region",False) else 'location'}.json. \
                                                 \nFull error message: \
                                                 \n{e}")
                         if isinstance(result, bool):
