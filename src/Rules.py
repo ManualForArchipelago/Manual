@@ -35,7 +35,7 @@ def construct_logic_error(location_or_region: dict, source: LogicErrorSource) ->
     elif source == LogicErrorSource.EVALUATE_POSTFIX:
         source_text = "There may be missing || around item names, or an AND/OR that is missing a value on one side, or other invalid syntax for the requires."
     elif source == LogicErrorSource.EVALUATE_STACK_SIZE:
-        source_text = "There may be missing {} around requirement functions like YamlEnabled() / YamlDisabled(), or other invalid syntax for the requires." 
+        source_text = "There may be missing {} around requirement functions like YamlEnabled() / YamlDisabled(), or other invalid syntax for the requires."
     else:
         source_text = "This requires includes invalid syntax."
 
@@ -105,6 +105,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         # Get the "real" item counts of item in the pool/placed/starting_items
         items_counts = world.get_item_counts(player)
 
+        # Preparing some variables for exception messages
+        area_type = "region" if area.get("is_region",False) else "location"
+        area_name = area.get("name", f"unknown with these parameters: {area}")
+
         if requires_list == "":
             return True
 
@@ -112,7 +116,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
             if found_functions:
                 if recursionDepth > world.rules_functions_maximum_recursion:
-                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
+                    raise RecursionError(f'One or more functions in {area_type} "{area_name}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
                                          \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
                                          \n    And the currently processed requires look like this: "{requires_list}"')
                 else:
@@ -128,16 +132,16 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                             func = getattr(Rules, func_name, None)
 
                         if not callable(func):
-                            raise ValueError(f"Invalid function `{func_name}` in {area}.")
+                            raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
+                        convert_req_function_args(func, func_args, area_name)
                         try:
                             result = func(world, multiworld, state, player, *func_args)
                         except Exception as e:
-                            raise RuntimeError(f"A call to the function `{func_name}` in the {'region' if area.get("is_region",False) else 'location'} named \"{area.get("name", f"with these parameters: {area}")}\"'s requires raised an Exception. \
-                                                \nUnless it was called by another function, it looks like {{{func_name}({item[1]})}} in {'region' if area.get("is_region",False) else 'location'}.json. \
+                            raise RuntimeError(f'A call to the function "{func_name}" in the {area_type} named "{area_name}"\'s requires raised an Exception. \
+                                                \nUnless it was called by another function, it looks like {{{func_name}({item[1]})}} in {area_type}.json. \
                                                 \nFull error message: \
-                                                \n{e}")
+                                                \n{e}')
                         if isinstance(result, bool):
                             requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
                         else:
