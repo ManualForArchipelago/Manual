@@ -71,16 +71,16 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
             eval_f = lambda x: x.value
             if "<" in option_name:
                 option_name, target = option_name.split("<")
-                eval_f = lambda x: x < int(target)
+                eval_f = lambda x: x.value < int(target)
             elif ">" in option_name:
                 option_name, target = option_name.split(">")
-                eval_f = lambda x: x > int(target)
+                eval_f = lambda x: x.value > int(target)
             elif "=" in option_name:
                 option_name, target = option_name.split("=")
-                eval_f = lambda x: x == int(target)
+                eval_f = lambda x: x.value == int(target)
             elif ":" in option_name:
                 option_name, target = option_name.split(":")
-                eval_f = lambda x: x == target
+                eval_f = lambda x: x.current_key == target
             if option_name.startswith("!"):
                 option_name = option_name[1:]
                 eval_f = lambda x: not eval_f(x)
