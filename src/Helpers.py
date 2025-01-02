@@ -68,13 +68,26 @@ def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str)
 def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
-            required = True
+            eval_f = lambda x: x.value
+            if "<" in option_name:
+                option_name, target = option_name.split("<")
+                eval_f = lambda x: x < int(target)
+            elif ">" in option_name:
+                option_name, target = option_name.split(">")
+                eval_f = lambda x: x > int(target)
+            elif "=" in option_name:
+                option_name, target = option_name.split("=")
+                eval_f = lambda x: x == int(target)
+            elif ":" in option_name:
+                option_name, target = option_name.split(":")
+                eval_f = lambda x: x == target
             if option_name.startswith("!"):
                 option_name = option_name[1:]
-                required = False
-
+                eval_f = lambda x: not eval_f(x)
+                
             option_name = format_to_valid_identifier(option_name)
-            if is_option_enabled(multiworld, player, option_name) != required:
+            option = getattr(multiworld.worlds[player].options, option_name, None)
+            if not eval_f(option):
                 return False
         return True
     return None
