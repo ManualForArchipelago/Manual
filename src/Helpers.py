@@ -140,7 +140,7 @@ def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: any) -
     """
     for category in object.get("category", []):
         resolve = is_category_enabled(multiworld, player, category)
-        if not resolve and resolve is not None:
+        if resolve == False:
             return False
             
     return True
