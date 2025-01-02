@@ -137,11 +137,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         convert_req_function_args(func, func_args, area_name)
                         try:
                             result = func(world, multiworld, state, player, *func_args)
-                        except Exception as e:
-                            raise RuntimeError(f'A call to the function "{func_name}" in the {area_type} named "{area_name}"\'s requires raised an Exception. \
-                                                \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}.json. \
+                        except Exception as ex:
+                            raise RuntimeError(f'A call to the function "{func_name}" in the "{area_name}" {area_type}\'s requires raised an Exception. \
+                                                \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
                                                 \nFull error message: \
-                                                \n{e}')
+                                                \n\n{type(ex).__name__}: {ex}')
                         if isinstance(result, bool):
                             requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
                         else:
