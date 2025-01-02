@@ -203,6 +203,9 @@ for option_name, option in option_table.get('user', {}).items():
 
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
+        for c in "><=:": # Range and Choice options must be defined using Options.json
+            if c in option_name:
+                continue
         if option_name[0] == "!":
             option_name = option_name[1:]
         option_name = format_to_valid_identifier(option_name)
@@ -214,6 +217,9 @@ if starting_items:
     for starting_items in starting_items:
         if starting_items.get("yaml_option"):
             for option_name in starting_items["yaml_option"]:
+                for c in "><=:": # Range and Choice options must be defined using Options.json
+                    if c in option_name:
+                        continue
                 if option_name[0] == "!":
                     option_name = option_name[1:]
                 option_name = format_to_valid_identifier(option_name)
