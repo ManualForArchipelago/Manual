@@ -139,7 +139,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                             result = func(world, multiworld, state, player, *func_args)
                         except Exception as e:
                             raise RuntimeError(f'A call to the function "{func_name}" in the {area_type} named "{area_name}"\'s requires raised an Exception. \
-                                                \nUnless it was called by another function, it looks like {{{func_name}({item[1]})}} in {area_type}.json. \
+                                                \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}.json. \
                                                 \nFull error message: \
                                                 \n{e}')
                         if isinstance(result, bool):
