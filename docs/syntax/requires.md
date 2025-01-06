@@ -33,6 +33,7 @@ For example, from the example above about Link to the Past and Thieves Town in t
 ### Additional Examples of Boolean Logic
 
 Boss 1 Requires Ladder and Gloves, OR Sword and Shield, OR Bow and Quiver and Arrow (separate items): a simple case of various successful item sets. It's a few sets of ANDs separated by ORs.
+
 ```json
 {
     "name": "Boss 1",
@@ -41,6 +42,7 @@ Boss 1 Requires Ladder and Gloves, OR Sword and Shield, OR Bow and Quiver and Ar
 ```
 
 Boss 2 simply requires one heart, a way to strike it (Sword, Spear or Club) and a way to dodge it (Double Jump, Dash or Slide): we're looking at different sets, and picking one item from which. It's many ORs inside a big set of ANDs.
+
 ```json
 {
     "name": "Boss 2",
@@ -49,6 +51,7 @@ Boss 2 simply requires one heart, a way to strike it (Sword, Spear or Club) and 
 ```
 
 Now, say the final boss is a big dragon with a glaring weakness to Blizzard. However, if you don't have blizzard, you will need a spear for its reach and a way to dodge it, which is one of the three mobility from before. This is an OR (the mobility), inside an AND (Spear and Mobility), inside an OR (Blizzard it or fight it legitimately). Layered logic is as such:
+
 ```json
 {
     "name": "Final Boss",
@@ -68,6 +71,7 @@ The way to do this is a short suffix added to the end of any required item name 
 Now that we know how to require multiple of an item, we can revise our Boss 2 example from above to make the boss a little easier to handle in-logic:
 
 > Boss 2 simply requires **FIVE hearts**, a way to strike it (Sword, Spear or Club) and a way to dodge it (Double Jump, Dash or Slide): we're looking at different sets, and picking one item from which. It's many ORs inside a big set of ANDs.
+>
 > ```json
 >{
 >    "name": "Boss 2",
@@ -125,7 +129,6 @@ Checks if you've collected the specificed value of a value-based item.
 
 For Example, `{ItemValue(Coins:12)}` will check if the player has collect at least 12 coins worth of items
 
-
 ### `OptOne(ItemName)`
 
 Requires an item only if that item exists.  Useful if an item might have been disabled by a yaml option.
@@ -135,7 +138,6 @@ Requires an item only if that item exists.  Useful if an item might have been di
 Takes an entire requires string, and applies the above check to each item inside it.
 
 For example, `requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"` will be transformed into `"|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|"`
-
 
 ### `YamlEnabled(option_name)` and `YamlDisabled(option_name)`
 
@@ -166,3 +168,19 @@ You can even combine the two in complex ways
     "name": "This is probably a region",
     "requires": "({YamlEnabled(easy_mode)} and |Gravity|) or ({YamlDisabled(easy_mode)} and |Jump| and |Blizzard| and |Water|)"
 }
+```
+
+### `YamlCompare(option_name, comparator_symbol, value)`
+
+Verify that the result of the option called _option_name_'s value compared using the _comparator_symbol_ with the requested _value_
+
+The comparator symbol can be any of the following: `==, !=, >=, <=, <, >`
+
+The folowing example would check that the player.yaml value of the range option Example_Range is bigger than 5 or that the `Item A` item is present:
+
+```json
+{
+    "name": "Example Region",
+    "requires": "|Item A| or {YamlCompare(Example_Range, >, 5)}"
+}
+```
