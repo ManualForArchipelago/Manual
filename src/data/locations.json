@@ -4,17 +4,17 @@
         {
             "name": "Beat the Game - Ryu",
             "category": ["Starter Team", "Left Side"],
-            "requires": "|Ryu|"
+            "region": "ExampleRegion"
         },
         {
             "name": "Beat the Game - Chun-Li",
             "category": ["Starter Team", "Left Side"],
-            "requires": "|Chun-Li|"
+            "requires": "|Chun-Li| or {YamlCompare(Example_Choice, ==, start)}"
         },
         {
             "name": "Beat the Game - Akuma",
             "category": ["Starter Team", "Left Side"],
-            "requires": "|Akuma|"
+            "requires": "|Akuma| or {YamlCompare(Example_Toggle, !=, True)}"
         },
 
         {
