@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
-from worlds.generic.Rules import set_rule, add_rule
+
 from .Regions import regionMap
 from .hooks import Rules
+from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type, format_to_valid_identifier
 
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type
 from worlds.AutoWorld import World
+from worlds.generic.Rules import set_rule, add_rule
 
 import re
 import math
@@ -138,7 +139,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         try:
                             result = func(world, multiworld, state, player, *func_args)
                         except Exception as ex:
-                            raise RuntimeError(f'A call to the function "{func_name}" in the "{area_name}" {area_type}\'s requires raised an Exception. \
+                            raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
                                                 \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
                                                 \nFull error message: \
                                                 \n\n{type(ex).__name__}: {ex}')
