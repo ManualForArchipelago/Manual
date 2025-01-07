@@ -537,7 +537,7 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
                 value = int(convert_string_to_type(value, bool))
 
         except KeyError as ex:
-            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{option_name}\" option supports.\
+            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{initial_option_name}\" option supports.\
                 \nRaw error:\
                 \n\n{type(ex).__name__}:{ex}")
 
