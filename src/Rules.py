@@ -535,10 +535,20 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
 
             elif issubclass(type(option), Toggle):
                 value = int(convert_string_to_type(value, bool))
+
+        except KeyError as ex:
+            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{option_name}\" option supports.\
+                \nRaw error:\
+                \n\n{type(ex).__name__}:{ex}")
+
         except Exception as ex:
             raise TypeError(f"YamlCompare failed to convert the requested value to what a {type(option).__base__.__name__} option supports.\
                 \nCaused By:\
                 \n\n{type(ex).__name__}:{ex}")
+
+        if isinstance(value, str) and comparator not in ['==', '!=']:
+            #At this point if its still a string don't try and compare with strings using > < >= <=
+            raise ValueError(f'YamlCompare can only compare strings with either "==" or "!=" and you tried to do: "{option.value} {comparator} {value}"')
 
         if skipCache:
             return comp_symbols[comparator](option.value, value)

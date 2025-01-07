@@ -181,6 +181,7 @@ The value can be of any type that your option supports
 - Range: integer aka number
 - Range with values aka NamedRange: integer or one of the value name in "values"
 - Choice: either numerical or string representation of a value in the option's "values"
+- Choice with allow_custom_value: either numerical or string representation of a value in the option's "values" or a custom string
 - Toggle: a boolean value represented by any of the following not case sensitive:
   - True: "true", "on", 1
   - False: "false", "off", 0
