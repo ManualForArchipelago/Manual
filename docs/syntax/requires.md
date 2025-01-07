@@ -176,6 +176,15 @@ Verify that the result of the option called _option_name_'s value compared using
 
 The comparator symbol can be any of the following: `==, !=, >=, <=, <, >`
 
+The value can be of any type that your option supports
+
+- Range: integer aka number
+- Range with values aka NamedRange: integer or one of the value name in "values"
+- Choice: either numerical or string representation of a value in the option's "values"
+- Toggle: a boolean value represented by any of the following not case sensitive:
+  - True: "true", "on", 1
+  - False: "false", "off", 0
+
 The folowing example would check that the player.yaml value of the range option Example_Range is bigger than 5 or that the `Item A` item is present:
 
 ```json
