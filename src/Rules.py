@@ -1,14 +1,15 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
 from operator import eq, ne, ge, le, lt, gt
-from worlds.generic.Rules import set_rule, add_rule
+
 from .Regions import regionMap
 from .hooks import Rules
-from Options import Choice, Toggle, Range, NamedRange
+from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type, format_to_valid_identifier
 
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type, format_to_valid_identifier
 from worlds.AutoWorld import World
+from worlds.generic.Rules import set_rule, add_rule
+from Options import Choice, Toggle, Range, NamedRange
 
 import re
 import math
@@ -107,14 +108,18 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         # Get the "real" item counts of item in the pool/placed/starting_items
         items_counts = world.get_item_counts(player)
 
+        # Preparing some variables for exception messages
+        area_type = "region" if area.get("is_region",False) else "location"
+        area_name = area.get("name", f"unknown with these parameters: {area}")
+
         if requires_list == "":
             return True
 
         def findAndRecursivelyExecuteFunctions(requires_list: str, recursionDepth: int = 0) -> str:
             found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
             if found_functions:
-                if recursionDepth >= world.rules_functions_maximum_recursion:
-                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
+                if recursionDepth > world.rules_functions_maximum_recursion:
+                    raise RecursionError(f'One or more functions in {area_type} "{area_name}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
                                          \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
                                          \n    And the currently processed requires look like this: "{requires_list}"')
                 else:
@@ -130,10 +135,16 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                             func = getattr(Rules, func_name, None)
 
                         if not callable(func):
-                            raise ValueError(f"Invalid function `{func_name}` in {area}.")
+                            raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
-                        result = func(world, multiworld, state, player, *func_args)
+                        convert_req_function_args(func, func_args, area_name)
+                        try:
+                            result = func(world, multiworld, state, player, *func_args)
+                        except Exception as ex:
+                            raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
+                                                \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
+                                                \nFull error message: \
+                                                \n\n{type(ex).__name__}: {ex}')
                         if isinstance(result, bool):
                             requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
                         else:
