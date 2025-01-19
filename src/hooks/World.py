@@ -112,8 +112,8 @@ def after_set_rules(world: World, multiworld: MultiWorld, player: int):
     # location.access_rule = lambda state: old_rule(state) or Example_Rule(state)
 
 # The item name to create is provided before the item is created, in case you want to make changes to it
-def before_create_item(item_name: str, world: World, multiworld: MultiWorld, player: int) -> str:
-    return item_name
+def before_create_item(item_name: str, count: int, world: World, multiworld: MultiWorld, player: int) -> str, int:
+    return item_name, count
 
 # The item that was created is provided after creation, in case you want to modify the item
 def after_create_item(item: ManualItem, world: World, multiworld: MultiWorld, player: int) -> ManualItem:
