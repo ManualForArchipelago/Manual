@@ -4,6 +4,6 @@
         "hidden": true
     },
     "Example Yaml-option category": {
-        "yaml_option": ["DLC_enabled"]
+        "yaml_option": ["DLC_enabled", "Example_Choice:test", "Example_Range<5"]
     }
 }

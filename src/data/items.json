@@ -26,7 +26,7 @@
                 "Left Side"
             ],
             "value": {"coins": 7},
-        "progression": true
+            "progression": true
         },
         {
             "name": "Firebrand",
@@ -42,7 +42,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "yaml_option": ["Example_Toggle"]
         },
         {
             "name": "Phoenix Wright",
@@ -50,7 +51,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "yaml_option": ["Example_Choice:test"]
         },
         {
             "name": "Nova",
@@ -58,7 +60,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "yaml_option": ["Example_Range<5"]
         },
         {
             "name": "Ghost Rider",
@@ -404,6 +407,6 @@
                 "Right Side"
             ],
             "progression": true
-        }    ]
-
+        }
+    ]
 }
