@@ -2,6 +2,7 @@ import csv
 import os
 import pkgutil
 import json
+from copy import deepcopy
 
 from BaseClasses import MultiWorld, Item
 from typing import Optional, List, TYPE_CHECKING, Union, get_args, get_origin
@@ -67,28 +68,31 @@ def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str)
 def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
-            eval_f = lambda x, t: x.value
+            eval_1 = lambda x, t: x.value
             target = 1
             if "<" in option_name:
                 option_name, target = option_name.split("<")
-                eval_f = lambda x, t: x.value < t
+                eval_1 = lambda x, t: x.value < t
             elif ">" in option_name:
                 option_name, target = option_name.split(">")
-                eval_f = lambda x, t: x.value > t
-            elif "=" in option_name:
+                eval_1 = lambda x, t: x.value > t
+            elif ":" in option_name:
                 option_name, target = option_name.split(":")
-                eval_f = lambda x, t: x.value == t
+                eval_1 = lambda x, t: x.value == t
             if option_name.startswith("!"):
                 option_name = option_name[1:]
-                eval_f = lambda x, t: not eval_f(x, t)
+                eval_2 = lambda x, t: not eval_1(x, t)
+            else:
+                eval_2 = eval_1
                 
             option_name = format_to_valid_identifier(option_name)
             option = getattr(multiworld.worlds[player].options, option_name, None)
+            print(option_name, option)
             try:
-                t_eval = int(target)
+                target_eval = int(target)
             except ValueError:
-                t_eval = option.options[target]
-            if not eval_f(option, t_eval):
+                target_eval = option.options[target]
+            if not eval_2(option, target_eval):
                 return False
         return True
     return None
@@ -101,13 +105,13 @@ def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) ->
 
     return is_item_enabled(multiworld, player, item)
 
-def is_item_enabled(multiworld: MultiWorld, player: int, item: "ManualItem") -> bool:
+def is_item_enabled(multiworld: MultiWorld, player: int, item: dict) -> bool:
     """Check if an item has been disabled by a yaml option."""
     hook_result = before_is_item_enabled(multiworld, player, item)
     if hook_result is not None:
         return hook_result
     
-    try_resolve = resolve_yaml_option(multiworld, player, multiworld.worlds[player].item_table.get(item.name, {}))
+    try_resolve = resolve_yaml_option(multiworld, player, item)
     if try_resolve is None:
         return _is_manualobject_enabled(multiworld, player, item)
     else:
@@ -121,13 +125,13 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
 
     return is_location_enabled(multiworld, player, location)
 
-def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLocation") -> bool:
+def is_location_enabled(multiworld: MultiWorld, player: int, location: dict) -> bool:
     """Check if a location has been disabled by a yaml option."""
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
         return hook_result
     
-    try_resolve = resolve_yaml_option(multiworld, player, multiworld.worlds[player].location_table.get(location.name, {}))
+    try_resolve = resolve_yaml_option(multiworld, player, location)
     if try_resolve is None:
         return _is_manualobject_enabled(multiworld, player, location)
     else:
