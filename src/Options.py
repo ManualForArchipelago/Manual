@@ -204,7 +204,7 @@ for option_name, option in option_table.get('user', {}).items():
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
         skip = False
-        for c in "><:": # Range and Choice options must be defined using Options.json
+        for c in "><=": # Range and Choice options must be defined using Options.json
             if c in option_name:
                 skip = True
                 option_base = option_name.split(c)[0].strip("!")
@@ -224,7 +224,7 @@ if starting_items:
         if starting_items.get("yaml_option"):
             for option_name in starting_items["yaml_option"]:
                 skip = False
-                for c in "><:": # Range and Choice options must be defined using Options.json
+                for c in "><=": # Range and Choice options must be defined using Options.json
                     if c in option_name:
                         skip = True
                         option_base = option_name.split(c)[0].strip("!")
