@@ -55,39 +55,40 @@ def clamp(value, min, max):
         return value
 
 def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> bool:
-    from .Data import category_table
     """Check if a category has been disabled by a yaml option."""
     hook_result = before_is_category_enabled(multiworld, player, category_name)
     if hook_result is not None:
         return hook_result
 
-    category_data = category_table.get(category_name, {})
+    category_data = multiworld.worlds[player].category_table.get(category_name, {})
     resolve_option = resolve_yaml_option(multiworld, player, category_data)
     return resolve_option or resolve_option is None
 
 def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
-            eval_f = lambda x: x.value
+            eval_f = lambda x, t: x.value
+            target = 1
             if "<" in option_name:
                 option_name, target = option_name.split("<")
-                eval_f = lambda x: x.value < int(target)
+                eval_f = lambda x, t: x.value < t
             elif ">" in option_name:
                 option_name, target = option_name.split(">")
-                eval_f = lambda x: x.value > int(target)
+                eval_f = lambda x, t: x.value > t
             elif "=" in option_name:
-                option_name, target = option_name.split("=")
-                eval_f = lambda x: x.value == int(target)
-            elif ":" in option_name:
                 option_name, target = option_name.split(":")
-                eval_f = lambda x: x.current_key == target
+                eval_f = lambda x, t: x.value == t
             if option_name.startswith("!"):
                 option_name = option_name[1:]
-                eval_f = lambda x: not eval_f(x)
+                eval_f = lambda x, t: not eval_f(x, t)
                 
             option_name = format_to_valid_identifier(option_name)
             option = getattr(multiworld.worlds[player].options, option_name, None)
-            if not eval_f(option):
+            try:
+                t_eval = int(target)
+            except ValueError:
+                t_eval = option.options[target]
+            if not eval_f(option, t_eval):
                 return False
         return True
     return None
@@ -101,13 +102,12 @@ def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) ->
     return is_item_enabled(multiworld, player, item)
 
 def is_item_enabled(multiworld: MultiWorld, player: int, item: "ManualItem") -> bool:
-    from .Data import item_table
     """Check if an item has been disabled by a yaml option."""
     hook_result = before_is_item_enabled(multiworld, player, item)
     if hook_result is not None:
         return hook_result
     
-    try_resolve = resolve_yaml_option(multiworld, player, item_table.get(item.name, {}))
+    try_resolve = resolve_yaml_option(multiworld, player, multiworld.worlds[player].item_table.get(item.name, {}))
     if try_resolve is None:
         return _is_manualobject_enabled(multiworld, player, item)
     else:
@@ -122,13 +122,12 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
     return is_location_enabled(multiworld, player, location)
 
 def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLocation") -> bool:
-    from .Data import location_table
     """Check if a location has been disabled by a yaml option."""
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
         return hook_result
     
-    try_resolve = resolve_yaml_option(multiworld, player, location_table.get(location.name, {}))
+    try_resolve = resolve_yaml_option(multiworld, player, multiworld.worlds[player].location_table.get(location.name, {}))
     if try_resolve is None:
         return _is_manualobject_enabled(multiworld, player, location)
     else:
