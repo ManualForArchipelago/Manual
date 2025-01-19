@@ -43,7 +43,7 @@
                 "Left Side"
             ],
             "progression": true,
-            "yaml_option": ["Example_Toggle"]
+            "yaml_option": ["!Example_Toggle"]
         },
         {
             "name": "Phoenix Wright",
@@ -52,7 +52,7 @@
                 "Left Side"
             ],
             "progression": true,
-            "yaml_option": ["Example_Choice:test"]
+            "yaml_option": ["Example_Choice:start"]
         },
         {
             "name": "Nova",
