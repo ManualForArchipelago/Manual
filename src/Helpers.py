@@ -87,7 +87,6 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
                 
             option_name = format_to_valid_identifier(option_name)
             option = getattr(multiworld.worlds[player].options, option_name, None)
-            print(option_name, option)
             try:
                 target_eval = int(target)
             except ValueError:
