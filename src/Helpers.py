@@ -70,7 +70,13 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
         for option_name in data["yaml_option"]:
             eval_1 = lambda x, t: x.value
             target = 1
-            if "<" in option_name:
+            if "<=" in option_name:
+                option_name, target = option_name.split("<=")
+                eval_1 = lambda x, t: x.value <= t
+            elif ">=" in option_name:
+                option_name, target = option_name.split(">=")
+                eval_1 = lambda x, t: x.value >= t
+            elif "<" in option_name:
                 option_name, target = option_name.split("<")
                 eval_1 = lambda x, t: x.value < t
             elif ">" in option_name:
