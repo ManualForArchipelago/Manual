@@ -135,9 +135,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         if not callable(func):
                             raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area_name)
+                        convert_req_function_args(state, func, func_args, area_name)
                         try:
-                            result = func(world, multiworld, state, player, *func_args)
+                            result = func(*func_args)
                         except Exception as ex:
                             raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
                                                 \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
@@ -335,15 +335,23 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(func, args: list[str], areaName: str):
+    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownParameters = ["world", "multiworld", "state", "player"]
+        knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
         index = -1
         for parameter in parameters.values():
-            if parameter.name in knownParameters:
-                continue
-            index += 1
             target_type = parameter.annotation
+            index += 1
+            if target_type in knownParameters or parameter.name.lower() == "player":
+                if target_type in [World, 'ManualWorld']:
+                    args.insert(index, world)
+                elif target_type == MultiWorld:
+                    args.insert(index, multiworld)
+                elif target_type == CollectionState:
+                    args.insert(index, state)
+                else:
+                    args.insert(index, player)
+                continue
 
             if index < len(args) and args[index] != "":
                 value = args[index].strip()
@@ -351,7 +359,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if parameter.default is not inspect.Parameter.empty:
                     if index < len(args):
                         args[index] = parameter.default
-                    continue
+                    else:
+                        args.insert(index, parameter.default)
                 else:
                     if parameter.annotation is inspect.Parameter.empty:
                         raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value for its argument \"{parameter.name}\" but it's missing.")
