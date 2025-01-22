@@ -136,8 +136,11 @@ class ManualContext(SuperContext):
     def suggested_game(self) -> str:
         if self.game:
             return self.game
-        from .Game import game_name  # This will at least give us the name of a manual they've installed
-        return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
+        ret = Utils.persistent_load().get("client", {}).get("last_manual_game")
+        if ret:
+            return ret
+        from . import manual_worlds
+        return manual_worlds[0].game  # This will at least give us the name of a manual they've installed
 
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
