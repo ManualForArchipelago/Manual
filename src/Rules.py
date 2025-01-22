@@ -361,6 +361,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         args[index] = parameter.default
                     else:
                         args.insert(index, parameter.default)
+                    continue
                 else:
                     if parameter.annotation is inspect.Parameter.empty:
                         raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value for its argument \"{parameter.name}\" but it's missing.")
