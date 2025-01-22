@@ -351,10 +351,6 @@ class ManualContext(SuperContext):
 
                 self.grid.add_widget(self.manual_game_layout, 3)
 
-                # for child in self.tabs.tab_list:
-                #     if child.text == "Manual":
-                #         panel = child # instead of creating a new TabbedPanelItem, use the one we use above to make the tabs show
-
                 panel = self.add_client_tab("Manual", ManualTabLayout(orientation="vertical"))
 
                 self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(40))
