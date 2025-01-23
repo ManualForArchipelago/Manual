@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
-    fname = os.path.join("data", *args)
+    fname = "/".join(["data", *args])
 
     try:
         filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
@@ -25,7 +25,7 @@ def load_data_file(*args) -> dict:
     return filedata
 
 def load_data_csv(*args) -> list[dict]:
-    fname = os.path.join("data", *args)
+    fname = "/".join(["data", *args])
 
     try:
         lines = pkgutil.get_data(__name__, fname).decode().splitlines()
