@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
+from operator import eq, ne, ge, le, lt, gt
 
 from .Regions import regionMap
 from .hooks import Rules
@@ -8,6 +9,7 @@ from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_ena
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
+from Options import Choice, Toggle, Range, NamedRange
 
 import re
 import math
@@ -493,3 +495,74 @@ def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
 def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
     """Is a yaml option disabled?"""
     return not is_option_enabled(multiworld, player, param)
+
+def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, option_name: str, comparator: str, value:str, skipCache: bool = False) -> bool:
+    """Is a yaml option's value compared using {comparator} to the requested value
+    \nFormat it like {YamlCompare(OptionName, ==, value)}
+    \nWhere == can be any of the following: ==, !=, >=, <=, <, >
+    \nExample: {YamlCompare(Example_Range, >, 5)}"""
+    comp_symbols = { #Maybe find a better name for this
+        '==' : eq,
+        '!=' : ne,
+        '>=' : ge,
+        '<=' : le,
+        '<' : lt,
+        '>' : gt,
+    }
+    initial_option_name = str(option_name) #For exception messages
+
+    option_name = format_to_valid_identifier(option_name)
+    comparator = comparator.strip()
+    value = value.strip()
+
+    if comparator not in comp_symbols.keys():
+        raise KeyError(f"YamlCompare requested comparator '{comparator}' but its not in {comp_symbols.keys()}")
+
+    option = getattr(world.options, option_name, None)
+    if option is None:
+        raise AttributeError(f"YamlCompare could not find an option called '{initial_option_name}' to compare against, its either missing on misspelt")
+
+    if not skipCache:
+        cacheindex = option_name + str(list(comp_symbols.keys()).index(comparator)) + format_to_valid_identifier(value.lower())
+
+        if not hasattr(world, 'yaml_compare_rule_cache'): #Cache made for optimization purposes
+            world.yaml_compare_rule_cache = dict[str,bool]()
+
+    if skipCache or world.yaml_compare_rule_cache.get(cacheindex, None) is None:
+        try:
+            if issubclass(type(option), Choice):
+                value = convert_string_to_type(value, str|int)
+                if isinstance(value, str):
+                    value = option.from_text(value).value
+
+            elif issubclass(type(option), Range):
+                if type(option).__base__ == NamedRange:
+                    value = convert_string_to_type(value, str|int)
+                    if isinstance(value, str):
+                        value = option.from_text(value).value
+
+                else:
+                    value = convert_string_to_type(value, int)
+
+            elif issubclass(type(option), Toggle):
+                value = int(convert_string_to_type(value, bool))
+
+        except KeyError as ex:
+            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{initial_option_name}\" option supports.\
+                \nRaw error:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        except Exception as ex:
+            raise TypeError(f"YamlCompare failed to convert the requested value to what a {type(option).__base__.__name__} option supports.\
+                \nCaused By:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        if isinstance(value, str) and comparator not in ['==', '!=']:
+            #At this point if its still a string don't try and compare with strings using > < >= <=
+            raise ValueError(f'YamlCompare can only compare strings with either "==" or "!=" and you tried to do: "{option.value} {comparator} {value}"')
+
+        if skipCache:
+            return comp_symbols[comparator](option.value, value)
+        world.yaml_compare_rule_cache[cacheindex] = comp_symbols[comparator](option.value, value)
+
+    return world.yaml_compare_rule_cache[cacheindex]
