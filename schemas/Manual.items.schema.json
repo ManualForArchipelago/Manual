@@ -54,6 +54,12 @@
                         }
                     }
                 },
+                "classification": {
+                    "description": "(Optional) The classification of this item.",
+                    "type": "string",
+                    "enum": ["filler", "trap", "useful", "progression", "progression_skip_balancing"],
+                    "default": "filler"
+                },
                 "progression": {
                     "description": "(Optional) Is this item needed to unlock locations? For more information on item classifications, see: https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items",
                     "type": "boolean",
