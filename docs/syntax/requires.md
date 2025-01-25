@@ -170,7 +170,7 @@ You can even combine the two in complex ways
 }
 ```
 
-### `YamlCompare(option_name, comparator_symbol, value)`
+### `YamlCompare(option_name comparator_symbol value)`
 
 Verify that the result of the option called _option_name_'s value compared using the _comparator_symbol_ with the requested _value_
 
@@ -191,6 +191,6 @@ The folowing example would check that the player.yaml value of the range option 
 ```json
 {
     "name": "Example Region",
-    "requires": "|Item A| or {YamlCompare(Example_Range, >, 5)}"
+    "requires": "|Item A| or {YamlCompare(Example_Range > 5)}"
 }
 ```

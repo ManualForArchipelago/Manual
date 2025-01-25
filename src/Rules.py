@@ -496,11 +496,11 @@ def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: Collection
     """Is a yaml option disabled?"""
     return not is_option_enabled(multiworld, player, param)
 
-def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, option_name: str, comparator: str, value:str, skipCache: bool = False) -> bool:
+def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, args: str, skipCache: bool = False) -> bool:
     """Is a yaml option's value compared using {comparator} to the requested value
-    \nFormat it like {YamlCompare(OptionName, ==, value)}
+    \nFormat it like {YamlCompare(OptionName==value)}
     \nWhere == can be any of the following: ==, !=, >=, <=, <, >
-    \nExample: {YamlCompare(Example_Range, >, 5)}"""
+    \nExample: {YamlCompare(Example_Range > 5)}"""
     comp_symbols = { #Maybe find a better name for this
         '==' : eq,
         '!=' : ne,
@@ -509,18 +509,33 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
         '<' : lt,
         '>' : gt,
     }
-    initial_option_name = str(option_name) #For exception messages
+    if '==' in args:
+        comparator = "=="
+    elif '!=' in args:
+        comparator = '!='
+    elif '>=' in args:
+        comparator = '>='
+    elif '<=' in args:
+        comparator = '<='
+    elif '>' in args:
+        comparator = '>'
+    elif '<' in args:
+        comparator = '<'
+    else:
+        raise  ValueError(f"Could not find a valid comparator in given string '{args}', it must be one of {comp_symbols.keys()}")
 
+    option_name, value = args.split(comparator)
+
+    initial_option_name = str(option_name).strip() #For exception messages
     option_name = format_to_valid_identifier(option_name)
-    comparator = comparator.strip()
     value = value.strip()
-
-    if comparator not in comp_symbols.keys():
-        raise KeyError(f"YamlCompare requested comparator '{comparator}' but its not in {comp_symbols.keys()}")
 
     option = getattr(world.options, option_name, None)
     if option is None:
-        raise AttributeError(f"YamlCompare could not find an option called '{initial_option_name}' to compare against, its either missing on misspelt")
+        raise ValueError(f"YamlCompare could not find an option called '{initial_option_name}' to compare against, its either missing on misspelt")
+
+    if not value: #empty string ''
+        raise ValueError(f"Could not find a valid value to compare against in given string '{args}'. \nThere must be a value to compare against after the comparator (in this case '{comparator}').")
 
     if not skipCache:
         cacheindex = option_name + str(list(comp_symbols.keys()).index(comparator)) + format_to_valid_identifier(value.lower())
