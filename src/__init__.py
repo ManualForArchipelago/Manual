@@ -131,8 +131,6 @@ class ManualWorld(World):
 
             if item_count == 0: continue
 
-            name, count = before_create_item(name, count, self, self.multiworld, self.player)
-
             for _ in range(item_count):
                 new_item = self.create_item(name)
                 pool.append(new_item)
@@ -212,6 +210,8 @@ class ManualWorld(World):
         self.multiworld.itempool += pool
 
     def create_item(self, name: str) -> Item:
+        name = before_create_item(name, self, self.multiworld, self.player)
+
         item = self.item_name_to_item[name]
         classification = ItemClassification.filler
 
