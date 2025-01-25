@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
-from operator import eq, ne, ge, le, lt, gt
+from operator import eq, ge, le, lt, gt
 
 from .Regions import regionMap
 from .hooks import Rules
@@ -503,20 +503,27 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
     \nExample: {YamlCompare(Example_Range > 5)}"""
     comp_symbols = { #Maybe find a better name for this
         '==' : eq,
-        '!=' : ne,
+        '!=' : eq, #reverse_result starts true (for optimization)
         '>=' : ge,
         '<=' : le,
+        '=': eq,
         '<' : lt,
         '>' : gt,
     }
+
+    reverse_result = False
+
     if '==' in args:
-        comparator = "=="
+        comparator = '=='
     elif '!=' in args:
         comparator = '!='
+        reverse_result = True #is in reality == but reversed
     elif '>=' in args:
         comparator = '>='
     elif '<=' in args:
         comparator = '<='
+    elif '=' in args:
+        comparator = '='
     elif '>' in args:
         comparator = '>'
     elif '<' in args:
@@ -528,6 +535,12 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
 
     initial_option_name = str(option_name).strip() #For exception messages
     option_name = format_to_valid_identifier(option_name)
+
+    if option_name.startswith('!'):
+        reverse_result = not reverse_result
+        option_name = option_name.lstrip('!')
+        initial_option_name = initial_option_name.lstrip('!')
+
     value = value.strip()
 
     option = getattr(world.options, option_name, None)
@@ -538,7 +551,7 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
         raise ValueError(f"Could not find a valid value to compare against in given string '{args}'. \nThere must be a value to compare against after the comparator (in this case '{comparator}').")
 
     if not skipCache:
-        cacheindex = option_name + str(list(comp_symbols.keys()).index(comparator)) + format_to_valid_identifier(value.lower())
+        cacheindex = option_name + '_' + comp_symbols[comparator].__name__ + '_' + format_to_valid_identifier(value.lower())
 
         if not hasattr(world, 'yaml_compare_rule_cache'): #Cache made for optimization purposes
             world.yaml_compare_rule_cache = dict[str,bool]()
@@ -583,4 +596,6 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
             return comp_symbols[comparator](option.value, value)
         world.yaml_compare_rule_cache[cacheindex] = comp_symbols[comparator](option.value, value)
 
+    if reverse_result:
+        return not world.yaml_compare_rule_cache[cacheindex]
     return world.yaml_compare_rule_cache[cacheindex]
