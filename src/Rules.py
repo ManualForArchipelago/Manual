@@ -562,6 +562,9 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
             elif issubclass(type(option), Toggle):
                 value = int(convert_string_to_type(value, bool))
 
+            else:
+                raise ValueError(f"YamlCompare does not currently support Option of type {type(option)} \nAsk about it in #Manual-dev and it might be added.")
+
         except KeyError as ex:
             raise ValueError(f"YamlCompare failed to find the requested value in what the \"{initial_option_name}\" option supports.\
                 \nRaw error:\
