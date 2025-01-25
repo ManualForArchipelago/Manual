@@ -131,7 +131,7 @@ class ManualWorld(World):
 
             if item_count == 0: continue
 
-            name, item_count = before_create_item(name, item_count, self, self.multiworld, self.player)
+            name, count = before_create_item(name, count, self, self.multiworld, self.player)
 
             for _ in range(item_count):
                 new_item = self.create_item(name)
