@@ -588,9 +588,9 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
                 \nCaused By:\
                 \n\n{type(ex).__name__}:{ex}")
 
-        if isinstance(value, str) and comparator not in ['==', '!=']:
+        if isinstance(value, str) and comp_symbols[comparator].__name__ != 'eq':
             #At this point if its still a string don't try and compare with strings using > < >= <=
-            raise ValueError(f'YamlCompare can only compare strings with either "==" or "!=" and you tried to do: "{option.value} {comparator} {value}"')
+            raise ValueError(f'YamlCompare can only compare strings with either "=="/"=" or "!=" and you tried to do: "{option.value} {comparator} {value}"')
 
         if skipCache:
             return comp_symbols[comparator](option.value, value)
