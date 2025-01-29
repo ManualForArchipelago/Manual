@@ -174,7 +174,7 @@ You can even combine the two in complex ways
 
 Verify that the result of the option called _option_name_'s value compared using the _comparator_symbol_ with the requested _value_
 
-The comparator symbol can be any of the following: `==, !=, >=, <=, <, >`
+The comparator symbol can be any of the following: `== or =, !=, >=, <=, <, >`
 
 The value can be of any type that your option supports
 

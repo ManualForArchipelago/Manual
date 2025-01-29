@@ -9,7 +9,7 @@
         {
             "name": "Beat the Game - Chun-Li",
             "category": ["Starter Team", "Left Side"],
-            "requires": "|Chun-Li| or {YamlCompare(Example_Choice ==)}"
+            "requires": "|Chun-Li| or {YamlCompare(Example_Choice == 1)}"
         },
         {
             "name": "Beat the Game - Akuma",

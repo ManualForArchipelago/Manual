@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
-from operator import eq, ge, le, lt, gt
+from operator import eq, ge, le
 
 from .Regions import regionMap
 from .hooks import Rules
