@@ -503,21 +503,22 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
     \nExample: {YamlCompare(Example_Range > 5)}"""
     comp_symbols = { #Maybe find a better name for this
         '==' : eq,
-        '!=' : eq, #reverse_result starts true (for optimization)
+        '!=' : eq, #complement of ==
         '>=' : ge,
         '<=' : le,
-        '=': eq,
+        '=': eq, #Alternate to be like yaml_option
         '<' : lt,
         '>' : gt,
     }
 
     reverse_result = False
 
+    #Find the comparator symbol to split the string with and for logs
     if '==' in args:
         comparator = '=='
     elif '!=' in args:
         comparator = '!='
-        reverse_result = True #is in reality == but reversed
+        reverse_result = True #complement of == thus reverse by default
     elif '>=' in args:
         comparator = '>='
     elif '<=' in args:
@@ -536,6 +537,7 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
     initial_option_name = str(option_name).strip() #For exception messages
     option_name = format_to_valid_identifier(option_name)
 
+    # Detect !reversing of result like yaml_option
     if option_name.startswith('!'):
         reverse_result = not reverse_result
         option_name = option_name.lstrip('!')
@@ -550,10 +552,10 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
     if not value: #empty string ''
         raise ValueError(f"Could not find a valid value to compare against in given string '{args}'. \nThere must be a value to compare against after the comparator (in this case '{comparator}').")
 
-    if not skipCache:
+    if not skipCache: #Cache made for optimization purposes
         cacheindex = option_name + '_' + comp_symbols[comparator].__name__ + '_' + format_to_valid_identifier(value.lower())
 
-        if not hasattr(world, 'yaml_compare_rule_cache'): #Cache made for optimization purposes
+        if not hasattr(world, 'yaml_compare_rule_cache'):
             world.yaml_compare_rule_cache = dict[str,bool]()
 
     if skipCache or world.yaml_compare_rule_cache.get(cacheindex, None) is None:
