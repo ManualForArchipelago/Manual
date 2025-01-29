@@ -507,8 +507,8 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
         '>=' : ge,
         '<=' : le,
         '=': eq, #Alternate to be like yaml_option
-        '<' : lt,
-        '>' : gt,
+        '<' : ge, #complement of >=
+        '>' : le, #complement of <=
     }
 
     reverse_result = False
@@ -525,10 +525,12 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
         comparator = '<='
     elif '=' in args:
         comparator = '='
-    elif '>' in args:
-        comparator = '>'
     elif '<' in args:
         comparator = '<'
+        reverse_result = True #complement of >=
+    elif '>' in args:
+        comparator = '>'
+        reverse_result = True #complement of <=
     else:
         raise  ValueError(f"Could not find a valid comparator in given string '{args}', it must be one of {comp_symbols.keys()}")
 
