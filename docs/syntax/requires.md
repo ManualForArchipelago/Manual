@@ -85,15 +85,15 @@ In addition to specific item counts, you can also specify a broad relative amoun
 
 As demonstrated in the [Making Items: Category](making/items.md#categories) docs, you can configure an item to belong to a category, potentially with other related items. Sometimes, you want to use a category of items as a requirement for accessing a location or region, and Manual supports this as well.
 
-The way to do this is a short ampersand prefix added to the beginning of any required item name, like this: `|@Coins Category|`
+The way to do this is a short @ ("at symbol") prefix added to the beginning of any required item name, like this: `|@Coins|`
 
-- That will tell Manual that the location/region requires 1 item from the "Coins Category" category.
+- That will tell Manual that the location/region requires 1 item from the "Coins" category.
 
 Additionally, you can use counts as described above for required categories, just as you would use them for required item names. Let's see the demonstrated counts from above in category form:
 
-- `|@Coins Category:ALL|` will make a location/region require every item in the `Coins Category` category before being accessible. So, if you have 50 items in the `Coins Category` category, it will require all 50. (The "ALL" is not case sensitive, so it can be lowercase too.)
-- `|@Coins Category:HALF|` will make a location/region require half of the items in the `Coins Category` category before being accessible. So, if you have 50 items in the `Coins Category` category, it will require any 25 of them. (The "HALF" is not case sensitive, so it can be lowercase too.)
-- `|@Coins Category:90%|` will make a location/region require 90% of the items in the `Coins Category` category before being accessible. So, if you have 50 items in the `Coins Category` category, it will require any 45 of them. (Supports percentages between 0 and 100.)
+- `|@Coins:ALL|` will make a location/region require every item in the `Coins` category before being accessible. So, if you have 50 items in the `Coins` category, it will require all 50. (The "ALL" is not case sensitive, so it can be lowercase too.)
+- `|@Coins:HALF|` will make a location/region require half of the items in the `Coins` category before being accessible. So, if you have 50 items in the `Coins` category, it will require any 25 of them. (The "HALF" is not case sensitive, so it can be lowercase too.)
+- `|@Coins:90%|` will make a location/region require 90% of the items in the `Coins` category before being accessible. So, if you have 50 items in the `Coins` category, it will require any 45 of them. (Supports percentages between 0 and 100.)
 
 ## Requirement Functions
 
