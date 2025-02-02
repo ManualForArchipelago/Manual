@@ -487,5 +487,5 @@ def add_client_to_launcher() -> None:
     if not discord_component:
         components.append(Component("Manual Discord Server", "ManualDiscord", func=lambda: webbrowser.open("https://discord.gg/hm4rQnTzQ5"), icon="discord", component_type=Type.ADJUSTER))
 
-if 'Launcher' in sys.modules:
+if 'Launcher' in sys.modules or sys.modules['__main__'].__spec__.name == "Launcher":
     add_client_to_launcher()
