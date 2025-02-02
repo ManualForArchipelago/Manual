@@ -1,13 +1,18 @@
 from __future__ import annotations
-import time
+import asyncio
+import os
+import re
 import sys
-from typing import Any, Optional
+import time
 import typing
+from typing import Any, Optional
+
+import requests
 from worlds import AutoWorldRegister, network_data_package
+from worlds.LauncherComponents import icon_paths
 import json
 import traceback
 
-import asyncio, re
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -237,7 +242,7 @@ class ManualContext(SuperContext):
 
         if tracker_error:
             self._messagebox_connection_loss = self.gui_error(
-                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.", 
+                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.",
                 formatted_tb)
         else:
             self._messagebox_connection_loss = self.gui_error(msg, formatted_tb)
@@ -519,7 +524,7 @@ class ManualContext(SuperContext):
 
                     if category not in self.listed_locations:
                         self.listed_locations[category] = []
-                
+
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
@@ -608,12 +613,12 @@ class ManualContext(SuperContext):
 
                 if self.ctx.search_term:
                     items_length = len([
-                        i for i in self.ctx.items_received 
+                        i for i in self.ctx.items_received
                             if self.ctx.search_term.lower() in self.ctx.item_names.lookup_in_game(i.item).lower()
                     ])
 
                     locations_length = len([
-                        l for l in self.ctx.missing_locations 
+                        l for l in self.ctx.missing_locations
                             if self.ctx.search_term.lower() in self.ctx.location_names.lookup_in_game(l).lower()
                     ])
 
@@ -684,7 +689,7 @@ class ManualContext(SuperContext):
 
                                 # Label (for all item listings)
                                 sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received 
+                                    i.item for i in self.ctx.items_received
                                 ], key=self.ctx.item_names.lookup_in_game)
 
                                 for network_item in sorted_items_received:
@@ -774,7 +779,7 @@ class ManualContext(SuperContext):
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
                                             # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                             if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                                hide_button_during_search(location_button)                                            
+                                                hide_button_during_search(location_button)
                                             else:
                                                 show_button_during_search(location_button)
                                                 category_count += 1
@@ -802,10 +807,10 @@ class ManualContext(SuperContext):
 
                                         # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                            hide_button_during_search(location_button)                                            
+                                            hide_button_during_search(location_button)
                                         else:
                                             show_button_during_search(location_button)
-                                                                                        
+
                                             if was_reachable:
                                                 reachable_count += 1
 
@@ -937,6 +942,12 @@ def launch() -> None:
     colorama.init()
     asyncio.run(main(args))
     colorama.deinit()
+
+    if not os.path.exists(icon_paths["manual"]):
+        # Download the icon for next time
+        icon_url = "https://manualforarchipelago.github.io/ManualBuilder/images/ap-manual-discord-logo-square-96x96.png"
+        with open(icon_paths["manual"], 'wb') as f:
+            f.write(requests.get(icon_url).content)
 
 if __name__ == '__main__':
     launch()

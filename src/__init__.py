@@ -4,14 +4,12 @@ import os
 import json
 from typing import Callable, Optional
 import webbrowser
-import sys
 
-import requests
 import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, region_table, category_table, meta_table
+from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
@@ -24,9 +22,9 @@ from .Rules import set_rules
 from .Options import manual_options_data
 from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option
 
-from BaseClasses import ItemClassification, Tutorial, Item
+from BaseClasses import ItemClassification, Item
 from Options import PerGameCommonOptions
-from worlds.AutoWorld import World, WebWorld
+from worlds.AutoWorld import World
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
@@ -466,10 +464,6 @@ def add_client_to_launcher() -> None:
 
     if "manual" not in icon_paths:
         icon_paths["manual"] = Utils.user_path('data', 'manual.png')
-        if not os.path.exists(icon_paths["manual"]):
-            icon_url = "https://manualforarchipelago.github.io/ManualBuilder/images/ap-manual-discord-logo-square-96x96.png"
-            with open(icon_paths["manual"], 'wb') as f:
-                f.write(requests.get(icon_url).content)
 
     discord_component = None
     for c in components:
@@ -487,5 +481,4 @@ def add_client_to_launcher() -> None:
     if not discord_component:
         components.append(Component("Manual Discord Server", "ManualDiscord", func=lambda: webbrowser.open("https://discord.gg/hm4rQnTzQ5"), icon="discord", component_type=Type.ADJUSTER))
 
-if 'Launcher' in sys.modules or sys.modules['__main__'].__spec__.name == "Launcher":
-    add_client_to_launcher()
+add_client_to_launcher()
