@@ -342,15 +342,16 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         for parameter in parameters.values():
             target_type = parameter.annotation
             index += 1
-            if target_type in knownParameters or parameter.name.lower() == "player":
+            if target_type in knownParameters:
                 if target_type in [World, 'ManualWorld']:
                     args.insert(index, world)
                 elif target_type == MultiWorld:
                     args.insert(index, multiworld)
                 elif target_type == CollectionState:
                     args.insert(index, state)
-                else:
-                    args.insert(index, player)
+                continue
+            if parameter.name.lower() == "player":
+                args.insert(index, player)
                 continue
 
             if index < len(args) and args[index] != "":
