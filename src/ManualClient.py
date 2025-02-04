@@ -29,6 +29,9 @@ try:
 except ModuleNotFoundError:
     from CommonClient import CommonContext as SuperContext
 
+if typing.TYPE_CHECKING:
+    import kvui
+
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
