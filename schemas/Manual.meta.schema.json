@@ -87,15 +87,17 @@
             "type": "boolean",
             "default": false
         },
-        "sort_items_alphabetically": {
+        "preferred_items_sorting": {
             "description": "Sort items alphabetically in the Client UI",
-            "type": "boolean",
-            "default": true
+            "type": "string",
+            "enum": ["id", "inverted_id", "alphabetical", "inverted_alphabetical"],
+            "default": "alphabetical"
         },
-        "sort_locations_alphabetically": {
+        "preferred_locations_sorting": {
             "description": "Sort locations alphabetically in the Client UI",
-            "type": "boolean",
-            "default": true
+            "type": "string",
+            "enum": ["id", "inverted_id", "alphabetical", "inverted_alphabetical"],
+            "default": "alphabetical"
         }
     },
     "definitions": {

@@ -1,5 +1,6 @@
 
 from BaseClasses import Tutorial
+from enum import Enum
 from worlds.AutoWorld import World, WebWorld
 from .Data import meta_table
 from .Helpers import convert_to_long_string
@@ -16,6 +17,12 @@ class ManualWeb(WebWorld):
         "setup/en",
         ["Fuzzy"]
     )]
+
+class SortingOrder(Enum):
+    id = 1
+    inverted_id = -1
+    alphabetical = 2
+    inverted_alphabetical = -2
 
 ######################################
 # Convert meta.json data to properties
@@ -70,5 +77,5 @@ world_webworld: ManualWeb = set_world_webworld(ManualWeb())
 
 enable_region_diagram = bool(meta_table.get("enable_region_diagram", False))
 
-sort_items_alphabetically = bool(meta_table.get("sort_items_alphabetically", True))
-sort_locations_alphabetically = bool(meta_table.get("sort_locations_alphabetically", True))
+preferred_items_sorting = SortingOrder[meta_table.get("preferred_items_sorting", "alphabetical")]
+preferred_locations_sorting = SortingOrder[meta_table.get("preferred_locations_sorting", "alphabetical")]
