@@ -5,14 +5,13 @@ import re
 import sys
 import time
 import typing
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 from worlds import AutoWorldRegister, network_data_package
 from worlds.LauncherComponents import icon_paths
 import json
 import traceback
-
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -385,7 +384,7 @@ class ManualContext(SuperContext):
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
                 self.item_categories = ["(No Category)"]
-                self.listed_locations = {"(No Category)": [], "(Hinted)": []}
+                self.listed_locations: Dict[str, List[int]] = {"(No Category)": [], "(Hinted)": []}
                 self.location_categories = ["(No Category)", "(Hinted)"]
 
             def set_active_item_accordion(self, instance):
@@ -531,8 +530,14 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
-                for category in self.listed_locations:
-                    self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                if getattr(AutoWorldRegister.world_types[self.ctx.game], "sort_locations_alphabetically", True):
+                    # sort by location name
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                else:
+                    # sort by location ID
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort()
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -691,9 +696,16 @@ class ManualContext(SuperContext):
                                 self.listed_items[category_name].clear()
 
                                 # Label (for all item listings)
-                                sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received
-                                ], key=self.ctx.item_names.lookup_in_game)
+                                if getattr(AutoWorldRegister.world_types[self.ctx.game], "sort_items_alphabetically", True):
+                                    # sort by item name
+                                    sorted_items_received = sorted([
+                                        i.item for i in self.ctx.items_received
+                                    ], key=self.ctx.item_names.lookup_in_game)
+                                else:
+                                    # sort by item ID
+                                    sorted_items_received = sorted([
+                                        i.item for i in self.ctx.items_received
+                                    ])
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
