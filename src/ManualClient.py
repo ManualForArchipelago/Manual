@@ -66,6 +66,34 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.output(response)
             return False
 
+    @mark_raw
+    def _cmd_items_sorting(self, sorting: str) -> bool:
+        names = [e.key for e in SortingOrder].append("recommended")
+        sorting, usable, response = Utils.get_intended_text(
+            sorting,
+            names
+        )
+        if usable:
+            self.ctx.items_sorting = sorting
+            # TODO Find how to save to settings
+        else:
+            self.output(response)
+            return False
+
+    @mark_raw
+    def _cmd_locations_sorting(self, sorting: str) -> bool:
+        names = [e.key for e in SortingOrder].append("recommended")
+        sorting, usable, response = Utils.get_intended_text(
+            sorting,
+            names
+        )
+        if usable:
+            self.ctx.locations_sorting = sorting
+
+        else:
+            self.output(response)
+            return False
+
 
 
 
