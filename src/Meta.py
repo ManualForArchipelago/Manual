@@ -77,5 +77,5 @@ world_webworld: ManualWeb = set_world_webworld(ManualWeb())
 
 enable_region_diagram = bool(meta_table.get("enable_region_diagram", False))
 
-preferred_items_sorting = SortingOrder[meta_table.get("preferred_items_sorting", "alphabetical")]
-preferred_locations_sorting = SortingOrder[meta_table.get("preferred_locations_sorting", "alphabetical")]
+preferred_items_sorting = SortingOrder[meta_table.get("preferred_items_sorting", "id")]
+preferred_locations_sorting = SortingOrder[meta_table.get("preferred_locations_sorting", "id")]

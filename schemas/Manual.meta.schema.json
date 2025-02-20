@@ -91,13 +91,13 @@
             "description": "Sort items alphabetically in the Client UI",
             "type": "string",
             "enum": ["id", "inverted_id", "alphabetical", "inverted_alphabetical"],
-            "default": "alphabetical"
+            "default": "id"
         },
         "preferred_locations_sorting": {
             "description": "Sort locations alphabetically in the Client UI",
             "type": "string",
             "enum": ["id", "inverted_id", "alphabetical", "inverted_alphabetical"],
-            "default": "alphabetical"
+            "default": "id"
         }
     },
     "definitions": {

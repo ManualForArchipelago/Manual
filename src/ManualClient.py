@@ -82,7 +82,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.output(f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort}")
 
             if cur_sort == "recommended" and self.ctx.game is not None:
-                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.alphabetical).name
+                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).name
                 self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
             return True
 
@@ -103,7 +103,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.ctx.save_options()
             self.output(f"Set {'Items' if target_items else 'Locations'} sorting algorithm to {algorithm}")
             if algorithm == "recommended" and self.ctx.game is not None:
-                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.alphabetical).name
+                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).name
                 self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
 
         else:
@@ -598,7 +598,7 @@ class ManualContext(SuperContext):
                     victory_categories.add("(No Category)")
 
                 if self.ctx.locations_sorting == "recommended":
-                    loc_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_locations_sorting", SortingOrder.alphabetical).value
+                    loc_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_locations_sorting", SortingOrder.id).value
                 else:
                     loc_sorting = SortingOrder[self.ctx.locations_sorting]
 
@@ -769,7 +769,7 @@ class ManualContext(SuperContext):
 
                                 # Label (for all item listings)
                                 if self.ctx.items_sorting == "recommended":
-                                    item_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.alphabetical).value
+                                    item_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).value
                                 else:
                                     item_sorting = SortingOrder[self.ctx.items_sorting]
 
