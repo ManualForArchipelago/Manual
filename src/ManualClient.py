@@ -117,6 +117,7 @@ class ManualContext(SuperContext):
     deathlink_out = False
 
     search_term = ""
+    settings = None
     items_sorting = "recommended"
     locations_sorting = "recommended"
 
@@ -170,9 +171,12 @@ class ManualContext(SuperContext):
             self.victory_names = ["__Manual Game Complete__"]
             self.goal_location = self.get_location_by_name("__Manual Game Complete__")
 
-        if world is not None and hasattr(world, "settings"):
-            self.items_sorting = world.settings.items_sorting_order
-            self.locations_sorting = world.settings.locations_sorting_order
+        self.settings = Utils.get_settings()["manual_settings"] #.get(self.game.lower(), None)
+        if self.settings is not None:
+            if hasattr(world.settings, "items_sorting_order"):
+                self.items_sorting = world.settings.items_sorting_order
+            if hasattr(world.settings, "locations_sorting_order"):
+                self.locations_sorting = world.settings.locations_sorting_order
 
         await self.get_username()
         await self.send_connect()
@@ -223,6 +227,12 @@ class ManualContext(SuperContext):
 
     def clear_search(self):
         self.search_term = ""
+
+    def save_options(self):
+        if self.settings is not None:
+            self.settings.items_sorting_order = self.items_sorting
+            self.settings.locations_sorting_order = self.locations_sorting
+            Utils.get_settings().save()
 
     @property
     def endpoints(self):

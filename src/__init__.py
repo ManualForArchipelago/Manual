@@ -2,7 +2,7 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, ClassVar
 import webbrowser
 import settings
 
@@ -53,14 +53,15 @@ class ManualSettings(settings.Group):
         alphabetical, inverted_alphabetical: Sort by location name
         """
 
-    items_sorting_order: Optional[ItemsSorting] = "recommended"
-    locations_sorting_order: Optional[LocationsSorting] = "recommended"
+    items_sorting_order: ItemsSorting = ItemsSorting("recommended")
+    locations_sorting_order: LocationsSorting = LocationsSorting("recommended")
 
 class ManualWorld(World):
     __doc__ = world_description
     game: str = game_name
     web = world_webworld
-    settings = ManualSettings
+    settings: ClassVar[ManualSettings]
+    settings_key: ClassVar[str] = "manual_settings"
 
     options_dataclass = manual_options_data
     data_version = 2
