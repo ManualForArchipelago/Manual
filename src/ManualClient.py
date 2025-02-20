@@ -102,7 +102,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.ctx.ui.request_update_tracker_and_locations_table()
             self.ctx.save_options()
             self.output(f"Set {'Items' if target_items else 'Locations'} sorting algorithm to {algorithm}")
-            if cur_sort == "recommended" and self.ctx.game is not None:
+            if algorithm == "recommended" and self.ctx.game is not None:
                 dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.alphabetical).name
                 self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
 
