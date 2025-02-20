@@ -187,12 +187,12 @@ class ManualContext(SuperContext):
             self.victory_names = ["__Manual Game Complete__"]
             self.goal_location = self.get_location_by_name("__Manual Game Complete__")
 
-        self.settings = Utils.get_settings()["manual_settings"] #.get(self.game.lower(), None)
+        self.settings = Utils.get_settings().get("manual_settings", None) #.get(self.game.lower(), None)
         if self.settings is not None:
-            if hasattr(world.settings, "items_sorting_order"):
-                self.items_sorting = world.settings.items_sorting_order
-            if hasattr(world.settings, "locations_sorting_order"):
-                self.locations_sorting = world.settings.locations_sorting_order
+            if hasattr(self.settings, "items_sorting_order"):
+                self.items_sorting = self.settings.items_sorting_order
+            if hasattr(self.settings, "locations_sorting_order"):
+                self.locations_sorting = self.settings.locations_sorting_order
 
         await self.get_username()
         await self.send_connect()
