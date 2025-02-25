@@ -2,8 +2,9 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional
+from typing import Callable, Optional, Union, ClassVar
 import webbrowser
+import settings
 
 import Utils
 from worlds.generic.Rules import forbid_items_for_player
@@ -11,7 +12,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 
 from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
-from .Meta import world_description, world_webworld, enable_region_diagram
+from .Meta import world_description, world_webworld, enable_region_diagram, preferred_items_sorting, preferred_locations_sorting
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
@@ -36,10 +37,31 @@ from .hooks.World import \
     before_extend_hint_information, after_extend_hint_information
 from .hooks.Data import hook_interpret_slot_data
 
+class ManualSettings(settings.Group):
+    class ItemsSorting(str):
+        """Set your preferred Items sorting order
+        valid options:
+        recommended: Use the sorting the dev prefer for you to use
+        id, inverted_id: Sort by item ids
+        alphabetical, inverted_alphabetical: Sort by item name
+        """
+    class LocationsSorting(str):
+        """Set your preferred Locations sorting order
+        valid options:
+        recommended: Use the sorting the dev prefer for you to use
+        id, inverted_id: Sort by location ids
+        alphabetical, inverted_alphabetical: Sort by location name
+        """
+
+    items_sorting_order: ItemsSorting = ItemsSorting("recommended")
+    locations_sorting_order: LocationsSorting = LocationsSorting("recommended")
+
 class ManualWorld(World):
     __doc__ = world_description
     game: str = game_name
     web = world_webworld
+    settings: ClassVar[ManualSettings]
+    settings_key: ClassVar[str] = "manual_settings"
 
     options_dataclass = manual_options_data
     data_version = 2
@@ -65,6 +87,9 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
+
+    preferred_items_sorting = preferred_items_sorting
+    preferred_locations_sorting = preferred_locations_sorting
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
@@ -459,7 +484,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2024_12_13 # YYYYMMDD
+    version = 2025_02_19 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

@@ -5,14 +5,14 @@ import re
 import sys
 import time
 import typing
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
+from enum import IntEnum
 
 import requests
 from worlds import AutoWorldRegister, network_data_package
 from worlds.LauncherComponents import icon_paths
 import json
 import traceback
-
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -37,6 +37,12 @@ except ModuleNotFoundError:
 if typing.TYPE_CHECKING:
     import kvui
 
+class SortingOrder(IntEnum):
+    id = 1
+    inverted_id = -1
+    alphabetical = 2
+    inverted_alphabetical = -2
+
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
@@ -56,6 +62,50 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             location_id = self.ctx.location_names_to_id[location_name]
             self.ctx.locations_checked.append(location_id)
             self.ctx.syncing = True
+        else:
+            self.output(response)
+            return False
+
+    @mark_raw
+    def _cmd_items_sorting(self, algorithm: Optional[str] = None) -> bool:
+        """Set or get the current items sorting algorithm."""
+        return self.sorting_commands_logic(algorithm, target_items=True)
+
+    @mark_raw
+    def _cmd_locations_sorting(self, algorithm: Optional[str] = None) -> bool:
+        """Set or get the current locations sorting algorithm."""
+        return self.sorting_commands_logic(algorithm, target_items=False)
+
+    def sorting_commands_logic(self, algorithm: Optional[str] = None, target_items: bool = False)-> bool:
+        if algorithm is None: #Get
+            cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting
+            self.output(f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort}")
+
+            if cur_sort == "recommended" and self.ctx.game is not None:
+                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).name
+                self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
+            return True
+
+        valid_algorithms = ["recommended"] + [e.name for e in SortingOrder] #Set
+        algorithm, usable, response = Utils.get_intended_text(
+            algorithm,
+            valid_algorithms
+        )
+
+        if usable:
+            if target_items:
+                self.ctx.items_sorting = algorithm
+            else:
+                self.ctx.locations_sorting = algorithm
+                self.ctx.ui.build_tracker_and_locations_table() #The best place I could find to sort the locations
+
+            self.ctx.ui.request_update_tracker_and_locations_table()
+            self.ctx.save_options()
+            self.output(f"Set {'Items' if target_items else 'Locations'} sorting algorithm to {algorithm}")
+            if algorithm == "recommended" and self.ctx.game is not None:
+                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).name
+                self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
+
         else:
             self.output(response)
             return False
@@ -83,6 +133,9 @@ class ManualContext(SuperContext):
     deathlink_out = False
 
     search_term = ""
+    settings = None
+    items_sorting = "recommended"
+    locations_sorting = "recommended"
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -134,6 +187,13 @@ class ManualContext(SuperContext):
             self.victory_names = ["__Manual Game Complete__"]
             self.goal_location = self.get_location_by_name("__Manual Game Complete__")
 
+        self.settings = Utils.get_settings().get("manual_settings", None) #.get(self.game.lower(), None)
+        if self.settings is not None:
+            if hasattr(self.settings, "items_sorting_order"):
+                self.items_sorting = self.settings.items_sorting_order
+            if hasattr(self.settings, "locations_sorting_order"):
+                self.locations_sorting = self.settings.locations_sorting_order
+
         await self.get_username()
         await self.send_connect()
 
@@ -183,6 +243,12 @@ class ManualContext(SuperContext):
 
     def clear_search(self):
         self.search_term = ""
+
+    def save_options(self):
+        if self.settings is not None:
+            self.settings.items_sorting_order = self.items_sorting
+            self.settings.locations_sorting_order = self.locations_sorting
+            Utils.get_settings().save()
 
     @property
     def endpoints(self):
@@ -385,7 +451,7 @@ class ManualContext(SuperContext):
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
                 self.item_categories = ["(No Category)"]
-                self.listed_locations = {"(No Category)": [], "(Hinted)": []}
+                self.listed_locations: Dict[str, List[int]] = {"(No Category)": [], "(Hinted)": []}
                 self.location_categories = ["(No Category)", "(Hinted)"]
 
             def set_active_item_accordion(self, instance):
@@ -531,8 +597,17 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
-                for category in self.listed_locations:
-                    self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                if self.ctx.locations_sorting == "recommended":
+                    loc_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_locations_sorting", SortingOrder.id).value
+                else:
+                    loc_sorting = SortingOrder[self.ctx.locations_sorting]
+
+                if abs(loc_sorting) == SortingOrder.alphabetical:
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game, reverse=loc_sorting < 0)
+                elif abs(loc_sorting) == SortingOrder.id:
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(reverse=loc_sorting < 0)
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -689,11 +764,24 @@ class ManualContext(SuperContext):
                                 # instead of reusing existing item listings, clear it all out and re-draw with the sorted list
                                 category_grid.clear_widgets()
                                 self.listed_items[category_name].clear()
+                                category_count = 0
+                                category_unique_name_count = 0
 
                                 # Label (for all item listings)
-                                sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received
-                                ], key=self.ctx.item_names.lookup_in_game)
+                                if self.ctx.items_sorting == "recommended":
+                                    item_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).value
+                                else:
+                                    item_sorting = SortingOrder[self.ctx.items_sorting]
+
+                                if abs(item_sorting) == SortingOrder.alphabetical:
+                                    sorted_items_received = sorted([
+                                        i.item for i in self.ctx.items_received
+                                    ], key=self.ctx.item_names.lookup_in_game,
+                                    reverse=item_sorting < 0)
+                                elif abs(item_sorting) == SortingOrder.id:
+                                    sorted_items_received = sorted([
+                                        i.item for i in self.ctx.items_received
+                                    ], reverse=item_sorting < 0)
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
