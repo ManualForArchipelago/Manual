@@ -283,7 +283,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     for region in regionMap.keys():
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
-            for exitRegion in multiworld.get_region(region, player).exits:
+            for exitRegion in multiworld.get_region(region, player).entrances:
                 def fullRegionCheck(state: CollectionState, region=regionMap[region]):
                     return fullLocationOrRegionCheck(state, region)
 
