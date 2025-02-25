@@ -41,14 +41,12 @@ class ManualSettings(settings.Group):
     class ItemsSorting(str):
         """Set your preferred Items sorting order
         valid options:
-        recommended: Use the sorting the dev prefer for you to use
         custom, inverted_custom: Sort by item ids
         alphabetical, inverted_alphabetical: Sort by item name
         """
     class LocationsSorting(str):
         """Set your preferred Locations sorting order
         valid options:
-        recommended: Use the sorting the dev prefer for you to use
         custom, inverted_custom: Sort by location ids
         alphabetical, inverted_alphabetical: Sort by location name
         """

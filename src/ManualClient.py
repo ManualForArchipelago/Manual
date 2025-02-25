@@ -127,8 +127,8 @@ class ManualContext(SuperContext):
 
     search_term = ""
     settings = None
-    items_sorting = "recommended"
-    locations_sorting = "recommended"
+    items_sorting = "alphabetical"
+    locations_sorting = "alphabetical"
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -590,10 +590,7 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
-                if self.ctx.locations_sorting == "recommended":
-                    loc_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_locations_sorting", SortingOrder.alphabetical).value
-                else:
-                    loc_sorting = SortingOrder[self.ctx.locations_sorting]
+                loc_sorting = SortingOrder[self.ctx.locations_sorting]
 
                 if abs(loc_sorting) == SortingOrder.alphabetical:
                     for category in self.listed_locations:
@@ -761,10 +758,7 @@ class ManualContext(SuperContext):
                                 category_unique_name_count = 0
 
                                 # Label (for all item listings)
-                                if self.ctx.items_sorting == "recommended":
-                                    item_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.alphabetical).value
-                                else:
-                                    item_sorting = SortingOrder[self.ctx.items_sorting]
+                                item_sorting = SortingOrder[self.ctx.items_sorting]
 
                                 if abs(item_sorting) == SortingOrder.alphabetical:
                                     sorted_items_received = sorted([
