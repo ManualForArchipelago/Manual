@@ -42,19 +42,19 @@ class ManualSettings(settings.Group):
         """Set your preferred Items sorting order
         valid options:
         recommended: Use the sorting the dev prefer for you to use
-        id, inverted_id: Sort by item ids
+        custom, inverted_custom: Sort by item ids
         alphabetical, inverted_alphabetical: Sort by item name
         """
     class LocationsSorting(str):
         """Set your preferred Locations sorting order
         valid options:
         recommended: Use the sorting the dev prefer for you to use
-        id, inverted_id: Sort by location ids
+        custom, inverted_custom: Sort by location ids
         alphabetical, inverted_alphabetical: Sort by location name
         """
 
-    items_sorting_order: ItemsSorting = ItemsSorting("recommended")
-    locations_sorting_order: LocationsSorting = LocationsSorting("recommended")
+    items_sorting_order: ItemsSorting = ItemsSorting("alphabetical")
+    locations_sorting_order: LocationsSorting = LocationsSorting("alphabetical")
 
 class ManualWorld(World):
     __doc__ = world_description

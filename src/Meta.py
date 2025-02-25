@@ -18,12 +18,6 @@ class ManualWeb(WebWorld):
         ["Fuzzy"]
     )]
 
-class SortingOrder(Enum):
-    id = 1
-    inverted_id = -1
-    alphabetical = 2
-    inverted_alphabetical = -2
-
 ######################################
 # Convert meta.json data to properties
 ######################################
