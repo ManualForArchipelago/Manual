@@ -12,7 +12,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 
 from .Data import item_table, location_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
-from .Meta import world_description, world_webworld, enable_region_diagram, preferred_items_sorting, preferred_locations_sorting
+from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
@@ -87,9 +87,6 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
-
-    preferred_items_sorting = preferred_items_sorting
-    preferred_locations_sorting = preferred_locations_sorting
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
@@ -484,7 +481,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_02_19 # YYYYMMDD
+    version = 2025_02_25 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

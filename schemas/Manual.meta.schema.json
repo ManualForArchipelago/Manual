@@ -86,18 +86,6 @@
             "description": "Enable the generation of puml diagram of your apworld region and locations for debug purposes",
             "type": "boolean",
             "default": false
-        },
-        "preferred_items_sorting": {
-            "description": "Sort items alphabetically in the Client UI",
-            "type": "string",
-            "enum": ["id", "inverted_id", "alphabetical", "inverted_alphabetical"],
-            "default": "id"
-        },
-        "preferred_locations_sorting": {
-            "description": "Sort locations alphabetically in the Client UI",
-            "type": "string",
-            "enum": ["id", "inverted_id", "alphabetical", "inverted_alphabetical"],
-            "default": "id"
         }
     },
     "definitions": {

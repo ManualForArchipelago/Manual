@@ -38,8 +38,8 @@ if typing.TYPE_CHECKING:
     import kvui
 
 class SortingOrder(IntEnum):
-    id = 1
-    inverted_id = -1
+    custom = 1
+    inverted_custom = -1
     alphabetical = 2
     inverted_alphabetical = -2
 
@@ -81,12 +81,9 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting
             self.output(f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort}")
 
-            if cur_sort == "recommended" and self.ctx.game is not None:
-                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).name
-                self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
             return True
 
-        valid_algorithms = ["recommended"] + [e.name for e in SortingOrder] #Set
+        valid_algorithms = [e.name for e in SortingOrder]  # Set
         algorithm, usable, response = Utils.get_intended_text(
             algorithm,
             valid_algorithms
@@ -102,10 +99,6 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.ctx.ui.request_update_tracker_and_locations_table()
             self.ctx.save_options()
             self.output(f"Set {'Items' if target_items else 'Locations'} sorting algorithm to {algorithm}")
-            if algorithm == "recommended" and self.ctx.game is not None:
-                dev_sort = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).name
-                self.output(f"The recommended {'Items' if target_items else 'Locations'} sorting algorithm from the Apworld's dev is {dev_sort}.")
-
         else:
             self.output(response)
             return False
@@ -598,16 +591,16 @@ class ManualContext(SuperContext):
                     victory_categories.add("(No Category)")
 
                 if self.ctx.locations_sorting == "recommended":
-                    loc_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_locations_sorting", SortingOrder.id).value
+                    loc_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_locations_sorting", SortingOrder.alphabetical).value
                 else:
                     loc_sorting = SortingOrder[self.ctx.locations_sorting]
 
                 if abs(loc_sorting) == SortingOrder.alphabetical:
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game, reverse=loc_sorting < 0)
-                elif abs(loc_sorting) == SortingOrder.id:
+                elif abs(loc_sorting) == SortingOrder.custom:
                     for category in self.listed_locations:
-                        self.listed_locations[category].sort(reverse=loc_sorting < 0)
+                        self.listed_locations[category].sort(key=lambda i: self.ctx.get_location_by_id(i).get("sort-key", None) or self.ctx.get_location_by_id(i).get("name", ""), reverse=loc_sorting < 0)
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -769,19 +762,22 @@ class ManualContext(SuperContext):
 
                                 # Label (for all item listings)
                                 if self.ctx.items_sorting == "recommended":
-                                    item_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.id).value
+                                    item_sorting = getattr(AutoWorldRegister.world_types[self.ctx.game], "preferred_items_sorting", SortingOrder.alphabetical).value
                                 else:
                                     item_sorting = SortingOrder[self.ctx.items_sorting]
 
                                 if abs(item_sorting) == SortingOrder.alphabetical:
                                     sorted_items_received = sorted([
                                         i.item for i in self.ctx.items_received
-                                    ], key=self.ctx.item_names.lookup_in_game,
+                                    ],
+                                    key=self.ctx.item_names.lookup_in_game,
                                     reverse=item_sorting < 0)
-                                elif abs(item_sorting) == SortingOrder.id:
+                                elif abs(item_sorting) == SortingOrder.custom:
                                     sorted_items_received = sorted([
                                         i.item for i in self.ctx.items_received
-                                    ], reverse=item_sorting < 0)
+                                    ],
+                                    key=lambda i: self.ctx.get_item_by_id(i).get("sort-key", None) or self.ctx.get_item_by_id(i).get("name", ""),
+                                    reverse=item_sorting < 0)
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
