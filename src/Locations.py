@@ -1,5 +1,5 @@
 from BaseClasses import Location
-from .Data import location_table
+from .Data import location_table, event_table
 from .Game import starting_index
 
 
@@ -46,6 +46,7 @@ if not victory_names:
 location_id_to_name: dict[int, str] = {}
 location_name_to_location: dict[str, dict] = {}
 location_name_groups: dict[str, list[str]] = {}
+event_name_to_event: dict[str, list[str]] = {}
 
 for item in location_table:
     location_id_to_name[item["id"]] = item["name"]
@@ -59,6 +60,12 @@ for item in location_table:
 
 # location_id_to_name[None] = "__Manual Game Complete__"
 location_name_to_id = {name: id for id, name in location_id_to_name.items()}
+
+for id, event in enumerate(event_table):
+    event_name = f"{id}_{event['name']}"
+    event_name_to_event[event_name] = event
+    if 'region' not in event:
+        event_name_to_event[event_name]['region'] = "Manual"
 
 ######################
 # Location classes

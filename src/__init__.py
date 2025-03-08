@@ -9,14 +9,14 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, region_table, category_table
+from .Data import item_table, location_table, event_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
-from .Regions import create_regions
+from .Regions import create_regions, create_events
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
@@ -48,6 +48,7 @@ class ManualWorld(World):
     # These properties are set from the imports of the same name above.
     item_table = item_table
     location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+    event_table = event_table
     category_table = category_table
 
     item_id_to_name = item_id_to_name
@@ -65,6 +66,8 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
+
+    event_name_to_event = event_name_to_event
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
@@ -93,6 +96,8 @@ class ManualWorld(World):
         before_create_regions(self, self.multiworld, self.player)
 
         create_regions(self, self.multiworld, self.player)
+
+        create_events(self, self.multiworld, self.player)
 
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
