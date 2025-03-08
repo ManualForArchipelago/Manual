@@ -332,6 +332,37 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             set_rule(locFromWorld, allRegionsAccessible)
 
+    # Event access rules
+    for name, event in world.event_name_to_event.items():
+        locFromWorld = multiworld.get_location(name, player)
+        locationRegion = regionMap[event["region"]] if "region" in event else None
+
+        if locationRegion:
+            locationRegion['name'] = event['region']
+            locationRegion['is_region'] = True
+
+        if "requires" in event: # Event has requires, check them alongside the region requires
+            def checkBothLocationAndRegion(state: CollectionState, location=event, region=locationRegion):
+                locationCheck = fullLocationOrRegionCheck(state, event)
+                regionCheck = True # default to true unless there's a region with requires
+
+                if region:
+                    regionCheck = fullLocationOrRegionCheck(state, region)
+
+                return locationCheck and regionCheck
+
+            set_rule(locFromWorld, checkBothLocationAndRegion)
+        elif "region" in event: # Only region access required, check the location's region's requires
+            def fullRegionCheck(state, region=locationRegion):
+                return fullLocationOrRegionCheck(state, region)
+
+            set_rule(locFromWorld, fullRegionCheck)
+        else: # No location region and no location requires? It's accessible.
+            def allRegionsAccessible(state):
+                return True
+
+            set_rule(locFromWorld, allRegionsAccessible)
+
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
