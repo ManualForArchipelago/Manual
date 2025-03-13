@@ -22,7 +22,9 @@ for key, _ in enumerate(location_table):
         else:
             raise ValueError(f"{location_table[key]['name']} has an invalid ID. ID must be at least {count + 1}")
 
-    location_table[key]["id"] = count
+    if "event" not in location_table[key]:
+        location_table[key]["id"] = count
+        count += 1
 
     if "region" not in location_table[key]:
         location_table[key]["region"] = "Manual" # all locations are in the same region for Manual
@@ -30,12 +32,10 @@ for key, _ in enumerate(location_table):
     if isinstance(location_table[key].get("category", []), str):
         location_table[key]["category"] = [location_table[key]["category"]]
 
-    count += 1
 
 if not victory_names:
     # Add the game completion location, which will have the Victory item assigned to it automatically
     location_table.append({
-        "id": count + 1,
         "name": "__Manual Game Complete__",
         "region": "Manual",
         "requires": []
@@ -48,8 +48,11 @@ location_name_to_location: dict[str, dict] = {}
 location_name_groups: dict[str, list[str]] = {}
 
 for item in location_table:
-    location_id_to_name[item["id"]] = item["name"]
     location_name_to_location[item["name"]] = item
+    if "id" not in item:
+        # events
+        continue
+    location_id_to_name[item["id"]] = item["name"]
 
     for c in item.get("category", []):
         if c not in location_name_groups:

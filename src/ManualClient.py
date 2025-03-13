@@ -12,7 +12,7 @@ from worlds import AutoWorldRegister, network_data_package
 from worlds.LauncherComponents import icon_paths
 import json
 import traceback
-
+from BaseClasses import ItemClassification
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -22,7 +22,7 @@ import Utils
 if __name__ == "__main__":
     Utils.init_logging("ManualClient", exception_logger="Client")
 
-from NetUtils import ClientStatus
+from NetUtils import ClientStatus, NetworkItem
 from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProcessor, server_loop
 from MultiServer import mark_raw
 
@@ -691,8 +691,15 @@ class ManualContext(SuperContext):
                                 self.listed_items[category_name].clear()
 
                                 # Label (for all item listings)
+                                items_and_events_recieved = list(self.ctx.items_received)
+
+                                for event in self.ctx.tracker_reachable_events:
+                                    event_item = self.ctx.get_item_by_name(item_name)
+                                    if "id" in event_item:
+                                        items_and_events_recieved.append(NetworkItem(event_item['id'], None, self.ctx.slot, ItemClassification.progression))
+
                                 sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received
+                                    i.item for i in items_and_events_recieved
                                 ], key=self.ctx.item_names.lookup_in_game)
 
                                 for network_item in sorted_items_received:
