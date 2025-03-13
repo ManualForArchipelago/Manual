@@ -1,6 +1,7 @@
-from BaseClasses import Entrance, MultiWorld, Region
+from BaseClasses import Entrance, MultiWorld, Region, ItemClassification
 from .Helpers import is_category_enabled, is_location_enabled
 from .Data import region_table
+from .Items import ManualItem
 from .Locations import ManualLocation, location_name_to_location
 from worlds.AutoWorld import World
 
@@ -58,10 +59,12 @@ def create_region(world: World, multiworld: MultiWorld, player: int, name: str, 
 
     if locations:
         for location in locations:
-            loc_id = world.location_name_to_id.get(location, 0)
+            loc_id = world.location_name_to_id.get(location, None)
             locationObj = ManualLocation(player, location, loc_id, ret)
             if location_name_to_location[location].get('prehint'):
                 world.options.start_location_hints.value.add(location)
+            if location.get("event"):
+                locationObj.place_locked_item(ManualItem(name, ItemClassification.progression, None, world.player))
             ret.locations.append(locationObj)
     if exits:
         for exit in exits:
