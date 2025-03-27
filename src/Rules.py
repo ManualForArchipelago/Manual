@@ -176,6 +176,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             if require_type == 'category':
                 category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
+                category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
                 category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
                 if item_count.lower() == 'all':
                     item_count = category_items_counts
