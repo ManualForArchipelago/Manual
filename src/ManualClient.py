@@ -681,8 +681,11 @@ class ManualContext(SuperContext):
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
                                         old_item_text = item.text
                                         item_name = re.sub(r"\s\(\d+\)$", "", item.text)
-                                        item_id = self.ctx.item_names_to_id[item_name]
-                                        item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
+                                        item_id = self.ctx.item_names_to_id.get(item_name, False)
+                                        if item_id:
+                                            item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
+                                        else:
+                                            item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == item_name))
 
                                         # if the player is searching for text and the item name doesn't contain it, skip it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in item_name.lower():
