@@ -46,11 +46,6 @@
                     "description": "(Optional) The name of the region this event is part of.",
                     "type": "string"
                 },
-                "victory": {
-                    "description": "(Optional) Is this location one of the possible goals of this Manual APWorld?",
-                    "type": "boolean",
-                    "default": false
-                },
                 "visible": {
                     "description": "(Optional) Should this event be visible in the client?",
                     "type": "boolean",
