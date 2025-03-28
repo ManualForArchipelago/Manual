@@ -344,7 +344,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
         if "requires" in event: # Event has requires, check them alongside the region requires
             def checkBothLocationAndRegion(state: CollectionState, location=event, region=locationRegion):
-                locationCheck = fullLocationOrRegionCheck(state, event)
+                locationCheck = fullLocationOrRegionCheck(state, location)
                 regionCheck = True # default to true unless there's a region with requires
 
                 if region:
