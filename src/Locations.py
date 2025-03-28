@@ -74,6 +74,8 @@ for event in event_table:
             event_name = f"{id}_{event['name']}"
         event_name_to_event[event_name] = event
         event_name_to_event[event_name]["location_name"] = event_name
+    if 'visible' not in event:
+        event_name_to_event[event_name]['visible'] = False
     if 'region' not in event:
         event_name_to_event[event_name]['region'] = "Manual"
     id += 1

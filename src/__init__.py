@@ -331,6 +331,15 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
+        
+        slot_data["visible_events"] = {}
+        for _, event in self.event_name_to_event.items():
+            event_name = event["name"]
+            if event["visible"] and event_name not in slot_data["visible_events"]:
+                slot_data["visible_events"][event_name] = event.get("category", [])
+            elif event_name in slot_data["visible_events"]:
+                temp_list = event.get("category", []) + slot_data["visible_events"][event_name]
+                slot_data["visible_events"][event_name] = list(set(temp_list))
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 

@@ -82,6 +82,8 @@ class ManualContext(SuperContext):
     last_death_link = 0
     deathlink_out = False
 
+    visible_events = {}
+
     search_term = ""
 
     colors = {
@@ -207,6 +209,7 @@ class ManualContext(SuperContext):
                     self.ui.enable_death_link()
                     self.set_deathlink = True
                     self.last_death_link = 0
+                self.visible_events = args['slot_data'].get('visible_events', {})
                 logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -229,6 +232,13 @@ class ManualContext(SuperContext):
         self.tracker_reachable_events = events
         if events:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
+    
+    def is_event_visible(self, event_name, category_name):
+        if event_name not in self.visible_events:
+            return False
+        if category_name == "(No Category)" and len(self.visible_events[event_name]) == 0:
+            return True
+        return category_name in self.visible_events[event_name]
 
     def handle_connection_loss(self, msg: str) -> None:
         """Helper for logging and displaying a loss of connection. Must be called from an except block."""
@@ -719,6 +729,14 @@ class ManualContext(SuperContext):
 
                                         category_count += item_count
                                         category_unique_name_count += 1
+
+                                for event in sorted(self.ctx.tracker_reachable_events):
+                                    if self.ctx.is_event_visible(event, category_name) and event not in self.listed_items[category_name]:
+                                        item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == event))
+                                        item_text = Label(text="%s (%s)" % (event, item_count),
+                                                    size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
+                                        category_grid.add_widget(item_text)
+                                        self.listed_items[category_name].append(event)
 
                             scrollview_height = 30 * category_unique_name_count
 
