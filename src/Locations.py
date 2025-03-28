@@ -62,22 +62,25 @@ for item in location_table:
 location_name_to_id = {name: id for id, name in location_id_to_name.items()}
 
 id = 0
-for event in event_table:
+for key, event in enumerate(event_table):
     if "location_name" in event:
         if event["location_name"] in location_name_to_location:
             raise Exception(f"Cannot define event {event['location_name']} with the same name as a location.")
         event_name_to_event[event_name] = event
     else:
-        event_name = f"{id}_{event['name']}"
+        event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
         while event_name in location_name_to_location:
             id += 1
-            event_name = f"{id}_{event['name']}"
+            event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
         event_name_to_event[event_name] = event
         event_name_to_event[event_name]["location_name"] = event_name
+        event_table[key]["location_name"] = event_name
     if 'visible' not in event:
         event_name_to_event[event_name]['visible'] = False
+        event_table[key]['visible'] = False
     if 'region' not in event:
         event_name_to_event[event_name]['region'] = "Manual"
+        event_table[key]['region'] = "Manual"
     id += 1
 
 ######################

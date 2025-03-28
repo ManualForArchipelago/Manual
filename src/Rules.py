@@ -299,11 +299,15 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 add_rule(exit, lambda state, rule={"requires": exit_rules[e]}: fullLocationOrRegionCheck(state, rule))
 
     # Location access rules
-    for location in world.location_table:
-        if location["name"] not in used_location_names:
+    for location in (world.location_table + world.event_table):
+        if "location_name" in location:
+            name = location["location_name"]
+        elif location["name"] not in used_location_names:
             continue
+        else:
+            name = location["name"]
 
-        locFromWorld = multiworld.get_location(location["name"], player)
+        locFromWorld = multiworld.get_location(name, player)
 
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
@@ -323,37 +327,6 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             set_rule(locFromWorld, checkBothLocationAndRegion)
         elif "region" in location: # Only region access required, check the location's region's requires
-            def fullRegionCheck(state, region=locationRegion):
-                return fullLocationOrRegionCheck(state, region)
-
-            set_rule(locFromWorld, fullRegionCheck)
-        else: # No location region and no location requires? It's accessible.
-            def allRegionsAccessible(state):
-                return True
-
-            set_rule(locFromWorld, allRegionsAccessible)
-
-    # Event access rules
-    for name, event in world.event_name_to_event.items():
-        locFromWorld = multiworld.get_location(name, player)
-        locationRegion = regionMap[event["region"]] if "region" in event else None
-
-        if locationRegion:
-            locationRegion['name'] = event['region']
-            locationRegion['is_region'] = True
-
-        if "requires" in event: # Event has requires, check them alongside the region requires
-            def checkBothLocationAndRegion(state: CollectionState, location=event, region=locationRegion):
-                locationCheck = fullLocationOrRegionCheck(state, location)
-                regionCheck = True # default to true unless there's a region with requires
-
-                if region:
-                    regionCheck = fullLocationOrRegionCheck(state, region)
-
-                return locationCheck and regionCheck
-
-            set_rule(locFromWorld, checkBothLocationAndRegion)
-        elif "region" in event: # Only region access required, check the location's region's requires
             def fullRegionCheck(state, region=locationRegion):
                 return fullLocationOrRegionCheck(state, region)
 
