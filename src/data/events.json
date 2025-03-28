@@ -1,5 +1,5 @@
 {
-	"$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.locations.schema.json",
+	"$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.events.schema.json",
     "data": [
         {
             "name": "Marvel event",
@@ -8,6 +8,16 @@
         {
             "name": "Capcom event",
             "requires": "|@Left Side:all|"
+        },
+        {
+            "name": "test",
+            "visible": true,
+            "requires": "|@Left Side:8|"
+        },
+        {
+            "name": "test",
+            "visible": true,
+            "requires": "|@Right Side:8|"
         }
     ]
 }

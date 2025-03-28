@@ -499,6 +499,16 @@ class ManualContext(SuperContext):
                             if category not in self.listed_items:
                                 self.listed_items[category] = []
 
+                for event, categories in self.ctx.visible_events.items():
+                    for category in categories:
+                        category_settings = self.ctx.category_table.get(category) or getattr(AutoWorldRegister.world_types[self.ctx.game], "category_table", {}).get(category, {})
+                        if "hidden" in category_settings and category_settings["hidden"]:
+                            continue
+                        if category not in self.item_categories:
+                            self.item_categories.append(category)
+                        if category not in self.listed_items:
+                            self.listed_items[category] = []
+
 
                 # Items are not received on connect, so don't bother attempting to work with received items here
 
@@ -737,6 +747,8 @@ class ManualContext(SuperContext):
                                                     size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
                                         category_grid.add_widget(item_text)
                                         self.listed_items[category_name].append(event)
+                                        category_count += item_count
+                                        category_unique_name_count += 1
 
                             scrollview_height = 30 * category_unique_name_count
 
