@@ -3,21 +3,12 @@
     "data": [
         {
             "name": "Marvel event",
-            "requires": "|@Right Side:all|"
+            "requires": "|@Right Side:all|",
+            "visible": true
         },
         {
             "name": "Capcom event",
             "requires": "|@Left Side:all|"
-        },
-        {
-            "name": "test",
-            "visible": true,
-            "requires": "|@Left Side:8|"
-        },
-        {
-            "name": "test",
-            "visible": true,
-            "requires": "|@Right Side:8|"
         }
     ]
 }
