@@ -61,6 +61,10 @@ for item in location_table:
 # location_id_to_name[None] = "__Manual Game Complete__"
 location_name_to_id = {name: id for id, name in location_id_to_name.items()}
 
+for key, _ in enumerate(event_table):
+    if "copy_location" in event_table[key]:
+        event_table[key] = location_name_to_location[event_table[key]["copy_location"]] | event_table[key]
+
 id = 0
 for key, event in enumerate(event_table):
     if "location_name" in event:

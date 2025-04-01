@@ -9,6 +9,10 @@
         {
             "name": "Capcom event",
             "requires": "|@Left Side:all|"
+        },
+        {
+            "name": "Stars_event",
+            "copy_location": "Stars%"
         }
     ]
 }

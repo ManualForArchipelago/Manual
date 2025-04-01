@@ -34,6 +34,10 @@
                     },
                     "uniqueItems": true
                 },
+                "copy_location": {
+                    "description": "(Optional) Copies all information from the named location.",
+                    "type": "string"
+                },
                 "requires": {
                     "description": "(Optional) A boolean logic string that describes the required items, counts, etc. needed to trigger this event.",
                     "type": [ "string", "array" ],
