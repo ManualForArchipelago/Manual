@@ -30,12 +30,12 @@ def convertOptionVisibility(input) -> Visibility:
 
     elif isinstance(input,str):
         if input.startswith('0b'):
-            visibility = int(input, base=0)
+            visibility = Visibility(int(input, base=0))
         else:
             visibility = Visibility[input.lower()]
 
     elif isinstance(input, int):
-        visibility = input
+        visibility = Visibility(input)
     return visibility
 
 def getOriginalOptionArguments(option: Option) -> dict:
