@@ -79,6 +79,9 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
             elif "!=" in option_name:
                 option_name, target = option_name.split("!=")
                 eval_1 = lambda x, t:  x.value != t
+            elif "==" in option_name:
+                option_name, target = option_name.split("==")
+                eval_1 = lambda x, t: x.value == t
             elif "<" in option_name:
                 option_name, target = option_name.split("<")
                 eval_1 = lambda x, t: x.value < t
