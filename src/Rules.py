@@ -135,9 +135,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         if not callable(func):
                             raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area_name)
+                        convert_req_function_args(state, func, func_args, area_name)
                         try:
-                            result = func(world, multiworld, state, player, *func_args)
+                            result = func(*func_args)
                         except Exception as ex:
                             raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
                                                 \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
@@ -335,15 +335,24 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(func, args: list[str], areaName: str):
+    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownParameters = ["world", "multiworld", "state", "player"]
+        knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
         index = -1
         for parameter in parameters.values():
-            if parameter.name in knownParameters:
-                continue
-            index += 1
             target_type = parameter.annotation
+            index += 1
+            if target_type in knownParameters:
+                if target_type in [World, 'ManualWorld']:
+                    args.insert(index, world)
+                elif target_type == MultiWorld:
+                    args.insert(index, multiworld)
+                elif target_type == CollectionState:
+                    args.insert(index, state)
+                continue
+            if parameter.name.lower() == "player":
+                args.insert(index, player)
+                continue
 
             if index < len(args) and args[index] != "":
                 value = args[index].strip()
@@ -351,6 +360,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if parameter.default is not inspect.Parameter.empty:
                     if index < len(args):
                         args[index] = parameter.default
+                    else:
+                        args.insert(index, parameter.default)
                     continue
                 else:
                     if parameter.annotation is inspect.Parameter.empty:
@@ -414,7 +425,7 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
     return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
+def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
@@ -472,7 +483,7 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
         requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "{" + func_name + "(temp)}")
     # parse user written statement into list of each item
     for item in re.findall(r'\|[^|]+\|', requires):
-        itemScanned = OptOne(world, multiworld, state, player, item, items_counts)
+        itemScanned = OptOne(world, item, items_counts)
         requires_list = requires_list.replace(item, itemScanned)
 
     for function in functions:
@@ -480,16 +491,16 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
     return requires_list
 
 # Rule to expose the can_reach_location core function
-def canReachLocation(world: World, multiworld: MultiWorld, state: CollectionState, player: int, location: str):
+def canReachLocation(state: CollectionState, player: int, location: str):
     """Can the player reach the given location?"""
     if state.can_reach_location(location, player):
         return True
     return False
 
-def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
     return is_option_enabled(multiworld, player, param)
 
-def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlDisabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option disabled?"""
     return not is_option_enabled(multiworld, player, param)
