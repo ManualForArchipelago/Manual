@@ -8,7 +8,7 @@ from .Items import item_table
 from .Game import starting_items
 
 from dataclasses import make_dataclass
-from typing import List
+from typing import List, Any, Type
 import logging
 
 
@@ -30,15 +30,15 @@ def convertOptionVisibility(input) -> Visibility:
 
     elif isinstance(input,str):
         if input.startswith('0b'):
-            visibility = int(input, base=0)
+            visibility = Visibility(int(input, base=0))
         else:
             visibility = Visibility[input.lower()]
 
     elif isinstance(input, int):
-        visibility = input
+        visibility = Visibility(input)
     return visibility
 
-def getOriginalOptionArguments(option: Option) -> dict:
+def getOriginalOptionArguments(option: Type[Option[Any]]) -> dict:
     args = {}
     args['default'] = option.default
     if hasattr(option, 'display_name'): args['display'] = option.display_name
@@ -47,7 +47,7 @@ def getOriginalOptionArguments(option: Option) -> dict:
     args['visibility'] = option.visibility
     return args
 
-manual_option_groups = {}
+manual_option_groups: dict[str, List[Type[Option[Any]]]] = {}
 def addOptionToGroup(option_name: str, group: str):
     if group not in manual_option_groups.keys():
         manual_option_groups[group] = []
@@ -58,7 +58,7 @@ def addOptionToGroup(option_name: str, group: str):
 # Manual's default options
 ######################
 
-manual_options = before_options_defined({})
+manual_options: dict[str, Type[Option[Any]]] = before_options_defined({})
 manual_options["start_inventory_from_pool"] = StartInventoryPool
 
 if len(victory_names) > 1:
@@ -89,7 +89,7 @@ for option_name, option in option_table.get('core', {}).items():
     option_name = format_to_valid_identifier(option_name)
 
     if manual_options.get(option_name):
-        original_option: Option = manual_options[option_name]
+        original_option: Type[Option] = manual_options[option_name]
         original_doc = str(original_option.__doc__)
 
         if issubclass(original_option, Toggle):
@@ -98,7 +98,7 @@ for option_name, option in option_table.get('core', {}).items():
 
                 if original_option.__base__ != option_type: #only recreate if needed
                     args = getOriginalOptionArguments(original_option)
-                    manual_options[option_name] = type(option_name, (option_type,), dict(args))
+                    manual_options[option_name] = type(option_name, (option_type,), dict(args)) # Type checker doesn't like having a variable as a base for the type # type: ignore
                     logging.debug(f"Manual: Option.json converted option '{option_display_name}' into a {option_type}")
 
         elif issubclass(original_option, Choice):
@@ -116,7 +116,7 @@ for option_name, option in option_table.get('core', {}).items():
             if option.get('values'): #let user add named values
                 args = getOriginalOptionArguments(original_option)
                 args['special_range_names'] = {}
-                if original_option.__base__ == NamedRange:
+                if issubclass(original_option, NamedRange):
                     args['special_range_names'] = dict(original_option.special_range_names)
                 args['special_range_names']['default'] = option.get('default', args['special_range_names'].get('default', args['default']))
                 args['range_start'] = original_option.range_start
@@ -126,12 +126,7 @@ for option_name, option in option_table.get('core', {}).items():
                 manual_options[option_name] = type(option_name, (NamedRange,), dict(args))
                 logging.debug(f"Manual: Option.json converted option '{option_display_name}' into a {NamedRange}")
 
-        if option.get('display_name'):
-            manual_options[option_name].display_name = option['display_name']
-
-        elif option_name != option_display_name:
-            manual_options[option_name].display_name = option_display_name
-
+        manual_options[option_name].display_name = option.get('display_name', option_display_name) # type: ignore
         manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', original_doc))
         if option.get('rich_text_doc'):
             manual_options[option_name].rich_text_doc = option["rich_text_doc"]
@@ -164,11 +159,10 @@ for option_name, option in option_table.get('user', {}).items():
 
         args = {'display_name': option.get('display_name', option_display_name)}
 
-        if option_type == "Toggle":
-            value = option.get('default', False)
-            option_class = DefaultOnToggle if value else Toggle
+        # Default to Toggle to prevent hypothetical Unbound option_class
+        option_class: Type[Option] = DefaultOnToggle if option.get('default', False) else Toggle
 
-        elif option_type == "Choice":
+        if option_type == "Choice":
             args = {**args, **createChoiceOptions(option.get('values'), option.get('aliases', {}))}
             option_class = TextChoice if option.get("allow_custom_value", False) else Choice
 
@@ -191,7 +185,7 @@ for option_name, option in option_table.get('user', {}).items():
         elif option.get('visibility'):
             args['visibility'] = convertOptionVisibility(option['visibility'])
 
-        manual_options[option_name] = type(option_name, (option_class,), args )
+        manual_options[option_name] = type(option_name, (option_class,), args ) # Same as the first ignore above # type: ignore
         manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', "an Option"))
 
     if option.get('group'):
