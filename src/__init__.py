@@ -28,7 +28,7 @@ from worlds.AutoWorld import World
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
-    before_create_items_starting, before_create_items_filler, after_create_items, \
+    before_create_items_all, before_create_items_starting, before_create_items_filler, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
@@ -111,28 +111,52 @@ class ManualWorld(World):
         traps = []
         configured_item_names = self.item_id_to_name.copy()
 
+        items_config = {}
         for name in configured_item_names.values():
-            # victory gets placed via place_locked_item at the victory location in create_regions
             if name == "__Victory__": continue
-            # the game.json filler item name is added to the item lookup, so skip it until it's potentially needed later
             if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
+            if item.get("trap"):
+                traps.append(name)
 
             item = self.item_name_to_item[name]
             item_count = int(item.get("count", 1))
-
-            if item.get("trap"):
-                traps.append(name)
 
             if "category" in item:
                 if not is_item_enabled(self.multiworld, self.player, item):
                     item_count = 0
 
-            if item_count == 0: continue
+            items_config[name] = item_count
 
-            for _ in range(item_count):
-                new_item = self.create_item(name)
-                pool.append(new_item)
+        items_config = before_create_items_all(items_config, self, self.multiworld, self.player)
 
+        for name, configs in items_config.items():
+            total_created = 0
+            if type(configs) == int:
+                total_created = configs
+                for _ in range(configs):
+                    new_item = self.create_item(name)
+                    pool.append(new_item)
+            elif type(configs) == dict:
+                for cat, count in configs.values():
+                    total_created += count
+                    true_class = {
+                        "filler": ItemClassification.filler,
+                        "trap": ItemClassification.trap,
+                        "useful": ItemClassification.useful,
+                        "progression_skip_balancing": ItemClassification.progression_skip_balancing,
+                        "progression": ItemClassification.progression
+                    }.get(cat, cat)
+                    if not isinstance(true_class, ItemClassification):
+                        raise Exception(f"Item override for {name} improperly defined")
+                    for _ in range(count):
+                        new_item = self.create_item(name, true_class)
+                        pool.append(new_item)
+            else:
+                raise Exception(f"Item override for {name} improperly defined")
+
+            if total_created == 0: continue
+
+            item = self.item_name_to_item[name]
             if item.get("early"): # Some or all early
                 if isinstance(item["early"],int) or (isinstance(item["early"],str) and item["early"].isnumeric()):
                     self.multiworld.early_items[self.player][name] = int(item["early"])
@@ -207,22 +231,25 @@ class ManualWorld(World):
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
 
-    def create_item(self, name: str) -> Item:
+    def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)
 
         item = self.item_name_to_item[name]
-        classification = ItemClassification.filler
+        if class_override is not None:
+            classification = class_override
+        else:
+            classification = ItemClassification.filler
 
-        if "trap" in item and item["trap"]:
-            classification |= ItemClassification.trap
+            if "trap" in item and item["trap"]:
+                classification |= ItemClassification.trap
 
-        if "useful" in item and item["useful"]:
-            classification |= ItemClassification.useful
+            if "useful" in item and item["useful"]:
+                classification |= ItemClassification.useful
 
-        if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
-            classification |= ItemClassification.progression_skip_balancing
-        elif "progression" in item and item["progression"]:
-            classification |= ItemClassification.progression
+            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+                classification |= ItemClassification.progression_skip_balancing
+            elif "progression" in item and item["progression"]:
+                classification |= ItemClassification.progression
 
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
