@@ -37,11 +37,22 @@ except ModuleNotFoundError:
 if typing.TYPE_CHECKING:
     import kvui
 
-class SortingOrder(IntEnum):
+class SortingOrderLoc(IntEnum):
     custom = 1
     inverted_custom = -1
     alphabetical = 2
     inverted_alphabetical = -2
+    natural = 3
+    inverted_natural = -3
+class SortingOrderItem(IntEnum):
+    custom = 1
+    inverted_custom = -1
+    alphabetical = 2
+    inverted_alphabetical = -2
+    natural = 3
+    inverted_natural = -3
+    received = 4
+    inverted_received = -4
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -62,6 +73,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             location_id = self.ctx.location_names_to_id[location_name]
             self.ctx.locations_checked.append(location_id)
             self.ctx.syncing = True
+            return True
         else:
             self.output(response)
             return False
@@ -76,14 +88,19 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
         """Set or get the current locations sorting algorithm."""
         return self.sorting_commands_logic(algorithm, target_items=False)
 
-    def sorting_commands_logic(self, algorithm: Optional[str] = None, target_items: bool = False)-> bool:
+    def sorting_commands_logic(self, algorithm: Optional[str] = None, target_items: bool = False) -> bool:
         if algorithm is None: #Get
             cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting
             self.output(f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort}")
 
             return True
 
-        valid_algorithms = [e.name for e in SortingOrder]  # Set
+        # Set
+        if target_items:
+            valid_algorithms = [e.name for e in SortingOrderItem]
+        else:
+            valid_algorithms = [e.name for e in SortingOrderLoc]
+
         algorithm, usable, response = Utils.get_intended_text(
             algorithm,
             valid_algorithms
@@ -99,6 +116,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             self.ctx.ui.request_update_tracker_and_locations_table()
             self.ctx.save_options()
             self.output(f"Set {'Items' if target_items else 'Locations'} sorting algorithm to {algorithm}")
+            return True
         else:
             self.output(response)
             return False
@@ -590,14 +608,27 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
-                loc_sorting = SortingOrder[self.ctx.locations_sorting]
+                loc_sorting = SortingOrderLoc[self.ctx.locations_sorting]
 
-                if abs(loc_sorting) == SortingOrder.alphabetical:
+                if abs(loc_sorting) == SortingOrderLoc.alphabetical:
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game, reverse=loc_sorting < 0)
-                elif abs(loc_sorting) == SortingOrder.custom:
+                elif abs(loc_sorting) == SortingOrderLoc.custom:
                     for category in self.listed_locations:
-                        self.listed_locations[category].sort(key=lambda i: self.ctx.get_location_by_id(i).get("sort-key", None) or self.ctx.get_location_by_id(i).get("name", ""), reverse=loc_sorting < 0)
+                        self.listed_locations[category].sort(key=lambda i: self.ctx.get_location_by_id(i).get("sort-key", self.ctx.get_location_by_id(i).get("name", "")), \
+                            reverse=loc_sorting < 0)
+
+                elif abs(loc_sorting) == SortingOrderLoc.natural:
+                    # Modified from https://stackoverflow.com/a/11150413
+                    convert = lambda text: int(text) if text.isdigit() else text.lower()
+                    alphanum_key = lambda i: [
+                                convert(c) for c in re.split('([0-9]+)', \
+                                self.ctx.get_location_by_id(i).get("sort-key", self.ctx.get_location_by_id(i).get("name", "")))
+                            ]
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
+
+
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -758,20 +789,30 @@ class ManualContext(SuperContext):
                                 category_unique_name_count = 0
 
                                 # Label (for all item listings)
-                                item_sorting = SortingOrder[self.ctx.items_sorting]
+                                item_sorting = SortingOrderItem[self.ctx.items_sorting]
+                                sorted_items_received = [i.item for i in self.ctx.items_received]
 
-                                if abs(item_sorting) == SortingOrder.alphabetical:
-                                    sorted_items_received = sorted([
-                                        i.item for i in self.ctx.items_received
-                                    ],
+                                if abs(item_sorting) == SortingOrderItem.alphabetical:
+                                    sorted_items_received = sorted(sorted_items_received,
                                     key=self.ctx.item_names.lookup_in_game,
                                     reverse=item_sorting < 0)
-                                elif abs(item_sorting) == SortingOrder.custom:
-                                    sorted_items_received = sorted([
-                                        i.item for i in self.ctx.items_received
-                                    ],
-                                    key=lambda i: self.ctx.get_item_by_id(i).get("sort-key", None) or self.ctx.get_item_by_id(i).get("name", ""),
+                                elif abs(item_sorting) == SortingOrderItem.custom:
+                                    sorted_items_received = sorted(sorted_items_received,
+                                    key=lambda i: self.ctx.get_item_by_id(i).get("sort-key", self.ctx.get_item_by_id(i).get("name", "")),
                                     reverse=item_sorting < 0)
+
+                                elif abs(item_sorting) == SortingOrderItem.natural:
+                                    convert = lambda text: int(text) if text.isdigit() else text.lower()
+                                    alphanum_key = lambda i: [
+                                                convert(c) for c in re.split('([0-9]+)', \
+                                                self.ctx.get_item_by_id(i).get("sort-key", self.ctx.get_item_by_id(i).get("name", "")))
+                                            ]
+                                    sorted_items_received = sorted(sorted_items_received,
+                                    key=alphanum_key, reverse=item_sorting < 0)
+
+                                elif abs(item_sorting) == SortingOrderItem.received:
+                                    if item_sorting < 0:
+                                        sorted_items_received.reverse()
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
