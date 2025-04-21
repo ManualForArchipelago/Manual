@@ -20,9 +20,9 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option
+from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option, format_itemvalue_key
 
-from BaseClasses import ItemClassification, Item
+from BaseClasses import CollectionState, ItemClassification, Item
 from Options import PerGameCommonOptions
 from worlds.AutoWorld import World
 
@@ -257,6 +257,23 @@ class ManualWorld(World):
         item_object = after_create_item(item_object, self, self.multiworld, self.player)
 
         return item_object
+
+    # Item Value need a tweaked collect and remove:
+    def collect(self, state: CollectionState, item: Item) -> bool:
+        change = super().collect(state, item)
+        manual_item = self.item_name_to_item.get(item.name, {})
+        if change and manual_item.get("value"):
+            for key, value in manual_item["value"].items():
+                state.prog_items[item.player][format_itemvalue_key(key)] += int(value)
+        return change
+
+    def remove(self, state: CollectionState, item: Item) -> bool:
+        change = super().remove(state, item)
+        manual_item = self.item_name_to_item.get(item.name, {})
+        if change and manual_item.get("value"):
+            for key, value in manual_item["value"].items():
+                state.prog_items[item.player][format_itemvalue_key(key)] -= int(value)
+        return change
 
     def set_rules(self):
         before_set_rules(self, self.multiworld, self.player)
