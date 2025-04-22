@@ -4,6 +4,7 @@ import pkgutil
 import json
 
 from BaseClasses import MultiWorld, Item
+from enum import IntEnum
 from typing import Optional, List, TYPE_CHECKING, Union, get_args, get_origin, Any
 from types import GenericAlias
 from worlds.AutoWorld import World
@@ -213,12 +214,22 @@ def format_to_valid_identifier(input: str) -> str:
         input = "_" + input
     return input.replace(" ", "_")
 
-def format_itemvalue_key(key: str) -> str:
-    """Convert the inputted key to the format used in state.has(key) to check/set the count of an item_value
+class ProgItemsCat(IntEnum):
+    VALUE = 1
+    CATEGORY = 2
+
+def format_state_prog_items_key(category: str|ProgItemsCat ,key: str) -> str:
+    """Convert the inputted key to the format used in state.has(key) to check/set the count of an item_value.
+    Using either one of the predefined categories or a custom string.
 
     Example: Coin -> MANUAL_VALUE_coin
     """
-    return f"MANUAL_VALUE_{format_to_valid_identifier(key.lower())}"
+    if isinstance(category, str):
+        cat_key = category.upper()
+    else:
+        cat_key = category.name
+
+    return f"MANUAL_{cat_key}_{format_to_valid_identifier(key.lower())}"
 
 def convert_string_to_type(input: str, target_type: type) -> Any:
     """Take a string and attempt to convert it to {target_type}

@@ -5,7 +5,7 @@ from operator import eq, ge, le
 from .Regions import regionMap
 from .hooks import Rules
 from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value, convert_string_to_type,\
-    format_to_valid_identifier, format_itemvalue_key
+    format_to_valid_identifier, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
@@ -394,7 +394,7 @@ def ItemValue(state: CollectionState, player: int, valueCount: str):
     args: list[str] = valueCount.split(":")
     if not len(args) == 2 or not args[1].isnumeric():
         raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args[0]}:12)'")
-    value_name = format_itemvalue_key(args[0])
+    value_name = format_state_prog_items_key(ProgItemsCat.VALUE, args[0])
     requested_count = int(args[1].strip())
     return state.has(value_name, player, requested_count)
 

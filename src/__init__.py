@@ -20,7 +20,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option, format_itemvalue_key
+from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import CollectionState, ItemClassification, Item
 from Options import PerGameCommonOptions
@@ -264,7 +264,7 @@ class ManualWorld(World):
         manual_item = self.item_name_to_item.get(item.name, {})
         if change and manual_item.get("value"):
             for key, value in manual_item["value"].items():
-                state.prog_items[item.player][format_itemvalue_key(key)] += int(value)
+                state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] += int(value)
         return change
 
     def remove(self, state: CollectionState, item: Item) -> bool:
@@ -272,7 +272,7 @@ class ManualWorld(World):
         manual_item = self.item_name_to_item.get(item.name, {})
         if change and manual_item.get("value"):
             for key, value in manual_item["value"].items():
-                state.prog_items[item.player][format_itemvalue_key(key)] -= int(value)
+                state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] -= int(value)
         return change
 
     def set_rules(self):
