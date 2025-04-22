@@ -33,7 +33,8 @@ from .hooks.World import \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
-    before_extend_hint_information, after_extend_hint_information
+    before_extend_hint_information, after_extend_hint_information, \
+    after_collect_item, after_remove_item
 from .hooks.Data import hook_interpret_slot_data
 
 class ManualWorld(World):
@@ -265,6 +266,7 @@ class ManualWorld(World):
         if change and manual_item.get("value"):
             for key, value in manual_item["value"].items():
                 state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] += int(value)
+        after_collect_item(self, state, change, item)
         return change
 
     def remove(self, state: CollectionState, item: Item) -> bool:
@@ -273,6 +275,7 @@ class ManualWorld(World):
         if change and manual_item.get("value"):
             for key, value in manual_item["value"].items():
                 state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] -= int(value)
+        after_remove_item(self, state, change, item)
         return change
 
     def set_rules(self):
