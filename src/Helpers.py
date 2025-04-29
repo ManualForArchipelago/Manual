@@ -225,7 +225,7 @@ def format_state_prog_items_key(category: str|ProgItemsCat ,key: str) -> str:
     Example: Coin -> MANUAL_VALUE_coin
     """
     if isinstance(category, str):
-        cat_key = category.upper()
+        cat_key = format_to_valid_identifier(category.upper())
     else:
         cat_key = category.name
 
