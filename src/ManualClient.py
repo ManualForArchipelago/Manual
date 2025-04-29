@@ -678,6 +678,8 @@ class ManualContext(SuperContext):
                                 # instead of reusing existing item listings, clear it all out and re-draw with the sorted list
                                 category_grid.clear_widgets()
                                 self.listed_items[category_name].clear()
+                                category_count = 0
+                                category_unique_name_count = 0
 
                                 # Label (for all item listings)
                                 sorted_items_received = sorted([
