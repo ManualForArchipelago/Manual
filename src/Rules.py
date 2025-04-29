@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
+from operator import eq, ge, le
 
 from .Regions import regionMap
 from .hooks import Rules
@@ -8,6 +9,7 @@ from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_ena
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
+from Options import Choice, Toggle, Range, NamedRange
 
 import re
 import math
@@ -135,9 +137,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         if not callable(func):
                             raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area_name)
+                        convert_req_function_args(state, func, func_args, area_name)
                         try:
-                            result = func(world, multiworld, state, player, *func_args)
+                            result = func(*func_args)
                         except Exception as ex:
                             raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
                                                 \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
@@ -335,15 +337,24 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(func, args: list[str], areaName: str):
+    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownParameters = ["world", "multiworld", "state", "player"]
+        knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
         index = -1
         for parameter in parameters.values():
-            if parameter.name in knownParameters:
-                continue
-            index += 1
             target_type = parameter.annotation
+            index += 1
+            if target_type in knownParameters:
+                if target_type in [World, 'ManualWorld']:
+                    args.insert(index, world)
+                elif target_type == MultiWorld:
+                    args.insert(index, multiworld)
+                elif target_type == CollectionState:
+                    args.insert(index, state)
+                continue
+            if parameter.name.lower() == "player":
+                args.insert(index, player)
+                continue
 
             if index < len(args) and args[index] != "":
                 value = args[index].strip()
@@ -351,6 +362,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if parameter.default is not inspect.Parameter.empty:
                     if index < len(args):
                         args[index] = parameter.default
+                    else:
+                        args.insert(index, parameter.default)
                     continue
                 else:
                     if parameter.annotation is inspect.Parameter.empty:
@@ -414,7 +427,7 @@ def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, play
     return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
+def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
@@ -472,7 +485,7 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
         requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "{" + func_name + "(temp)}")
     # parse user written statement into list of each item
     for item in re.findall(r'\|[^|]+\|', requires):
-        itemScanned = OptOne(world, multiworld, state, player, item, items_counts)
+        itemScanned = OptOne(world, item, items_counts)
         requires_list = requires_list.replace(item, itemScanned)
 
     for function in functions:
@@ -480,16 +493,127 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
     return requires_list
 
 # Rule to expose the can_reach_location core function
-def canReachLocation(world: World, multiworld: MultiWorld, state: CollectionState, player: int, location: str):
+def canReachLocation(state: CollectionState, player: int, location: str):
     """Can the player reach the given location?"""
     if state.can_reach_location(location, player):
         return True
     return False
 
-def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
     return is_option_enabled(multiworld, player, param)
 
-def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlDisabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option disabled?"""
     return not is_option_enabled(multiworld, player, param)
+
+def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, args: str, skipCache: bool = False) -> bool:
+    """Is a yaml option's value compared using {comparator} to the requested value
+    \nFormat it like {YamlCompare(OptionName==value)}
+    \nWhere == can be any of the following: ==, !=, >=, <=, <, >
+    \nExample: {YamlCompare(Example_Range > 5)}"""
+    comp_symbols = { #Maybe find a better name for this
+        '==' : eq,
+        '!=' : eq, #complement of ==
+        '>=' : ge,
+        '<=' : le,
+        '=': eq, #Alternate to be like yaml_option
+        '<' : ge, #complement of >=
+        '>' : le, #complement of <=
+    }
+
+    reverse_result = False
+
+    #Find the comparator symbol to split the string with and for logs
+    if '==' in args:
+        comparator = '=='
+    elif '!=' in args:
+        comparator = '!='
+        reverse_result = True #complement of == thus reverse by default
+    elif '>=' in args:
+        comparator = '>='
+    elif '<=' in args:
+        comparator = '<='
+    elif '=' in args:
+        comparator = '='
+    elif '<' in args:
+        comparator = '<'
+        reverse_result = True #complement of >=
+    elif '>' in args:
+        comparator = '>'
+        reverse_result = True #complement of <=
+    else:
+        raise  ValueError(f"Could not find a valid comparator in given string '{args}', it must be one of {comp_symbols.keys()}")
+
+    option_name, value = args.split(comparator)
+
+    initial_option_name = str(option_name).strip() #For exception messages
+    option_name = format_to_valid_identifier(option_name)
+
+    # Detect !reversing of result like yaml_option
+    if option_name.startswith('!'):
+        reverse_result = not reverse_result
+        option_name = option_name.lstrip('!')
+        initial_option_name = initial_option_name.lstrip('!')
+
+    value = value.strip()
+
+    option = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"YamlCompare could not find an option called '{initial_option_name}' to compare against, its either missing on misspelt")
+
+    if not value: #empty string ''
+        raise ValueError(f"Could not find a valid value to compare against in given string '{args}'. \nThere must be a value to compare against after the comparator (in this case '{comparator}').")
+
+    if not skipCache: #Cache made for optimization purposes
+        cacheindex = option_name + '_' + comp_symbols[comparator].__name__ + '_' + format_to_valid_identifier(value.lower())
+
+        if not hasattr(world, 'yaml_compare_rule_cache'):
+            world.yaml_compare_rule_cache = dict[str,bool]()
+
+    if skipCache or world.yaml_compare_rule_cache.get(cacheindex, None) is None:
+        try:
+            if issubclass(type(option), Choice):
+                value = convert_string_to_type(value, str|int)
+                if isinstance(value, str):
+                    value = option.from_text(value).value
+
+            elif issubclass(type(option), Range):
+                if type(option).__base__ == NamedRange:
+                    value = convert_string_to_type(value, str|int)
+                    if isinstance(value, str):
+                        value = option.from_text(value).value
+
+                else:
+                    value = convert_string_to_type(value, int)
+
+            elif issubclass(type(option), Toggle):
+                value = int(convert_string_to_type(value, bool))
+
+            else:
+                raise ValueError(f"YamlCompare does not currently support Option of type {type(option)} \nAsk about it in #Manual-dev and it might be added.")
+
+        except KeyError as ex:
+            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{initial_option_name}\" option supports.\
+                \nRaw error:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        except Exception as ex:
+            raise TypeError(f"YamlCompare failed to convert the requested value to what a {type(option).__base__.__name__} option supports.\
+                \nCaused By:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        if isinstance(value, str) and comp_symbols[comparator].__name__ != 'eq':
+            #At this point if its still a string don't try and compare with strings using > < >= <=
+            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == 'eq']} and you tried to do: "{option.value} {comparator} {value}"')
+
+        result = comp_symbols[comparator](option.value, value)
+
+        if not skipCache:
+            world.yaml_compare_rule_cache[cacheindex] = result
+
+    else: #if exists and not skipCache
+        result = world.yaml_compare_rule_cache[cacheindex]
+
+    return not result if reverse_result else result
+

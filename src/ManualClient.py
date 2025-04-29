@@ -19,9 +19,6 @@ ModuleUpdate.update()
 
 import Utils
 
-if __name__ == "__main__":
-    Utils.init_logging("ManualClient", exception_logger="Client")
-
 from NetUtils import ClientStatus
 from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProcessor, server_loop
 from MultiServer import mark_raw
@@ -407,10 +404,6 @@ class ManualContext(SuperContext):
             background_color = ColorProperty()
 
         class ManualManager(ui):
-            logging_pairs = [
-                ("Client", "Archipelago"),
-                ("Manual", "Manual"),
-            ]
             base_title = "Archipelago Manual Client"
             listed_items = {"(No Category)": []}
             item_categories = ["(No Category)"]
@@ -443,11 +436,7 @@ class ManualContext(SuperContext):
 
                 self.grid.add_widget(self.manual_game_layout, 3)
 
-                for child in self.tabs.tab_list:
-                    if child.text == "Manual":
-                        panel = child # instead of creating a new TabbedPanelItem, use the one we use above to make the tabs show
-
-                panel.content = ManualTabLayout(orientation="vertical")
+                panel = self.add_client_tab("Manual", ManualTabLayout(orientation="vertical"))
 
                 self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(40))
                 self.tracker_and_locations_panel = TrackerAndLocationsLayout(cols = 2)
@@ -627,7 +616,6 @@ class ManualContext(SuperContext):
                             ]
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
-
 
 
                 items_length = len(self.ctx.items_received)

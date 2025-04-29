@@ -55,6 +55,16 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     if hasattr(multiworld, "clear_location_cache"):
         multiworld.clear_location_cache()
 
+# This hook allows you to access the item names & counts before the items are created. Use this to increase/decrease the amount of a specific item in the pool
+# Valid item_config key/values:
+# {"Item Name": 5} <- This will create qty 5 items using all the default settings
+# {"Item Name": {"useful": 7}} <- This will create qty 7 items and force them to be classified as useful
+# {"Item Name": {"progression": 2, "useful": 1}} <- This will create 3 items, with 2 classified as progression and 1 as useful
+# {"Item Name": {0b0110: 5}} <- If you know the special flag for the item classes, you can also define non-standard options. This setup
+#       will create 5 items that are the "useful trap" class
+def before_create_items_all(item_config: dict[str: int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str: int|dict]:
+    return item_config
+
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     return item_pool
@@ -141,8 +151,8 @@ def before_write_spoiler(world: World, multiworld: MultiWorld, spoiler_handle) -
 
 # This is called when you want to add information to the hint text
 def before_extend_hint_information(hint_data: dict[int, dict[int, str]], world: World, multiworld: MultiWorld, player: int) -> None:
-    
-    ### Example way to use this hook: 
+
+    ### Example way to use this hook:
     # if player not in hint_data:
     #     hint_data.update({player: {}})
     # for location in multiworld.get_locations(player):
@@ -152,7 +162,7 @@ def before_extend_hint_information(hint_data: dict[int, dict[int, str]], world: 
     #     use this section to calculate the hint string
     #
     #     hint_data[player][location.address] = hint_string
-    
+
     pass
 
 def after_extend_hint_information(hint_data: dict[int, dict[int, str]], world: World, multiworld: MultiWorld, player: int) -> None:
