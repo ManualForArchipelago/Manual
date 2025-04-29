@@ -115,11 +115,12 @@ class ManualWorld(World):
         for name in configured_item_names.values():
             if name == "__Victory__": continue
             if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
-            if item.get("trap"):
-                traps.append(name)
 
             item = self.item_name_to_item[name]
             item_count = int(item.get("count", 1))
+
+            if item.get("trap"):
+                traps.append(name)
 
             if "category" in item:
                 if not is_item_enabled(self.multiworld, self.player, item):
