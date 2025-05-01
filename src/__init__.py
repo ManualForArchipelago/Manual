@@ -140,13 +140,16 @@ class ManualWorld(World):
             elif type(configs) is dict:
                 for cat, count in configs.items():
                     total_created += count
-                    try:
-                        if cat.startswith('0b'):
-                            true_class = ItemClassification(int(cat, base=0))
-                        else:
-                            true_class = ItemClassification[cat]
-                    except Exception as ex:
-                        raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+                    if isinstance(cat, ItemClassification):
+                        true_class = cat
+                    else:
+                        try:
+                            if cat.startswith('0b'):
+                                true_class = ItemClassification(int(cat, base=0))
+                            else:
+                                true_class = ItemClassification[cat]
+                        except Exception as ex:
+                            raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 
                     for _ in range(count):
                         new_item = self.create_item(name, true_class)
