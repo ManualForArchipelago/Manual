@@ -132,13 +132,13 @@ class ManualWorld(World):
 
         for name, configs in items_config.items():
             total_created = 0
-            if type(configs) == int:
+            if type(configs) is int:
                 total_created = configs
                 for _ in range(configs):
                     new_item = self.create_item(name)
                     pool.append(new_item)
-            elif type(configs) == dict:
-                for cat, count in configs.values():
+            elif type(configs) is dict:
+                for cat, count in configs.items():
                     total_created += count
                     true_class = {
                         "filler": ItemClassification.filler,
@@ -163,7 +163,7 @@ class ManualWorld(World):
                     self.multiworld.early_items[self.player][name] = int(item["early"])
 
                 elif isinstance(item["early"],bool): #No need to deal with true vs false since false wont get here
-                    self.multiworld.early_items[self.player][name] = item_count
+                    self.multiworld.early_items[self.player][name] = total_created
 
                 else:
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
@@ -177,7 +177,7 @@ class ManualWorld(World):
                     self.multiworld.local_early_items[self.player][name] = int(item["local_early"])
 
                 elif isinstance(item["local_early"],bool):
-                    self.multiworld.local_early_items[self.player][name] = item_count
+                    self.multiworld.local_early_items[self.player][name] = total_created
 
                 else:
                     raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
