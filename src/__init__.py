@@ -111,7 +111,7 @@ class ManualWorld(World):
         traps = []
         configured_item_names = self.item_id_to_name.copy()
 
-        items_config = {}
+        items_config: dict[str, int|dict[str, int]] = {}
         for name in configured_item_names.values():
             if name == "__Victory__": continue
             if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
@@ -140,15 +140,14 @@ class ManualWorld(World):
             elif type(configs) is dict:
                 for cat, count in configs.items():
                     total_created += count
-                    true_class = {
-                        "filler": ItemClassification.filler,
-                        "trap": ItemClassification.trap,
-                        "useful": ItemClassification.useful,
-                        "progression_skip_balancing": ItemClassification.progression_skip_balancing,
-                        "progression": ItemClassification.progression
-                    }.get(cat, cat)
-                    if not isinstance(true_class, ItemClassification):
-                        raise Exception(f"Item override for {name} improperly defined")
+                    try:
+                        if cat.startswith('0b'):
+                            true_class = ItemClassification(int(cat, base=0))
+                        else:
+                            true_class = ItemClassification[cat]
+                    except Exception as ex:
+                        raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+
                     for _ in range(count):
                         new_item = self.create_item(name, true_class)
                         pool.append(new_item)
@@ -185,7 +184,7 @@ class ManualWorld(World):
 
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 
-        items_started = []
+        items_started: list[Item] = []
 
         if starting_items:
             for starting_item_block in starting_items:
