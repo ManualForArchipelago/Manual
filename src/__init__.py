@@ -144,7 +144,9 @@ class ManualWorld(World):
                         true_class = cat
                     else:
                         try:
-                            if cat.startswith('0b'):
+                            if isinstance(cat, int):
+                                true_class = ItemClassification(cat)
+                            elif cat.startswith('0b'):
                                 true_class = ItemClassification(int(cat, base=0))
                             else:
                                 true_class = ItemClassification[cat]
