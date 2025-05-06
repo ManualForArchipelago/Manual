@@ -1,3 +1,4 @@
+import ast
 import csv
 import os
 import pkgutil
@@ -271,7 +272,14 @@ def convert_string_to_type(input: str, target_type: type) -> any:
         elif issubclass(value_type, list) or issubclass(value_type, dict) \
             or issubclass(value_type, set) or issubclass(type(value_type), GenericAlias):
             try:
-                converted_value = eval(value)
+                try:
+                    converted_value = ast.literal_eval(value)
+                except ValueError as e:
+                    # The ValueError from ast when the string cannot be evaluated as a literal is usually something like
+                    # "malformed node or string on line 1: <ast.Name object at 0x000001AEBBCC7590>", which is not
+                    # helpful, so re-raise with a better exception message.
+                    raise ValueError(f"'{value}' could not be evaluated as a literal") from e
+
                 compareto = get_origin(value_type) if issubclass(type(value_type), GenericAlias) else value_type
                 if issubclass(compareto, type(converted_value)):
                     return converted_value
