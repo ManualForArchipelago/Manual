@@ -112,7 +112,7 @@ class ManualWorld(World):
         traps = []
         configured_item_names = self.item_id_to_name.copy()
 
-        items_config = {}
+        items_config: dict[str, int|dict[str, int]] = {}
         for name in configured_item_names.values():
             if name == "__Victory__": continue
             if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
@@ -133,23 +133,27 @@ class ManualWorld(World):
 
         for name, configs in items_config.items():
             total_created = 0
-            if type(configs) == int:
+            if type(configs) is int:
                 total_created = configs
                 for _ in range(configs):
                     new_item = self.create_item(name)
                     pool.append(new_item)
-            elif type(configs) == dict:
-                for cat, count in configs.values():
+            elif type(configs) is dict:
+                for cat, count in configs.items():
                     total_created += count
-                    true_class = {
-                        "filler": ItemClassification.filler,
-                        "trap": ItemClassification.trap,
-                        "useful": ItemClassification.useful,
-                        "progression_skip_balancing": ItemClassification.progression_skip_balancing,
-                        "progression": ItemClassification.progression
-                    }.get(cat, cat)
-                    if not isinstance(true_class, ItemClassification):
-                        raise Exception(f"Item override for {name} improperly defined")
+                    if isinstance(cat, ItemClassification):
+                        true_class = cat
+                    else:
+                        try:
+                            if isinstance(cat, int):
+                                true_class = ItemClassification(cat)
+                            elif cat.startswith('0b'):
+                                true_class = ItemClassification(int(cat, base=0))
+                            else:
+                                true_class = ItemClassification[cat]
+                        except Exception as ex:
+                            raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+
                     for _ in range(count):
                         new_item = self.create_item(name, true_class)
                         pool.append(new_item)
@@ -164,7 +168,7 @@ class ManualWorld(World):
                     self.multiworld.early_items[self.player][name] = int(item["early"])
 
                 elif isinstance(item["early"],bool): #No need to deal with true vs false since false wont get here
-                    self.multiworld.early_items[self.player][name] = item_count
+                    self.multiworld.early_items[self.player][name] = total_created
 
                 else:
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
@@ -178,7 +182,7 @@ class ManualWorld(World):
                     self.multiworld.local_early_items[self.player][name] = int(item["local_early"])
 
                 elif isinstance(item["local_early"],bool):
-                    self.multiworld.local_early_items[self.player][name] = item_count
+                    self.multiworld.local_early_items[self.player][name] = total_created
 
                 else:
                     raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
@@ -186,7 +190,7 @@ class ManualWorld(World):
 
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 
-        items_started = []
+        items_started: list[Item] = []
 
         if starting_items:
             for starting_item_block in starting_items:
