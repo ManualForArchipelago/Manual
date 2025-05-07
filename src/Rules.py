@@ -4,7 +4,8 @@ from operator import eq, ge, le
 
 from .Regions import regionMap
 from .hooks import Rules
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type, format_to_valid_identifier
+from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value, convert_string_to_type,\
+    format_to_valid_identifier, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
@@ -384,47 +385,19 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             args[index] = value
 
 
-def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
+def ItemValue(state: CollectionState, player: int, valueCount: str):
     """When passed a string with this format: 'valueName:int',
     this function will check if the player has collect at least 'int' valueName worth of items\n
-    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
-    You can add a second string argument to disable creating/checking the cache like this:
-    '{ItemValue(Coins:12,Disable)}' it can be any string you want
+    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items
     """
 
-    valueCount = valueCount.split(":")
-    if not len(valueCount) == 2 or not valueCount[1].isnumeric():
-        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({valueCount[0]}:12)'")
-    value_name = valueCount[0].lower().strip()
-    requested_count = int(valueCount[1].strip())
+    args: list[str] = valueCount.split(":")
+    if not len(args) == 2 or not args[1].isnumeric():
+        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args[0]}:12)'")
+    value_name = format_state_prog_items_key(ProgItemsCat.VALUE, args[0])
+    requested_count = int(args[1].strip())
+    return state.has(value_name, player, requested_count)
 
-    if not hasattr(world, 'itemvalue_rule_cache'): #Cache made for optimization purposes
-        world.itemvalue_rule_cache = {}
-
-    if not world.itemvalue_rule_cache.get(player, {}):
-        world.itemvalue_rule_cache[player] = {}
-
-    if not skipCache:
-        if not world.itemvalue_rule_cache[player].get(value_name, {}):
-            world.itemvalue_rule_cache[player][value_name] = {
-                'state': {},
-                'count': -1,
-                }
-
-    if (skipCache or world.itemvalue_rule_cache[player][value_name].get('count', -1) == -1
-            or world.itemvalue_rule_cache[player][value_name].get('state') != dict(state.prog_items[player])):
-        # Run First Time, if state changed since last check or if skipCache has a value
-        existing_item_values = get_items_with_value(world, multiworld, value_name)
-        total_Count = 0
-        for name, value in existing_item_values.items():
-            count = state.count(name, player)
-            if count > 0:
-                total_Count += count * value
-        if skipCache:
-            return total_Count >= requested_count
-        world.itemvalue_rule_cache[player][value_name]['count'] = total_Count
-        world.itemvalue_rule_cache[player][value_name]['state'] = dict(state.prog_items[player])
-    return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
 def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
