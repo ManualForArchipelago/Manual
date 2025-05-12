@@ -102,6 +102,7 @@ def evaluate_postfix(expr: str, location: str) -> bool:
     return stack.pop()
 
 def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
+    world.get_item_counts(player, True)
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
