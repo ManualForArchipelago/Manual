@@ -102,7 +102,6 @@ def evaluate_postfix(expr: str, location: str) -> bool:
     return stack.pop()
 
 def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
-    world.get_item_counts(player, True)
     # this is only called when the area (think, location or region) has a "requires" field that is a string
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
@@ -281,7 +280,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             return checkRequireStringForArea(state, area)
         else:  # item access is in dict form
             return checkRequireDictForArea(state, area)
-
+    # calling get_item_counts here make sure the item_counts cache is created correctly for UT
+    world.get_item_counts(player, True)
     used_location_names = []
     # Region access rules
     for region in regionMap.keys():
