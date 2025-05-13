@@ -280,7 +280,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             return checkRequireStringForArea(state, area)
         else:  # item access is in dict form
             return checkRequireDictForArea(state, area)
-
+    # calling get_item_counts here make sure the item_counts cache is created correctly for UT
+    world.get_item_counts(player, True)
     used_location_names = []
     # Region access rules
     for region in regionMap.keys():
