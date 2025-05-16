@@ -75,6 +75,8 @@ class ManualWorld(World):
 
     def interpret_slot_data(self, slot_data: dict[str, any]):
         #this is called by tools like UT
+        if not slot_data:
+            return False
 
         regen = False
         for key, value in slot_data.items():

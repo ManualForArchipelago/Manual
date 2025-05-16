@@ -197,14 +197,15 @@ class ManualContext(SuperContext):
         if cmd in {"Connected", "DataPackage"}:
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
-                goal = args["slot_data"].get("goal")
-                if goal and goal < len(self.victory_names):
-                    self.goal_location = self.get_location_by_name(self.victory_names[goal])
-                if args['slot_data'].get('death_link'):
-                    self.ui.enable_death_link()
-                    self.set_deathlink = True
-                    self.last_death_link = 0
-                logger.info(f"Slot data: {args['slot_data']}")
+                if args.get("slot_data"):
+                    goal = args["slot_data"].get("goal")
+                    if goal and goal < len(self.victory_names):
+                        self.goal_location = self.get_location_by_name(self.victory_names[goal])
+                    if args['slot_data'].get('death_link'):
+                        self.ui.enable_death_link()
+                        self.set_deathlink = True
+                        self.last_death_link = 0
+                    logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
