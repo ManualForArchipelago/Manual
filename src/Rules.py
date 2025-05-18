@@ -288,7 +288,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
             for exitRegion in multiworld.get_region(region, player).entrances:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
+                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
+                    region['name'] = region_name
+                    region['is_region'] = True
+
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
