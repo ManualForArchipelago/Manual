@@ -58,9 +58,6 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             return False
 
 
-
-
-
 class ManualContext(SuperContext):
     command_processor = ManualClientCommandProcessor
     game = "not set"  # this is changed in server_auth below based on user input

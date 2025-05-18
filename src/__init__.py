@@ -478,6 +478,14 @@ class ManualWorld(World):
 
 def launch_client(*args):
     import CommonClient
+    from .Client import launch as Main
+
+    # launch subprocess doesn't work with this atm
+    # see Client for more on how it handles the Launcher process
+    Main()
+
+def launch_legacy_client(*args):
+    import CommonClient
     from .ManualClient import launch as Main
 
     if CommonClient.gui_enabled:
@@ -491,7 +499,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_04_17 # YYYYMMDD
+    version = 2025_05_13 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
@@ -509,8 +517,24 @@ def add_client_to_launcher() -> None:
             discord_component = c
 
     if not found:
-        components.append(VersionedComponent("Manual Client", "ManualClient", func=launch_client, version=version, file_identifier=SuffixIdentifier('.apmanual'), icon="manual"))
+        components.append(VersionedComponent("Manual Client", "ManualClient", func=launch_client, version=version))
     if not discord_component:
         components.append(Component("Manual Discord Server", "ManualDiscord", func=lambda: webbrowser.open("https://discord.gg/hm4rQnTzQ5"), icon="discord", component_type=Type.ADJUSTER))
 
+def add_legacy_client_to_launcher() -> None:
+    version = 2025_05_13 # YYYYMMDD
+    found = False
+
+    for c in components:
+        if c.display_name == "Manual Client (Legacy)":
+            found = True
+            if getattr(c, "version", 0) < version:  # We have a newer version of the Manual Client than the one the last apworld added
+                c.version = version
+                c.func = launch_legacy_client
+                c.icon = "manual"
+
+    if not found:
+        components.append(VersionedComponent("Manual Client (Legacy)", "ManualClientLegacy", func=launch_legacy_client, version=version, file_identifier=SuffixIdentifier('.apmanual'), icon="manual"))
+
 add_client_to_launcher()
+add_legacy_client_to_launcher()
