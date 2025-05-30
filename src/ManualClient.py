@@ -889,8 +889,18 @@ async def game_watcher_manual(ctx: ManualContext):
         await asyncio.sleep(0.1)
 
 
-def read_apmanual_file(apmanual_file):
+def read_apmanual_file(apmanual_file) -> dict[str, Any]:
+    import zipfile
     from base64 import b64decode
+    from .container import APManualFile
+
+    if zipfile.is_zipfile(apmanual_file):
+        try:
+            container = APManualFile(apmanual_file)
+            container.read()
+            return container.as_dict()
+        except Exception as e:
+            print("Error reading APManual file:", e)
 
     with open(apmanual_file, 'r') as f:
         return json.loads(b64decode(f.read()))
