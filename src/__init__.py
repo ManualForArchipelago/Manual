@@ -2,8 +2,9 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional
+from typing import Callable, Optional, Union, ClassVar
 import webbrowser
+import settings
 
 import Utils
 from worlds.generic.Rules import forbid_items_for_player
@@ -37,10 +38,29 @@ from .hooks.World import \
     after_collect_item, after_remove_item
 from .hooks.Data import hook_interpret_slot_data
 
+class ManualSettings(settings.Group):
+    class ItemsSorting(str):
+        """Set your preferred Items sorting order
+        valid options:
+        custom, inverted_custom: Sort by item ids
+        alphabetical, inverted_alphabetical: Sort by item name
+        """
+    class LocationsSorting(str):
+        """Set your preferred Locations sorting order
+        valid options:
+        custom, inverted_custom: Sort by location ids
+        alphabetical, inverted_alphabetical: Sort by location name
+        """
+
+    items_sorting_order: ItemsSorting = ItemsSorting("alphabetical")
+    locations_sorting_order: LocationsSorting = LocationsSorting("alphabetical")
+
 class ManualWorld(World):
     __doc__ = world_description
     game: str = game_name
     web = world_webworld
+    settings: ClassVar[ManualSettings]
+    settings_key: ClassVar[str] = "manual_settings"
 
     options_dataclass = manual_options_data
     data_version = 2
