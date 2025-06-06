@@ -288,7 +288,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
             for exitRegion in multiworld.get_region(region, player).entrances:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
+                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
+                    region['name'] = region_name
+                    region['is_region'] = True
+
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
@@ -579,7 +582,7 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
 
         if isinstance(value, str) and comp_symbols[comparator].__name__ != 'eq':
             #At this point if its still a string don't try and compare with strings using > < >= <=
-            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == 'eq']} and you tried to do: "{option.value} {comparator} {value}"')
+            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == "eq"]} and you tried to do: "{option.value} {comparator} {value}"')
 
         result = comp_symbols[comparator](option.value, value)
 
