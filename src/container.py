@@ -17,6 +17,7 @@ else:
 
 class APManualFile(APPlayerContainer):
     game = game_name
+    patch_file_ending = ".apmanual"
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
