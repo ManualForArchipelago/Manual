@@ -241,8 +241,8 @@ class ManualWorld(World):
         self.multiworld.itempool += pool
 
         real_pool = pool + items_started
-        self.item_counts[self.player] = {i.name: real_pool.count(i) for i in real_pool}
-        self.progression_counts[self.player] = {i.name: real_pool.count(i) for i in real_pool if ItemClassification.progression in i.classification}
+        self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
+        self.progression_counts[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
     def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)
@@ -477,14 +477,18 @@ class ManualWorld(World):
 
         return item_pool
 
-    def get_item_counts(self, player: Optional[int] = None, reset: bool = False, only_progression: bool = False) -> dict[str, int]:
-        """Returns the player real item counts\n
-        Only work after create_items, before an empty dict is returned\n
-        The only_progression argument let you filter the items to only get the count of progression items"""
+    def get_item_counts(self, player: Optional[int] = None, reset: bool = False, pool: list[Item] | None = None, only_progression: bool = False) -> dict[str, int]:
+        """Returns the player real item counts.\n
+        If you provide an item pool using the pool argument, then it's item counts will be returned.
+        Otherwise, this function will only work after create_items, before then an empty dict is returned.\n
+        The only_progression argument let you filter the items to only get the count of progression items."""
         if player is None:
             player = self.player
         if reset:
             Utils.deprecate("reset has been deprecated to increase the stability of item counts.")
+
+        if pool is not None:
+            return {i.name: pool.count(i) for i in pool if not only_progression or ItemClassification.progression in i.classification}
 
         if only_progression:
             return self.progression_counts.get(player, {})

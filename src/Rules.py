@@ -106,7 +106,6 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     def checkRequireStringForArea(state: CollectionState, area: dict):
         requires_list = area["requires"]
 
-
         # Preparing some variables for exception messages
         area_type = "region" if area.get("is_region",False) else "location"
         area_name = area.get("name", f"unknown with these parameters: {area}")
@@ -287,7 +286,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     # Get the "real" item counts of item in the pool/placed/starting_items
     prog_counts = world.get_item_counts(player, only_progression=True)
-    all_counts = world.get_item_counts(player, only_progression=False)
+    all_counts = world.get_item_counts(player)
     used_location_names = []
     # Region access rules
     for region in regionMap.keys():
