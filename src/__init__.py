@@ -2,7 +2,7 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional
+from typing import Callable, Optional, Counter
 import webbrowser
 
 import Utils
@@ -58,8 +58,8 @@ class ManualWorld(World):
 
     filler_item_name = filler_item_name
 
-    item_counts: dict[int, dict[str, int]] = {}
-    progression_counts: dict[int, dict[str, int]] = {}
+    item_counts: dict[int, Counter[str]] = {}
+    progression_counts: dict[int, Counter[str]] = {}
     start_inventory = {}
 
     location_id_to_name = location_id_to_name
@@ -477,10 +477,10 @@ class ManualWorld(World):
 
         return item_pool
 
-    def get_item_counts(self, player: Optional[int] = None, reset: bool = False, pool: list[Item] | None = None, only_progression: bool = False) -> dict[str, int]:
+    def get_item_counts(self, player: Optional[int] = None, reset: bool = False, pool: list[Item] | None = None, only_progression: bool = False) -> Counter[str]:
         """Returns the player real item counts.\n
         If you provide an item pool using the pool argument, then it's item counts will be returned.
-        Otherwise, this function will only work after create_items, before then an empty dict is returned.\n
+        Otherwise, this function will only work after create_items, before then an empty Counter is returned.\n
         The only_progression argument let you filter the items to only get the count of progression items."""
         if player is None:
             player = self.player
@@ -488,12 +488,12 @@ class ManualWorld(World):
             Utils.deprecate("reset has been deprecated to increase the stability of item counts.")
 
         if pool is not None:
-            return {i.name: pool.count(i) for i in pool if not only_progression or ItemClassification.progression in i.classification}
+            return Counter([i.name for i in pool if not only_progression or ItemClassification.progression in i.classification])
 
         if only_progression:
-            return self.progression_counts.get(player, {})
+            return self.progression_counts.get(player, Counter())
         else:
-            return self.item_counts.get(player, {})
+            return self.item_counts.get(player, Counter())
 
 
     def client_data(self):
