@@ -485,7 +485,8 @@ class ManualWorld(World):
         if player is None:
             player = self.player
         if reset:
-            Utils.deprecate("reset has been deprecated to increase the stability of item counts.")
+            Utils.deprecate("the 'reset' argument of get_item_counts has been deprecated to increase the stability of item counts.\
+                \nIt should be removed and if required you might be able to replace it by using the pool argument")
 
         if pool is not None:
             return Counter([i.name for i in pool if not only_progression or ItemClassification.progression in i.classification])
