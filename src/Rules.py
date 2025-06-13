@@ -172,12 +172,6 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 item_name = item_parts[0].strip()
                 item_count = item_parts[1].strip()
 
-            if item_count.endswith('!'):
-                items_counts = all_counts
-                item_count = item_count.removesuffix("!")
-            else:
-                items_counts = prog_counts
-
             total = 0
 
             if require_type == 'category':
@@ -285,8 +279,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             return checkRequireDictForArea(state, area)
 
     # Get the "real" item counts of item in the pool/placed/starting_items
-    prog_counts = world.get_item_counts(player, only_progression=True)
-    all_counts = world.get_item_counts(player)
+    items_counts = world.get_item_counts(player, only_progression=True)
     used_location_names = []
     # Region access rules
     for region in regionMap.keys():
