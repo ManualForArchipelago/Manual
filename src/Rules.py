@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
 from enum import IntEnum
 from operator import eq, ge, le
 
@@ -11,7 +11,7 @@ from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
 from Options import Choice, Toggle, Range, NamedRange
-
+from Utils import deprecate
 import re
 import math
 import inspect
@@ -73,7 +73,7 @@ def infix_to_postfix(expr, location):
     return postfix
 
 
-def evaluate_postfix(expr: str, location: str) -> bool:
+def evaluate_postfix(expr: str, location: dict[str, Any]) -> bool:
     stack = []
 
     try:
@@ -263,7 +263,12 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
                 if not state.has(item_name, player, item_count):
                     canAccess = False
-
+        if not area.get("was_warned_for_deprecate"):
+            area_type = "region" if area.get("is_region") else "location"
+            area_name = area.get("name", f"unknown with these parameters: {area}")
+            deprecate(f"{area_type.capitalize()} \"{area_name}\"'s requirement is made using the now deprecated Dictionary system,\
+                \nit should be replaced with a string requirement")
+            area["was_warned_for_deprecate"] = True
         return canAccess
 
     # handle any type of checking needed, then ferry the check off to a dedicated method for that check
@@ -273,7 +278,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             return True
 
         # don't require the "requires" key for locations and regions if they don't need to use it
-        if "requires" not in area.keys():
+        if not area.get("requires"):
             return True
 
         if isinstance(area["requires"], str):
