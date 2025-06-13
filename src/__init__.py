@@ -477,19 +477,21 @@ class ManualWorld(World):
 
         return item_pool
 
-    def get_item_counts(self, player: Optional[int] = None, reset: bool = False, pool: list[Item] | None = None, only_progression: bool = False) -> Counter[str]:
+    def get_item_counts(self, player: Optional[int] = None, reset: None = None, pool: list[Item] | None = None, only_progression: bool = False) -> Counter[str]:
         """Returns the player real item counts.\n
         If you provide an item pool using the pool argument, then it's item counts will be returned.
         Otherwise, this function will only work after create_items, before then an empty Counter is returned.\n
         The only_progression argument let you filter the items to only get the count of progression items."""
         if player is None:
             player = self.player
-        if reset:
+
+        if reset is not None:
             Utils.deprecate("the 'reset' argument of get_item_counts has been deprecated to increase the stability of item counts.\
-                \nIt should be removed and if required you might be able to replace it by using the pool argument")
+                \nIt should be removed. If you require a new up to date count you can get it using the 'pool' argument.\
+                \nThat result wont be saved to world unless you override the values of world.progression_counts or world.item_counts depending on if you counted only the items with progresion or not.")
 
         if pool is not None:
-            return Counter([i.name for i in pool if not only_progression or ItemClassification.progression in i.classification])
+            return Counter([i.name for i in pool if not only_progression or i.advancement])
 
         if only_progression:
             return self.progression_counts.get(player, Counter())
