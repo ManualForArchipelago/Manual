@@ -402,7 +402,7 @@ def ItemValue(state: CollectionState, player: int, valueCount: str):
 
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
+def OptOne(world: "ManualWorld", item: str, items_counts: Optional[dict] = None):
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
@@ -410,7 +410,7 @@ def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
     if item == "":
         return "" #Skip this function if item is left blank
     if not items_counts:
-        items_counts = world.get_item_counts()
+        items_counts = world.get_item_counts(only_progression=True)
 
     require_type = 'item'
 
@@ -441,14 +441,14 @@ def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
         return f"|{item_name}:{item_count}|"
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
-def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player: int, requires: str):
+def OptAll(world: "ManualWorld", requires: str):
     """Check the passed require string and loop every item to check if they're enabled,
     then returns the require string with items counts adjusted using OptOne\n
     eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
     become "|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|" """
     requires_list = requires
 
-    items_counts = world.get_item_counts()
+    items_counts = world.get_item_counts(only_progression=True)
 
     functions = {}
     if requires_list == "":
