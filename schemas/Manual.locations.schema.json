@@ -40,7 +40,9 @@
                     "items": {
                         "$ref": "#/definitions/Require"
                     },
-                    "uniqueItems": true
+                    "uniqueItems": true,
+                    "if": {"type": "array"},
+                    "then": {"deprecated":true}
                 },
                 "region": {
                     "description": "(Optional) The name of the region this location is part of.",
