@@ -101,7 +101,8 @@
                     "type": "integer"
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
-            }
+            },
+            "required": ["name"]
         },
         "Require": {
             "type": ["string", "array", "object"],
