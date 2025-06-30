@@ -59,7 +59,7 @@ class ManualWorld(World):
     filler_item_name = filler_item_name
 
     item_counts: dict[int, Counter[str]] = {}
-    progression_counts: dict[int, Counter[str]] = {}
+    item_counts_progression: dict[int, Counter[str]] = {}
     start_inventory = {}
 
     location_id_to_name = location_id_to_name
@@ -242,7 +242,7 @@ class ManualWorld(World):
 
         real_pool = pool + items_started
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
-        self.progression_counts[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
+        self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
     def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)
@@ -477,7 +477,7 @@ class ManualWorld(World):
 
         return item_pool
 
-    def get_item_counts(self, player: Optional[int] = None, reset: None = None, pool: list[Item] | None = None, only_progression: bool = False) -> Counter[str]:
+    def get_item_counts(self, player: Optional[int] = None, pool: list[Item] | None | bool = None, only_progression: bool = False) -> Counter[str]:
         """Returns the player real item counts.\n
         If you provide an item pool using the pool argument, then it's item counts will be returned.
         Otherwise, this function will only work after create_items, before then an empty Counter is returned.\n
@@ -485,16 +485,17 @@ class ManualWorld(World):
         if player is None:
             player = self.player
 
-        if reset is not None:
+        if isinstance(pool, bool):
             Utils.deprecate("the 'reset' argument of get_item_counts has been deprecated to increase the stability of item counts.\
                 \nIt should be removed. If you require a new up to date count you can get it using the 'pool' argument.\
-                \nThat result wont be saved to world unless you override the values of world.progression_counts or world.item_counts depending on if you counted only the items with progresion or not.")
+                \nThat result wont be saved to world unless you override the values of world.item_counts_progression or world.item_counts depending on if you counted only the items with progresion or not.")
+            pool = None
 
         if pool is not None:
             return Counter([i.name for i in pool if not only_progression or i.advancement])
 
         if only_progression:
-            return self.progression_counts.get(player, Counter())
+            return self.item_counts_progression.get(player, Counter())
         else:
             return self.item_counts.get(player, Counter())
 
