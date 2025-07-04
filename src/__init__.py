@@ -2,7 +2,7 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional
+from typing import Callable, Optional, Counter
 import webbrowser
 
 import Utils
@@ -58,7 +58,8 @@ class ManualWorld(World):
 
     filler_item_name = filler_item_name
 
-    item_counts = {}
+    item_counts: dict[int, Counter[str]] = {}
+    item_counts_progression: dict[int, Counter[str]] = {}
     start_inventory = {}
 
     location_id_to_name = location_id_to_name
@@ -110,11 +111,11 @@ class ManualWorld(World):
 
     def create_items(self):
         # Generate item pool
-        pool = []
+        pool: list[Item] = []
         traps = []
         configured_item_names = self.item_id_to_name.copy()
 
-        items_config: dict[str, int|dict[str, int]] = {}
+        items_config: dict[str, int|dict[ItemClassification | str | int, int]] = {}
         for name in configured_item_names.values():
             if name == "__Victory__": continue
             if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
@@ -238,6 +239,10 @@ class ManualWorld(World):
         # need to put all of the items in the pool so we can have a full state for placement
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
+
+        real_pool = pool + items_started
+        self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
+        self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
     def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)
@@ -472,15 +477,28 @@ class ManualWorld(World):
 
         return item_pool
 
-    def get_item_counts(self, player: Optional[int] = None, reset: bool = False) -> dict[str, int]:
-        """returns the player real item count"""
+    def get_item_counts(self, player: Optional[int] = None, pool: list[Item] | None | bool = None, only_progression: bool = False) -> Counter[str]:
+        """Returns the player real item counts.\n
+        If you provide an item pool using the pool argument, then it's item counts will be returned.
+        Otherwise, this function will only work after create_items, before then an empty Counter is returned.\n
+        The only_progression argument let you filter the items to only get the count of progression items."""
         if player is None:
             player = self.player
 
-        if not self.item_counts.get(player, {}) or reset:
-            real_pool = get_items_for_player(self.multiworld, player, True)
-            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool}
-        return self.item_counts.get(player)
+        if isinstance(pool, bool):
+            Utils.deprecate("the 'reset' argument of get_item_counts has been deprecated to increase the stability of item counts.\
+                \nIt should be removed. If you require a new up to date count you can get it using the 'pool' argument.\
+                \nThat result wont be saved to world unless you override the values of world.item_counts_progression or world.item_counts depending on if you counted only the items with progresion or not.")
+            pool = None
+
+        if pool is not None:
+            return Counter([i.name for i in pool if not only_progression or i.advancement])
+
+        if only_progression:
+            return self.item_counts_progression.get(player, Counter())
+        else:
+            return self.item_counts.get(player, Counter())
+
 
     def client_data(self):
         return {
