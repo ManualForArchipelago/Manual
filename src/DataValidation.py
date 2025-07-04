@@ -397,7 +397,7 @@ class DataValidation():
 
     @staticmethod
     def checkForNonStartingRegionsThatAreUnreachable():
-        using_starting_regions = len([region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region]]) > 0
+        using_starting_regions = len([region for region in DataValidation.region_table if DataValidation.region_table[region].get("starting")]) > 0
 
         if not using_starting_regions:
             return
