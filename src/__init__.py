@@ -90,7 +90,7 @@ class ManualWorld(World):
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
-        runGenerationDataValidation()
+        runGenerationDataValidation(cls)
 
 
     def create_regions(self):

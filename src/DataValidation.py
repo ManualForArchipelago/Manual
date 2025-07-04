@@ -450,7 +450,7 @@ def runPreFillDataValidation(world: World, multiworld: MultiWorld):
         raise Exception(f"\n\n{heading} \n\n{newline.join([' - ' + str(validation_error) for validation_error in validation_errors])}\n\n")
 
 # Called during stage_assert_generate
-def runGenerationDataValidation() -> None:
+def runGenerationDataValidation(cls) -> None:
     validation_errors = []
 
     # check that requires have correct item names in locations and regions
@@ -506,7 +506,6 @@ def runGenerationDataValidation() -> None:
     except ValidationError as e: validation_errors.append(e)
 
     if len(validation_errors) > 0:
-        creator = DataValidation.game_table.get('creator') or DataValidation.game_table.get('player', '')
-        heading = f"ValidationError(s) in Manual_{DataValidation.game_table['game']}_{creator}:";
+        heading = f"ValidationError(s) in {cls.game}:";
 
         raise Exception("\n\n%s \n\n%s\n\n" % (heading, "\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
