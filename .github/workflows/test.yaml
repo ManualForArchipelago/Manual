@@ -1,0 +1,14 @@
+name: Test apworld
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Eijebong/ap-actions/ap-tests@main
+        with:
+          apworld-path: src
+          ap-version: '0.6.1'
+          python-version: '3.12'
