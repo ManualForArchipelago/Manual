@@ -41,17 +41,20 @@
         {
             "name": "Beat the Game - Strider Hiryu",
             "category": ["Unlocked Teams", "Left Side"],
-            "requires": "|Strider Hiryu|"
+            "requires": "|Strider Hiryu|",
+            "yaml_option": ["!Example_Toggle"]
         },
         {
             "name": "Beat the Game - Phoenix Wright",
             "category": ["Unlocked Teams", "Left Side"],
-            "requires": "|Phoenix Wright|"
+            "requires": "|Phoenix Wright|",
+            "yaml_option": ["Example_Choice=start"]
         },
         {
             "name": "Beat the Game - Nova",
             "category": ["Unlocked Teams", "Right Side"],
-            "requires": "|Nova|"
+            "requires": "|Nova|",
+            "yaml_option": ["Example_Range<5"]
         },
         {
             "name": "Beat the Game - Ghost Rider",
