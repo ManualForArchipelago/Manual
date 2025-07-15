@@ -2,7 +2,7 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional, Counter
+from typing import Callable, Optional, Counter, Any
 import webbrowser
 
 import Utils
@@ -74,7 +74,7 @@ class ManualWorld(World):
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
-    def interpret_slot_data(self, slot_data: dict[str, any]):
+    def interpret_slot_data(self, slot_data: dict[str, Any]):
         #this is called by tools like UT
         if not slot_data:
             return False
@@ -126,11 +126,15 @@ class ManualWorld(World):
             if item.get("trap"):
                 traps.append(name)
 
-            if "category" in item:
-                if not is_item_enabled(self.multiworld, self.player, item):
-                    item_count = 0
+            if not is_item_enabled(self.multiworld, self.player, item):
+                items_config[name] = 0
 
-            items_config[name] = item_count
+            else:
+                if item.get("advanced_types"):
+                    items_config[name] = item["advanced_types"]
+
+                else:
+                    items_config[name] = item_count
 
         items_config = before_create_items_all(items_config, self, self.multiworld, self.player)
 
