@@ -94,6 +94,20 @@
                     "type": ["boolean", "integer"],
                     "default": false
                 },
+                "advanced_types": {
+                    "description": "(Optional) (Advanced) A dictionary of how many copy of certain type this item has. \nUsing the format {\"type\": int,\"otherType\": int} where type can be the string name of a type ('progression') or an integer/binary representation of its type(s) ('6' or '0b0110')",
+                    "type": "object",
+                    "patternProperties": {
+                        "^.+$": {
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "description": "A Count of how many copy of this item with this type will be in generation. Must be 'name':integer \neg. \"useful\": 10"
+                                }
+                            ]
+                        }
+                    }
+                },
                 "id": {
                     "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
                     "type": "integer"
