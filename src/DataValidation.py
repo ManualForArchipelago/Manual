@@ -3,16 +3,17 @@ import re
 import json
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, ItemClassification
+from typing import Any
 
 
 class ValidationError(Exception):
     pass
 
 class DataValidation():
-    game_table = {}
-    item_table = []
-    location_table = []
-    region_table = {}
+    game_table: dict[str, Any] = {}
+    item_table: list[dict[str, Any]] = []
+    location_table: list[dict[str, Any]] = []
+    region_table: dict[str, Any] = {}
 
 
     @staticmethod
@@ -177,16 +178,58 @@ class DataValidation():
                 raise ValidationError("Region %s is set for location %s, but the region is misspelled or does not exist." % (location["region"], location["name"]))
 
     @staticmethod
+    def checkItemsHasValidAdvancedTypes():
+        for item in DataValidation.item_table:
+            if not item.get("advanced_types"):
+                continue
+            for cat, count in item["advanced_types"].items():
+                if count == 0:
+                    continue
+                try:
+                    if cat.isdigit():
+                        ItemClassification(int(cat))
+                    elif cat.startswith('0b'):
+                        ItemClassification(int(cat, base=0))
+                    else:
+                        ItemClassification[cat]
+                except KeyError as ex:
+                    raise ValidationError(f"Item '{item['name']}''s advanced_types '{cat}' is misspelled or does not exist.\n Valid names are {', '.join(ItemClassification.__members__.keys())} \n\n{type(ex).__name__}:{ex}")
+                except Exception as ex:
+                    raise ValidationError(f"Item '{item['name']}''s advanced_types '{cat}' was improperly defined\n\n{type(ex).__name__}:{ex}")
+
+    @staticmethod
     def checkItemsThatShouldBeRequired():
         for item in DataValidation.item_table:
             # if the item is already progression, no need to check
-            if "progression" in item and item["progression"]:
+            if item.get("progression"):
                 continue
 
             # progression_skip_balancing is also progression, so no check needed
-            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            if item.get("progression_skip_balancing"):
                 continue
+            # if any of the advanced type is already progression then no check needed
+            if item.get("advanced_types"):
+                has_progression = False
+                for cat, count in item["advanced_types"].items():
+                    cat = str(cat)
+                    if count == 0:
+                        continue
+                    try:
+                        if cat.isdigit():
+                            true_class = ItemClassification(int(cat))
+                        elif cat.startswith('0b'):
+                            true_class = ItemClassification(int(cat, base=0))
+                        else:
+                            true_class = ItemClassification[cat]
+                    except:
+                        # Skip since this validation error is dealt with in checkItemsHasValidAdvancedTypes
+                        true_class = ItemClassification.filler
+                    if ItemClassification.progression in true_class:
+                        has_progression = True
+                        break
 
+                if has_progression:
+                    continue
             # check location requires for the presence of item name
             for location in DataValidation.location_table:
                 if "requires" not in location:
@@ -462,6 +505,10 @@ def runGenerationDataValidation(cls) -> None:
 
     # check that region names are correct in locations
     try: DataValidation.checkRegionNamesInLocations()
+    except ValidationError as e: validation_errors.append(e)
+
+    # check that any advanced_types used in items are valid
+    try: DataValidation.checkItemsHasValidAdvancedTypes()
     except ValidationError as e: validation_errors.append(e)
 
     # check that items that are required by locations and regions are also marked required
