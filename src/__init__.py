@@ -154,12 +154,20 @@ class ManualWorld(World):
                         try:
                             if isinstance(cat, int):
                                 true_class = ItemClassification(cat)
-                            elif cat.isdigit():
-                                true_class = ItemClassification(int(cat))
-                            elif cat.startswith('0b'):
-                                true_class = ItemClassification(int(cat, base=0))
                             else:
-                                true_class = ItemClassification[cat]
+                                def stringCheck(string: str) ->  ItemClassification:
+                                    if string.isdigit():
+                                        true_class = ItemClassification(int(string))
+                                    elif "+" in string:
+                                        true_class = ItemClassification.filler
+                                        for substring in string.split("+"):
+                                            true_class |= stringCheck(substring.strip())
+                                    elif string.startswith('0b'):
+                                        true_class = ItemClassification(int(string, base=0))
+                                    else:
+                                        true_class = ItemClassification[string]
+                                    return true_class
+                                true_class = stringCheck(cat)
                         except Exception as ex:
                             raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 
