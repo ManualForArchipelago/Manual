@@ -178,11 +178,11 @@ class DataValidation():
                 raise ValidationError("Region %s is set for location %s, but the region is misspelled or does not exist." % (location["region"], location["name"]))
 
     @staticmethod
-    def checkItemsHasValidAdvancedTypes():
+    def checkItemsHasValidComplexCount():
         for item in DataValidation.item_table:
-            if not item.get("advanced_types"):
+            if not item.get("complex_count"):
                 continue
-            for cat, count in item["advanced_types"].items():
+            for cat, count in item["complex_count"].items():
                 if count == 0:
                     continue
                 try:
@@ -198,9 +198,9 @@ class DataValidation():
                             ItemClassification[string]
                     stringCheck(cat)
                 except KeyError as ex:
-                    raise ValidationError(f"Item '{item['name']}''s advanced_types '{cat}' is misspelled or does not exist.\n Valid names are {', '.join(ItemClassification.__members__.keys())} \n\n{type(ex).__name__}:{ex}")
+                    raise ValidationError(f"Item '{item['name']}''s complex_count '{cat}' is misspelled or does not exist.\n Valid names are {', '.join(ItemClassification.__members__.keys())} \n\n{type(ex).__name__}:{ex}")
                 except Exception as ex:
-                    raise ValidationError(f"Item '{item['name']}''s advanced_types '{cat}' was improperly defined\n\n{type(ex).__name__}:{ex}")
+                    raise ValidationError(f"Item '{item['name']}''s complex_count '{cat}' was improperly defined\n\n{type(ex).__name__}:{ex}")
 
     @staticmethod
     def checkItemsThatShouldBeRequired():
@@ -213,9 +213,9 @@ class DataValidation():
             if item.get("progression_skip_balancing"):
                 continue
             # if any of the advanced type is already progression then no check needed
-            if item.get("advanced_types"):
+            if item.get("complex_count"):
                 has_progression = False
-                for cat, count in item["advanced_types"].items():
+                for cat, count in item["complex_count"].items():
                     cat = str(cat)
                     if count == 0:
                         continue
@@ -234,7 +234,7 @@ class DataValidation():
                             return true_class
                         true_class = stringCheck(cat)
                     except:
-                        # Skip since this validation error is dealt with in checkItemsHasValidAdvancedTypes
+                        # Skip since this validation error is dealt with in checkItemsHasValidComplexCount
                         true_class = ItemClassification.filler
                     if ItemClassification.progression in true_class:
                         has_progression = True
@@ -519,8 +519,8 @@ def runGenerationDataValidation(cls) -> None:
     try: DataValidation.checkRegionNamesInLocations()
     except ValidationError as e: validation_errors.append(e)
 
-    # check that any advanced_types used in items are valid
-    try: DataValidation.checkItemsHasValidAdvancedTypes()
+    # check that any complex_count used in items are valid
+    try: DataValidation.checkItemsHasValidComplexCount()
     except ValidationError as e: validation_errors.append(e)
 
     # check that items that are required by locations and regions are also marked required

@@ -8,11 +8,8 @@
                 "Left Side"
             ],
             "value": {"star": 5, "coins": 3},
-            "advanced_types": {"3": 1, "0b0011": 0, "useful + progression": 0, "useful": 1},
-            "_comment": ["For advanced_types '3' is the equivalent of '0b0011' aka 'useful + progression'",
-                "All of these would work if their count wasn't 0",
-                "In this example a copy will be created that is useful & progression and another will be created just useful"
-            ]
+            "complex_count": {"useful + progression": 1, "useful": 1},
+            "_comment": "In this example a copy of the 'Jill' item will be created that is useful & progression and another will be created just useful"
         },
         {
             "name": "Shuma-Gorath",
