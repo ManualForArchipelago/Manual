@@ -183,20 +183,25 @@ class DataValidation():
             if not item.get("complex_count"):
                 continue
             for cat, count in item["complex_count"].items():
+                cat = str(cat)
                 if count == 0:
                     continue
                 try:
                     def stringCheck(string: str):
                         if string.isdigit():
                             ItemClassification(int(string))
-                        elif "+" in string:
-                            for substring in string.split("+"):
-                                stringCheck(substring.strip())
                         elif string.startswith('0b'):
                             ItemClassification(int(string, base=0))
                         else:
                             ItemClassification[string]
-                    stringCheck(cat)
+
+                    if "+" in cat:
+                        for substring in cat.split("+"):
+                            stringCheck(substring.strip())
+
+                    else:
+                        stringCheck(cat)
+
                 except KeyError as ex:
                     raise ValidationError(f"Item '{item['name']}''s complex_count '{cat}' is misspelled or does not exist.\n Valid names are {', '.join(ItemClassification.__members__.keys())} \n\n{type(ex).__name__}:{ex}")
                 except Exception as ex:
@@ -223,16 +228,19 @@ class DataValidation():
                         def stringCheck(string: str) -> ItemClassification:
                             if string.isdigit():
                                 true_class = ItemClassification(int(string))
-                            elif "+" in string:
-                                true_class = ItemClassification.filler
-                                for substring in string.split("+"):
-                                    true_class |= stringCheck(substring.strip())
                             elif string.startswith('0b'):
                                 true_class = ItemClassification(int(string, base=0))
                             else:
                                 true_class = ItemClassification[string]
                             return true_class
-                        true_class = stringCheck(cat)
+
+                        if "+" in cat:
+                            true_class = ItemClassification.filler
+                            for substring in cat.split("+"):
+                                true_class |= stringCheck(substring.strip())
+                        else:
+                            true_class = stringCheck(cat)
+
                     except:
                         # Skip since this validation error is dealt with in checkItemsHasValidComplexCount
                         true_class = ItemClassification.filler
