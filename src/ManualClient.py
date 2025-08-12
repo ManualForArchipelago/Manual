@@ -63,7 +63,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
 
 class ManualContext(SuperContext):
     command_processor = ManualClientCommandProcessor
-    game = "not set"  # this is changed in server_auth below based on user input
+    game = None  # this is changed in server_auth below based on user input
     items_handling = 0b111  # full remote
     tags = {"AP"}
 
