@@ -130,8 +130,8 @@ class ManualWorld(World):
                 items_config[name] = 0
 
             else:
-                if item.get("complex_count"):
-                    items_config[name] = item["complex_count"]
+                if item.get("classification_count"):
+                    items_config[name] = item["classification_count"]
 
                 else:
                     items_config[name] = item_count

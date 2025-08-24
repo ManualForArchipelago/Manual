@@ -94,7 +94,7 @@
                     "type": ["boolean", "integer"],
                     "default": false
                 },
-                "complex_count": {
+                "classification_count": {
                     "description": "(Optional) (Advanced) A dictionary of how many copy of certain type this item has. \nWhere the properties keys must be the string name of a type ('progression') or an integer/binary representation of its type(s) ('6' or '0b0110') \nIt can also be a concatenated form of those using a + eg. 'progression + useful'",
                     "type": "object",
                     "patternProperties": {
