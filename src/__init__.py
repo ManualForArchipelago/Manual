@@ -2,7 +2,7 @@ from base64 import b64encode
 import logging
 import os
 import json
-from typing import Callable, Optional, Counter
+from typing import Callable, Optional, Counter, Any
 import webbrowser
 
 import Utils
@@ -74,7 +74,7 @@ class ManualWorld(World):
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
-    def interpret_slot_data(self, slot_data: dict[str, any]):
+    def interpret_slot_data(self, slot_data: dict[str, Any]):
         #this is called by tools like UT
         if not slot_data:
             return False
@@ -126,11 +126,15 @@ class ManualWorld(World):
             if item.get("trap"):
                 traps.append(name)
 
-            if "category" in item:
-                if not is_item_enabled(self.multiworld, self.player, item):
-                    item_count = 0
+            if not is_item_enabled(self.multiworld, self.player, item):
+                items_config[name] = 0
 
-            items_config[name] = item_count
+            else:
+                if item.get("classification_count"):
+                    items_config[name] = item["classification_count"]
+
+                else:
+                    items_config[name] = item_count
 
         items_config = before_create_items_all(items_config, self, self.multiworld, self.player)
 
@@ -150,10 +154,23 @@ class ManualWorld(World):
                         try:
                             if isinstance(cat, int):
                                 true_class = ItemClassification(cat)
-                            elif cat.startswith('0b'):
-                                true_class = ItemClassification(int(cat, base=0))
                             else:
-                                true_class = ItemClassification[cat]
+                                def stringCheck(string: str) ->  ItemClassification:
+                                    if string.isdigit():
+                                        true_class = ItemClassification(int(string))
+                                    elif string.startswith('0b'):
+                                        true_class = ItemClassification(int(string, base=0))
+                                    else:
+                                        true_class = ItemClassification[string]
+                                    return true_class
+
+                                if "+" in cat:
+                                    true_class = ItemClassification.filler
+                                    for substring in cat.split("+"):
+                                        true_class |= stringCheck(substring.strip())
+
+                                else:
+                                    true_class = stringCheck(cat)
                         except Exception as ex:
                             raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 

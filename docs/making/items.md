@@ -29,7 +29,6 @@ A name cannot contain the characters `:` or `|`, and it's not recommended to use
 
 The valid classifications are `"trap"`, `"filler"`, `"useful"`, `"progression"`, `"progression_skip_balancing"`.  See [here](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/world%20api.md#items) for details on what each means.
 
-
 ## Categories
 
 Having all your items in the "(No Category)" section is messy and hard to read.  We can organize them by adding categories.
@@ -58,6 +57,33 @@ Most games have non-unique items, yours is probably no different.
 ```
 
 Our game has seven oversized novelty keys.  Not really much more to explain here.
+
+## Classification Count
+
+This special property let you manually override the counts of an item per classification.
+
+With it you can specify that there should be some `progression` copies of an item while you have `useful` copies too
+
+It can also be used to create multi classification items using a plus (`+`) sign eg. `"progression + useful"`
+
+### Important to note that using `classification_count` in an item make Manual ignore the value of the `count` property and/or any classification properties in said item
+
+*AKA properties like `"count"`, `"useful"`, `"progression"`, `"progression_skip_balancing"` or `"trap"` will be ignored in favour of classification_count*
+
+```json
+    {
+        "name": "Jill",
+        "category": [
+            "Characters",
+            "Left Side"
+        ],
+        "classification_count": {
+            "useful + progression": 1,
+            "useful": 1
+        },
+        "_comment": "In this example a copy of the 'Jill' item will be created that is useful & progression and another will be created just useful"
+    },
+```
 
 ## Early items
 
