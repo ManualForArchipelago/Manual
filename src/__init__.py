@@ -240,7 +240,15 @@ class ManualWorld(World):
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
 
-        real_pool = pool + self.multiworld.precollected_items[self.player]
+        #Filter Precollected items for those not in logic aka created by start_inventory(_from_pool)
+        precollected_items = list(self.multiworld.precollected_items[self.player])
+        precollected_exceptions = self.options.start_inventory_from_pool.value + self.options.start_inventory.value # type: ignore
+        for item, count in precollected_exceptions.items():
+            items_iter = iter(([i for i in precollected_items if i.name == item]))
+            for _ in range(count):
+                precollected_items.remove(next(items_iter))
+
+        real_pool = pool + precollected_items
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
         self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
