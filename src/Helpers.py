@@ -1,10 +1,12 @@
+import ast
 import csv
 import os
 import pkgutil
 import json
 
 from BaseClasses import MultiWorld, Item
-from typing import Optional, List, TYPE_CHECKING, Union, get_args, get_origin
+from enum import IntEnum
+from typing import Optional, List, TYPE_CHECKING, Union, get_args, get_origin, Any
 from types import GenericAlias
 from worlds.AutoWorld import World
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
@@ -109,7 +111,7 @@ def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLo
 
     return _is_manualobject_enabled(multiworld, player, location)
 
-def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: any) -> bool:
+def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: Any) -> bool:
     """Internal method: Check if a Manual Object has any category disabled by a yaml option.
     \nPlease use the proper is_'item/location'_enabled or is_'item/location'_name_enabled methods instead.
     """
@@ -213,7 +215,24 @@ def format_to_valid_identifier(input: str) -> str:
         input = "_" + input
     return input.replace(" ", "_")
 
-def convert_string_to_type(input: str, target_type: type) -> any:
+class ProgItemsCat(IntEnum):
+    VALUE = 1
+    CATEGORY = 2
+
+def format_state_prog_items_key(category: str|ProgItemsCat ,key: str) -> str:
+    """Convert the inputted key to the format used in state.has(key) to check/set the count of an item_value.
+    Using either one of the predefined categories or a custom string.
+
+    Example: Coin -> MANUAL_VALUE_coin
+    """
+    if isinstance(category, str):
+        cat_key = format_to_valid_identifier(category.upper())
+    else:
+        cat_key = category.name
+
+    return f"MANUAL_{cat_key}_{format_to_valid_identifier(key.lower())}"
+
+def convert_string_to_type(input: str, target_type: type) -> Any:
     """Take a string and attempt to convert it to {target_type}
     \ntarget_type can be a single type(ex. str), an union (int|str), an Optional type (Optional[str]) or a combo of any of those (Optional[int|str])
     \nSpecial logic:
@@ -271,7 +290,14 @@ def convert_string_to_type(input: str, target_type: type) -> any:
         elif issubclass(value_type, list) or issubclass(value_type, dict) \
             or issubclass(value_type, set) or issubclass(type(value_type), GenericAlias):
             try:
-                converted_value = eval(value)
+                try:
+                    converted_value = ast.literal_eval(value)
+                except ValueError as e:
+                    # The ValueError from ast when the string cannot be evaluated as a literal is usually something like
+                    # "malformed node or string on line 1: <ast.Name object at 0x000001AEBBCC7590>", which is not
+                    # helpful, so re-raise with a better exception message.
+                    raise ValueError(f"'{value}' could not be evaluated as a literal") from e
+
                 compareto = get_origin(value_type) if issubclass(type(value_type), GenericAlias) else value_type
                 if issubclass(compareto, type(converted_value)):
                     return converted_value

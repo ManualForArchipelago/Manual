@@ -27,8 +27,21 @@ class DataValidation():
                     if item.lower() == "or" or item.lower() == "and" or item == ")" or item == "(":
                         continue
                     else:
-                        # it's just a category, so ignore it
+                        # if it's a category, validate that the category exists
                         if '@' in item:
+                            item = item.replace("|", "")
+                            item_parts = item.split(":")
+                            item_name = item
+
+                            if len(item_parts) > 1:
+                                item_name = item_parts[0]
+
+                            item_name = item_name[1:]
+                            item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
+
+                            if not item_category_exists:
+                                raise ValidationError("Item category %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
+
                             continue
 
                         item = item.replace("|", "")
@@ -90,8 +103,21 @@ class DataValidation():
                     if item.lower() == "or" or item.lower() == "and" or item == ")" or item == "(":
                         continue
                     else:
-                        # it's just a category, so ignore it
+                        # if it's a category, validate that the category exists
                         if '@' in item:
+                            item = item.replace("|", "")
+                            item_parts = item.split(":")
+                            item_name = item
+
+                            if len(item_parts) > 1:
+                                item_name = item_parts[0]
+
+                            item_name = item_name[1:]
+                            item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
+
+                            if not item_category_exists:
+                                raise ValidationError("Item category %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
+
                             continue
 
                         item = item.replace("|", "")
@@ -397,12 +423,12 @@ class DataValidation():
 
     @staticmethod
     def checkForNonStartingRegionsThatAreUnreachable():
-        using_starting_regions = len([region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region] and not DataValidation.region_table[region]["starting"]]) > 0
+        using_starting_regions = len([region for region in DataValidation.region_table if DataValidation.region_table[region].get("starting")]) > 0
 
         if not using_starting_regions:
             return
 
-        nonstarting_regions = [region for region in DataValidation.region_table if "starting" in DataValidation.region_table[region] and not DataValidation.region_table[region]["starting"]]
+        nonstarting_regions = [region for region in DataValidation.region_table if not DataValidation.region_table[region].get("starting")]
 
         for nonstarter in nonstarting_regions:
             regions_that_connect_to = [region for region in DataValidation.region_table if "connects_to" in DataValidation.region_table[region] and nonstarter in DataValidation.region_table[region]["connects_to"]]
@@ -419,10 +445,12 @@ def runPreFillDataValidation(world: World, multiworld: MultiWorld):
     except ValidationError as e: validation_errors.append(e)
 
     if validation_errors:
+        heading = f"ValidationError(s) for pre_fill of {world.game}:";
         newline = "\n"
-        raise Exception(f"\nValidationError(s) for pre_fill of player {world.player}: \n\n{newline.join([' - ' + str(validation_error) for validation_error in validation_errors])}\n\n")
+        raise Exception(f"\n\n{heading} \n\n{newline.join([' - ' + str(validation_error) for validation_error in validation_errors])}\n\n")
+
 # Called during stage_assert_generate
-def runGenerationDataValidation() -> None:
+def runGenerationDataValidation(cls) -> None:
     validation_errors = []
 
     # check that requires have correct item names in locations and regions
@@ -476,5 +504,8 @@ def runGenerationDataValidation() -> None:
     # check for regions that are set as non-starting regions and have no connectors to them (so are unreachable)
     try: DataValidation.checkForNonStartingRegionsThatAreUnreachable()
     except ValidationError as e: validation_errors.append(e)
+
     if len(validation_errors) > 0:
-        raise Exception("\nValidationError(s): \n\n%s\n\n" % ("\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))
+        heading = f"ValidationError(s) in {cls.game}:";
+
+        raise Exception("\n\n%s \n\n%s\n\n" % (heading, "\n".join([' - ' + str(validation_error) for validation_error in validation_errors])))

@@ -4,7 +4,8 @@ from operator import eq, ge, le
 
 from .Regions import regionMap
 from .hooks import Rules
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type, format_to_valid_identifier
+from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value, convert_string_to_type,\
+    format_to_valid_identifier, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
@@ -106,7 +107,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         requires_list = area["requires"]
 
         # Get the "real" item counts of item in the pool/placed/starting_items
-        items_counts = world.get_item_counts(player)
+        items_counts = world.get_item_counts(player, only_progression=True)
 
         # Preparing some variables for exception messages
         area_type = "region" if area.get("is_region",False) else "location"
@@ -286,7 +287,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
             for exitRegion in multiworld.get_region(region, player).entrances:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
+                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
+                    region['name'] = region_name
+                    region['is_region'] = True
+
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
@@ -384,50 +388,22 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             args[index] = value
 
 
-def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
+def ItemValue(state: CollectionState, player: int, valueCount: str):
     """When passed a string with this format: 'valueName:int',
     this function will check if the player has collect at least 'int' valueName worth of items\n
-    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
-    You can add a second string argument to disable creating/checking the cache like this:
-    '{ItemValue(Coins:12,Disable)}' it can be any string you want
+    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items
     """
 
-    valueCount = valueCount.split(":")
-    if not len(valueCount) == 2 or not valueCount[1].isnumeric():
-        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({valueCount[0]}:12)'")
-    value_name = valueCount[0].lower().strip()
-    requested_count = int(valueCount[1].strip())
+    args: list[str] = valueCount.split(":")
+    if not len(args) == 2 or not args[1].isnumeric():
+        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args[0]}:12)'")
+    value_name = format_state_prog_items_key(ProgItemsCat.VALUE, args[0])
+    requested_count = int(args[1].strip())
+    return state.has(value_name, player, requested_count)
 
-    if not hasattr(world, 'itemvalue_rule_cache'): #Cache made for optimization purposes
-        world.itemvalue_rule_cache = {}
-
-    if not world.itemvalue_rule_cache.get(player, {}):
-        world.itemvalue_rule_cache[player] = {}
-
-    if not skipCache:
-        if not world.itemvalue_rule_cache[player].get(value_name, {}):
-            world.itemvalue_rule_cache[player][value_name] = {
-                'state': {},
-                'count': -1,
-                }
-
-    if (skipCache or world.itemvalue_rule_cache[player][value_name].get('count', -1) == -1
-            or world.itemvalue_rule_cache[player][value_name].get('state') != dict(state.prog_items[player])):
-        # Run First Time, if state changed since last check or if skipCache has a value
-        existing_item_values = get_items_with_value(world, multiworld, value_name)
-        total_Count = 0
-        for name, value in existing_item_values.items():
-            count = state.count(name, player)
-            if count > 0:
-                total_Count += count * value
-        if skipCache:
-            return total_Count >= requested_count
-        world.itemvalue_rule_cache[player][value_name]['count'] = total_Count
-        world.itemvalue_rule_cache[player][value_name]['state'] = dict(state.prog_items[player])
-    return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
+def OptOne(world: "ManualWorld", item: str, items_counts: Optional[dict] = None):
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
@@ -435,7 +411,7 @@ def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
     if item == "":
         return "" #Skip this function if item is left blank
     if not items_counts:
-        items_counts = world.get_item_counts()
+        items_counts = world.get_item_counts(only_progression=True)
 
     require_type = 'item'
 
@@ -466,14 +442,14 @@ def OptOne(world: World, item: str, items_counts: Optional[dict] = None):
         return f"|{item_name}:{item_count}|"
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
-def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player: int, requires: str):
+def OptAll(world: "ManualWorld", requires: str):
     """Check the passed require string and loop every item to check if they're enabled,
     then returns the require string with items counts adjusted using OptOne\n
     eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
     become "|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|" """
     requires_list = requires
 
-    items_counts = world.get_item_counts()
+    items_counts = world.get_item_counts(only_progression=True)
 
     functions = {}
     if requires_list == "":
@@ -605,7 +581,7 @@ def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionS
 
         if isinstance(value, str) and comp_symbols[comparator].__name__ != 'eq':
             #At this point if its still a string don't try and compare with strings using > < >= <=
-            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == 'eq']} and you tried to do: "{option.value} {comparator} {value}"')
+            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == "eq"]} and you tried to do: "{option.value} {comparator} {value}"')
 
         result = comp_symbols[comparator](option.value, value)
 

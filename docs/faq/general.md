@@ -23,6 +23,9 @@ Hop into our Discord and create it in the appropriate forum under "Games in Manu
 ## I'm having an issue with Manual in general. Where should I post that?
 Post in the #manual-support channel in our Discord!
 
+## Can you play Manual apworlds with other AP worlds?
+Yes. A Manual apworld is essentially just an unsupported apworld. You can generate and play them with any other AP supported or unsupported apworlds.
+
 ## My game, or my Manual apworld's locations and items, are 18+. Is that allowed?
 
 There's only two things to avoid here:
