@@ -1,3 +1,4 @@
+import sys
 from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
@@ -246,3 +247,9 @@ def make_options_group() -> list[OptionGroup]:
 
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))
 after_options_defined(manual_options_data)
+
+# Make the options available in this module for import, needed for WebWorld compatibility
+this = sys.modules[__name__]
+for name, obj in manual_options.items():
+    setattr(this, name, obj)
+del this
