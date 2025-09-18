@@ -442,7 +442,7 @@ class ManualWorld(World):
     One thing to remember is the more you loop the longer generation will take. So probably leave it as is unless you really needs it."""
 
     def add_filler_items(self, item_pool, traps):
-        Utils.deprecate("Use adjust_filler_items instead.")
+        Utils.deprecate("You're calling the deprecated add_filler_items() function. Use the adjust_filler_items() function instead.")
         return self.adjust_filler_items(item_pool, traps)
 
     def adjust_filler_items(self, item_pool, traps):
