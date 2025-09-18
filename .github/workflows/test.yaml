@@ -1,0 +1,18 @@
+name: Test apworld
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest AP Version
+        id: get_latest_ap_version
+        run: |
+          echo "AP_VERSION=`wget https://github.com/ArchipelagoMW/Archipelago/releases/latest 2>&1 | grep Location: | awk '{print $2}' | rev | cut -d "/" -f 1 | rev`" >> "$GITHUB_ENV"
+      - uses: Eijebong/ap-actions/ap-tests@main
+        with:
+          apworld-path: src
+          ap-version: ${{ env.AP_VERSION }}
+          python-version: '3.12'
