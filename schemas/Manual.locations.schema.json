@@ -101,7 +101,7 @@
                     "type": "integer"
                 },
                 "sort-key": {
-                    "description": "(Optional) A string to sort the items by. If not provided, locations will always be sorted by name.",
+                    "description": "(Optional) A string to sort the locations by. If not provided, locations will always be sorted by name.",
                     "type": "string"
                 },
                 "_comment": {"$ref": "#/definitions/comment"}
