@@ -41,6 +41,8 @@ class SortingOrderLoc(IntEnum):
     inverted_alphabetical = -2
     natural = 3
     inverted_natural = -3
+    default = 3
+
 class SortingOrderItem(IntEnum):
     custom = 1
     inverted_custom = -1
@@ -50,6 +52,7 @@ class SortingOrderItem(IntEnum):
     inverted_natural = -3
     received = 4
     inverted_received = -4
+    default = 4
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -86,6 +89,12 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
         return self.sorting_commands_logic(algorithm, target_items=False)
 
     def sorting_commands_logic(self, algorithm: Optional[str] = None, target_items: bool = False) -> bool:
+        valid_algorithms: type[IntEnum] = SortingOrderLoc
+        if target_items:
+            valid_algorithms = SortingOrderItem
+
+        valid_algorithms_names = [e.name for e in valid_algorithms] + ["default"]
+
         if algorithm is None: #Get
             cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting
             self.output(f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort}")
@@ -93,17 +102,15 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             return True
 
         # Set
-        if target_items:
-            valid_algorithms = [e.name for e in SortingOrderItem]
-        else:
-            valid_algorithms = [e.name for e in SortingOrderLoc]
-
         algorithm, usable, response = Utils.get_intended_text(
             algorithm,
-            valid_algorithms
+            valid_algorithms_names
         )
 
         if usable:
+            if algorithm == "default":
+                algorithm = valid_algorithms.default.name
+
             if target_items:
                 self.ctx.items_sorting = algorithm
             else:
@@ -142,8 +149,8 @@ class ManualContext(SuperContext):
 
     search_term = ""
     settings = None
-    items_sorting = "alphabetical"
-    locations_sorting = "alphabetical"
+    items_sorting = SortingOrderItem.default.name
+    locations_sorting = SortingOrderLoc.default.name
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -197,10 +204,21 @@ class ManualContext(SuperContext):
 
         self.settings = Utils.get_settings().get("manual_settings", None) #.get(self.game.lower(), None)
         if self.settings is not None:
+            has_error = False
             if hasattr(self.settings, "items_sorting_order"):
                 self.items_sorting = self.settings.items_sorting_order
+                if self.items_sorting not in SortingOrderItem._member_names_:
+                    has_error = True
+                    self.items_sorting = SortingOrderItem.default.name
+
             if hasattr(self.settings, "locations_sorting_order"):
                 self.locations_sorting = self.settings.locations_sorting_order
+                if self.locations_sorting not in SortingOrderLoc._member_names_:
+                    has_error = True
+                    self.locations_sorting = SortingOrderLoc.default.name
+
+            if has_error:
+                self.save_options()
 
         await self.get_username()
         await self.send_connect()

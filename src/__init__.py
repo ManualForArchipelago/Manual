@@ -52,8 +52,8 @@ class ManualSettings(settings.Group):
         alphabetical, inverted_alphabetical: Sort by location name
         """
 
-    items_sorting_order: ItemsSorting = ItemsSorting("alphabetical")
-    locations_sorting_order: LocationsSorting = LocationsSorting("alphabetical")
+    items_sorting_order: ItemsSorting = ItemsSorting("default")
+    locations_sorting_order: LocationsSorting = LocationsSorting("default")
 
 class ManualWorld(World):
     __doc__ = world_description
