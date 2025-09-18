@@ -41,15 +41,11 @@ from .hooks.Data import hook_interpret_slot_data
 class ManualSettings(settings.Group):
     class ItemsSorting(str):
         """Set your preferred Items sorting order
-        valid options:
-        custom, inverted_custom: Sort by item ids
-        alphabetical, inverted_alphabetical: Sort by item name
+        You can get the valid options by doing /items_sorting in the client
         """
     class LocationsSorting(str):
         """Set your preferred Locations sorting order
-        valid options:
-        custom, inverted_custom: Sort by location ids
-        alphabetical, inverted_alphabetical: Sort by location name
+        You can get the valid options by doing /locations_sorting in the client
         """
 
     items_sorting_order: ItemsSorting = ItemsSorting("default")

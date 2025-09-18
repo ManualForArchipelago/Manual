@@ -43,6 +43,11 @@ class SortingOrderLoc(IntEnum):
     inverted_natural = -3
     default = 3
 
+# Docs must be done after because otherwise __doc__ return none
+SortingOrderLoc.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in locations.json if present, and the name otherwise."
+SortingOrderLoc.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
+SortingOrderLoc.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+
 class SortingOrderItem(IntEnum):
     custom = 1
     inverted_custom = -1
@@ -53,6 +58,11 @@ class SortingOrderItem(IntEnum):
     received = 4
     inverted_received = -4
     default = 4
+
+SortingOrderItem.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in items.json if present, and the name otherwise."
+SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in items.json."
+SortingOrderItem.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -96,8 +106,17 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
         valid_algorithms_names = [e.name for e in valid_algorithms] + ["default"]
 
         if algorithm is None: #Get
-            cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting
-            self.output(f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort}")
+            cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting #type: ignore
+            output = f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort} \
+                \nValid sorting algorithms are:"
+            for algo in valid_algorithms_names:
+                if algo.startswith("inverted_") or algo == "default":
+                    continue
+                else:
+                    output += f"\n  - {algo}/inverted_{algo}: {valid_algorithms[algo].__doc__}"
+            output += f"\n  - default: Set sorting back to default aka '{valid_algorithms.default.name}'"
+
+            self.output(output)
 
             return True
 
