@@ -99,7 +99,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
         return self.sorting_commands_logic(algorithm, target_items=False)
 
     def sorting_commands_logic(self, algorithm: Optional[str] = None, target_items: bool = False) -> bool:
-        valid_algorithms: type[IntEnum] = SortingOrderLoc
+        valid_algorithms: type[SortingOrderLoc] | type[SortingOrderItem] = SortingOrderLoc
         if target_items:
             valid_algorithms = SortingOrderItem
 

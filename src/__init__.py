@@ -547,7 +547,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_08_12 # YYYYMMDD
+    version = 2025_09_29 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
