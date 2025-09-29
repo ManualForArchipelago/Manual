@@ -319,13 +319,11 @@ class DataValidation():
                 raise ValidationError("Location %s is defined more than once." % (location["name"]))
 
     @staticmethod
-    def checkForDuplicateRegionNames():
-        # this currently does nothing because the region name is a dict key, which will never be non-unique / limited to 1
-        for region_name in DataValidation.region_table:
-            name_count = len([r for r in DataValidation.region_table if r == region_name])
-
-            if name_count > 1:
-                raise ValidationError("Region %s is defined more than once." % (region_name))
+    def checkForInvalidRegionNames():
+        # check for regions that Manual defines itself; currently limited to "Menu" and "Manual"
+        for region_name in ["Menu", "Manual"]:
+            if region_name in DataValidation.region_table:
+                raise ValidationError(f"You cannot define a '{region_name}' region because Manual already defines a region with the same name.")
 
     @staticmethod
     def checkStartingItemsForValidItemsAndCategories():
@@ -460,6 +458,10 @@ def runGenerationDataValidation(cls) -> None:
     try: DataValidation.checkItemNamesInRegionRequires()
     except ValidationError as e: validation_errors.append(e)
 
+    # check that region names are valid (i.e., not already defined, etc.)
+    try: DataValidation.checkForInvalidRegionNames()
+    except ValidationError as e: validation_errors.append(e)
+
     # check that region names are correct in locations
     try: DataValidation.checkRegionNamesInLocations()
     except ValidationError as e: validation_errors.append(e)
@@ -477,9 +479,6 @@ def runGenerationDataValidation(cls) -> None:
     except ValidationError as e: validation_errors.append(e)
 
     try: DataValidation.checkForDuplicateLocationNames()
-    except ValidationError as e: validation_errors.append(e)
-
-    try: DataValidation.checkForDuplicateRegionNames()
     except ValidationError as e: validation_errors.append(e)
 
     # check that starting items are actually valid starting item definitions
