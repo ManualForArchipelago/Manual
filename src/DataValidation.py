@@ -3,16 +3,17 @@ import re
 import json
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, ItemClassification
+from typing import Any
 
 
 class ValidationError(Exception):
     pass
 
 class DataValidation():
-    game_table = {}
-    item_table = []
-    location_table = []
-    region_table = {}
+    game_table: dict[str, Any] = {}
+    item_table: list[dict[str, Any]] = []
+    location_table: list[dict[str, Any]] = []
+    region_table: dict[str, Any] = {}
 
 
     @staticmethod
@@ -177,16 +178,78 @@ class DataValidation():
                 raise ValidationError("Region %s is set for location %s, but the region is misspelled or does not exist." % (location["region"], location["name"]))
 
     @staticmethod
+    def checkItemsHasValidClassificationCount():
+        for item in DataValidation.item_table:
+            if not item.get("classification_count"):
+                continue
+            for cat, count in item["classification_count"].items():
+                cat = str(cat)
+                if count == 0:
+                    continue
+                try:
+                    def stringCheck(string: str):
+                        if string.isdigit():
+                            ItemClassification(int(string))
+                        elif string.startswith('0b'):
+                            ItemClassification(int(string, base=0))
+                        else:
+                            ItemClassification[string]
+
+                    if "+" in cat:
+                        for substring in cat.split("+"):
+                            stringCheck(substring.strip())
+
+                    else:
+                        stringCheck(cat)
+
+                except KeyError as ex:
+                    raise ValidationError(f"Item '{item['name']}''s classification_count '{cat}' is misspelled or does not exist.\n Valid names are {', '.join(ItemClassification.__members__.keys())} \n\n{type(ex).__name__}:{ex}")
+                except Exception as ex:
+                    raise ValidationError(f"Item '{item['name']}''s classification_count '{cat}' was improperly defined\n\n{type(ex).__name__}:{ex}")
+
+    @staticmethod
     def checkItemsThatShouldBeRequired():
         for item in DataValidation.item_table:
             # if the item is already progression, no need to check
-            if "progression" in item and item["progression"]:
+            if item.get("progression"):
                 continue
 
             # progression_skip_balancing is also progression, so no check needed
-            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            if item.get("progression_skip_balancing"):
                 continue
+            # if any of the advanced type is already progression then no check needed
+            if item.get("classification_count"):
+                has_progression = False
+                for cat, count in item["classification_count"].items():
+                    cat = str(cat)
+                    if count == 0:
+                        continue
+                    try:
+                        def stringCheck(string: str) -> ItemClassification:
+                            if string.isdigit():
+                                true_class = ItemClassification(int(string))
+                            elif string.startswith('0b'):
+                                true_class = ItemClassification(int(string, base=0))
+                            else:
+                                true_class = ItemClassification[string]
+                            return true_class
 
+                        if "+" in cat:
+                            true_class = ItemClassification.filler
+                            for substring in cat.split("+"):
+                                true_class |= stringCheck(substring.strip())
+                        else:
+                            true_class = stringCheck(cat)
+
+                    except:
+                        # Skip since this validation error is dealt with in checkItemsHasValidClassificationCount
+                        true_class = ItemClassification.filler
+                    if ItemClassification.progression in true_class:
+                        has_progression = True
+                        break
+
+                if has_progression:
+                    continue
             # check location requires for the presence of item name
             for location in DataValidation.location_table:
                 if "requires" not in location:
@@ -464,6 +527,10 @@ def runGenerationDataValidation(cls) -> None:
 
     # check that region names are correct in locations
     try: DataValidation.checkRegionNamesInLocations()
+    except ValidationError as e: validation_errors.append(e)
+
+    # check that any classification_count used in items are valid
+    try: DataValidation.checkItemsHasValidClassificationCount()
     except ValidationError as e: validation_errors.append(e)
 
     # check that items that are required by locations and regions are also marked required
