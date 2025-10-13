@@ -8,8 +8,9 @@
                 "Left Side"
             ],
             "value": {"star": 5, "coins": 3},
-            "progression": true,
             "sort-key": "row-0-1"
+            "classification_count": {"useful + progression": 1, "useful": 1},
+            "_comment": "In this example a copy of the 'Jill' item will be created that is useful & progression and another will be created just useful"
         },
         {
             "name": "Shuma-Gorath",
