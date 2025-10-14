@@ -215,6 +215,7 @@ def remove_specific_item(source: list[Item], item: Item) -> Item:
     """Remove and return an item from a list in a more precise way, base AP only check for name and player id before removing.
     \nThis also verify that the classification is the same.
     \nRaise ValueError if the item is not in the list."""
+    # Inspired by https://stackoverflow.com/a/58761459
     element = None
     for i in range(len(source)): # check all elements of the list like a normal remove does
         other = source[i]
