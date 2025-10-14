@@ -211,6 +211,20 @@ def format_to_valid_identifier(input: str) -> str:
         input = "_" + input
     return input.replace(" ", "_")
 
+def remove_specific_item(source: list[Item], item: Item) -> Item:
+    """Remove and return an item from a list in a more precise way, base AP only check for name and player id before removing.
+    \nThis also verify that the classification is the same.
+    \nRaise ValueError if the item is not in the list."""
+    element = None
+    for i in range(len(source)): # check all elements of the list like a normal remove does
+        other = source[i]
+        if item == other and item.classification == other.classification:
+            element = source.pop(i)  # remove element by index to be sure that it is what we need
+            break
+    if element is None:
+        raise ValueError(f"Item {item.name} could not be found in source list")
+    return element
+
 class ProgItemsCat(IntEnum):
     VALUE = 1
     CATEGORY = 2
