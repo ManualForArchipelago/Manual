@@ -1,22 +1,19 @@
+import ast
 import csv
 import os
 import pkgutil
 import json
 
 from BaseClasses import MultiWorld, Item
-from typing import Optional, List, TYPE_CHECKING
+from enum import IntEnum
+from typing import Optional, List, Union, get_args, get_origin, Any
+from types import GenericAlias
 from worlds.AutoWorld import World
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
 
-from typing import Union
-
-if TYPE_CHECKING:
-    from .Items import ManualItem
-    from .Locations import ManualLocation
-
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
-    fname = os.path.join("data", *args)
+    fname = "/".join(["data", *args])
 
     try:
         filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
@@ -26,7 +23,7 @@ def load_data_file(*args) -> dict:
     return filedata
 
 def load_data_csv(*args) -> list[dict]:
-    fname = os.path.join("data", *args)
+    fname = "/".join(["data", *args])
 
     try:
         lines = pkgutil.get_data(__name__, fname).decode().splitlines()
@@ -73,6 +70,7 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
                 option_name = option_name[1:]
                 required = False
 
+            option_name = format_to_valid_identifier(option_name)
             if is_option_enabled(multiworld, player, option_name) != required:
                 return False
     return True
@@ -85,7 +83,7 @@ def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) ->
 
     return is_item_enabled(multiworld, player, item)
 
-def is_item_enabled(multiworld: MultiWorld, player: int, item: "ManualItem") -> bool:
+def is_item_enabled(multiworld: MultiWorld, player: int, item: dict[str, Any]) -> bool:
     """Check if an item has been disabled by a yaml option."""
     hook_result = before_is_item_enabled(multiworld, player, item)
     if hook_result is not None:
@@ -101,7 +99,7 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
 
     return is_location_enabled(multiworld, player, location)
 
-def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLocation") -> bool:
+def is_location_enabled(multiworld: MultiWorld, player: int, location: dict[str, Any]) -> bool:
     """Check if a location has been disabled by a yaml option."""
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
@@ -109,7 +107,7 @@ def is_location_enabled(multiworld: MultiWorld, player: int, location: "ManualLo
 
     return _is_manualobject_enabled(multiworld, player, location)
 
-def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: any) -> bool:
+def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[str, Any]) -> bool:
     """Internal method: Check if a Manual Object has any category disabled by a yaml option.
     \nPlease use the proper is_'item/location'_enabled or is_'item/location'_name_enabled methods instead.
     """
@@ -205,3 +203,112 @@ def convert_to_long_string(input: str | list[str]) -> str:
     if not isinstance(input, str):
         return str.join("\n    ", input)
     return input
+
+def format_to_valid_identifier(input: str) -> str:
+    """Make sure the input is a valid python identifier"""
+    input = input.strip()
+    if input[:1].isdigit():
+        input = "_" + input
+    return input.replace(" ", "_")
+
+class ProgItemsCat(IntEnum):
+    VALUE = 1
+    CATEGORY = 2
+
+def format_state_prog_items_key(category: str|ProgItemsCat ,key: str) -> str:
+    """Convert the inputted key to the format used in state.has(key) to check/set the count of an item_value.
+    Using either one of the predefined categories or a custom string.
+
+    Example: Coin -> MANUAL_VALUE_coin
+    """
+    if isinstance(category, str):
+        cat_key = format_to_valid_identifier(category.upper())
+    else:
+        cat_key = category.name
+
+    return f"MANUAL_{cat_key}_{format_to_valid_identifier(key.lower())}"
+
+def convert_string_to_type(input: str, target_type: type) -> Any:
+    """Take a string and attempt to convert it to {target_type}
+    \ntarget_type can be a single type(ex. str), an union (int|str), an Optional type (Optional[str]) or a combo of any of those (Optional[int|str])
+    \nSpecial logic:
+    - When target_type is Optional or contains None: it will check if input.lower() is "none"
+    - When target_type contains bool: it will check if input.lower() is "true", "1", "false" or "0"
+    - If bool is the last type in target_type it also run the input directly through bool(input) if previous fails
+    \nif you want this to possibly fail without Exceptions include str in target_type, your input should get returned if all the other conversions fails
+    """
+    def checktype(target_type, found_types: list):
+        if issubclass(type(target_type), type): #is it a single type (str, list, etc)
+            if target_type not in found_types:
+                found_types.append(target_type)
+
+        elif issubclass(type(target_type), GenericAlias): #is it something like list[str] and dict{str:int}
+            if target_type not in found_types and get_origin(target_type) not in found_types: #dont add 'dict[str]' if we already search for 'dict'
+                found_types.append(target_type)
+
+        elif issubclass(type(target_type), type(str|int)) \
+            or issubclass(type(target_type), type(Union[str|int])): #Support both version of Union, and Optional and other alike
+            for arg in get_args(target_type):
+                checktype(arg, found_types)
+
+        else:
+            raise Exception(f"'{value}' cannot be converted to {target_type} since its not a supported type \nAsk about it in #Manual-support and it might be added.")
+
+    found_types = []
+    checktype(target_type, found_types)
+
+    if str in found_types: #do it last
+        found_types.remove(str)
+        found_types.append(str)
+
+    value = input.strip()
+    i = 0
+    errors = []
+    for value_type in found_types:
+        i += 1
+        if issubclass(value_type, type(None)):
+            if value.lower() == 'none':
+                return None
+            errors.append(str(value_type) + ": value was not 'none'")
+
+        elif issubclass(value_type, bool):
+            if value.lower() in ['true', '1', 'on']:
+                return True
+
+            elif value.lower() in ['false', '0', 'off']:
+                return False
+
+            else:
+                if i == len(found_types):
+                    return value_type(value) #if its the last type might as well try and convert to bool
+                errors.append(str(value_type) + ": value was not in either ['true', '1', 'on'] or ['false', '0', 'off']")
+
+        elif issubclass(value_type, list) or issubclass(value_type, dict) \
+            or issubclass(value_type, set) or issubclass(type(value_type), GenericAlias):
+            try:
+                try:
+                    converted_value = ast.literal_eval(value)
+                except ValueError as e:
+                    # The ValueError from ast when the string cannot be evaluated as a literal is usually something like
+                    # "malformed node or string on line 1: <ast.Name object at 0x000001AEBBCC7590>", which is not
+                    # helpful, so re-raise with a better exception message.
+                    raise ValueError(f"'{value}' could not be evaluated as a literal") from e
+
+                compareto = get_origin(value_type) if issubclass(type(value_type), GenericAlias) else value_type
+                if issubclass(compareto, type(converted_value)):
+                    return converted_value
+                else:
+                    errors.append(str(value_type) + f": value '{value}' was not a valid {str(compareto)}")
+            except Exception as e:
+                errors.append(str(value_type) + ": " + str(e))
+                continue
+        else:
+            try:
+                return value_type(value)
+
+            except Exception as e:
+                errors.append(str(value_type) + ": " + str(e))
+                continue
+
+    newline = "\n"
+    raise Exception(f"'{value}' could not be converted to {target_type}, here's the conversion failure message(s):\n\n{newline.join([' - ' + str(validation_error) for validation_error in errors])}\n\n")

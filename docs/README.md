@@ -4,36 +4,38 @@ Welcome to the documentation for Manual! Using Manual, you can create an Archipe
 
 _How does that work?!_ Well, you'll just have to read more below!
 
+(\* Pages marked below with an asterisk are being worked on.) 
+
 ## Table of Contents
 
-### :point_right: :point_right: :point_right: [The 5 Minute Intro To Manual](manual/intro.md) :point_left: :point_left: :point_left:
+### :point_right: :point_right: :point_right: [The 5 Minute Intro To Manual](manual/intro.md) * :point_left: :point_left: :point_left:
 
 ### What is Manual?
 
-- [Overview](manual/overview.md)
-- [How does it work?](manual/how-it-works.md)
+- [Overview](manual/overview.md) 
+- [How does it work?](manual/how-it-works.md) *
 
 ### How to play a Manual?
 
 - [Get the apworld](play/get-apworld.md)
 - [How to connect the Manual client](play/connect-client.md)
+- [Updating a Manual apworld](play/updating-apworld.md)
 
 ### How to design a Manual?
 
-- [What are you randomizing?](design/randomized.md)
-- [Does it work as a randomizer?](design/does-it-work.md)
+- [How would your randomizer work?](design/how-would-it-work.md)
 - [Does it have good pacing?](design/pacing.md)
 - [How to minimize filler](design/less-filler.md)
 - [Telling your players what they need to know](design/help-your-players.md)
-- [Be nice to the multiworld](design/be-nice-multiworld.md)
+- [What to do when you're done](design/when-youre-done.md)
 
 ### How to start making a Manual?
 
 - [Game](making/game.md)
 - [Items](making/items.md)
-- [Locations](making/locations.md)
+- [Locations](making/locations.md) *
 - [Regions](making/regions.md)
-- [Next Steps](making/next-steps.md)
+- [Next Steps](making/next-steps.md) *
 
 ### Troubleshooting
 
@@ -43,16 +45,16 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 ### Syntax Reference and Examples
 - [Game syntax](syntax/game.md)
-- [Item syntax](syntax/item.md)
+- [Item syntax](syntax/item.md) *
 - [Location syntax](syntax/location.md)
 - [Categories for Items and Locations](syntax/categories-for-items-and-locations.md)
-- [Region syntax](syntax/region.md)
+- [Region syntax](syntax/region.md) *
 - [Requires for Locations and Regions](syntax/requires.md)
   - [Boolean Logic (AND/OR)](syntax/requires.md#boolean-logic)
   - [Item Counts](syntax/requires.md#item-counts)
   - [Requiring Categories](syntax/requires.md#requiring-categories)
   - [Requirement Functions](syntax/requires.md#requirement-functions)
-- [Category syntax](syntax/category.md)
+- [Category syntax](syntax/category.md) *
 - [Hooks](syntax/hooks.md)
   - [World Hooks](syntax/hooks.md#world-hooks)
   - [JSON File Hooks](syntax/hooks.md#json-file-hooks)
@@ -68,10 +70,10 @@ _How does that work?!_ Well, you'll just have to read more below!
 ### FAQ
 
 - [General](faq/general.md)
-- [Game Content](faq/game-content.md)
-- [World Building](faq/world-building.md)
-- [Releases](faq/releases.md)
-- [Code and Contributions](faq/code-and-contributions.md)
+- [Game Content](faq/game-content.md) *
+- [World Building](faq/world-building.md) *
+- [Releases](faq/releases.md) *
+- [Code and Contributions](faq/code-and-contributions.md) *
 
 ## Join our community
 

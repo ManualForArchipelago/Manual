@@ -1,21 +1,23 @@
 from __future__ import annotations
-import time
+import asyncio
+import os
+import re
 import sys
-from typing import Any, Optional
+import time
 import typing
+from typing import Any, Optional
+
+import requests
 from worlds import AutoWorldRegister, network_data_package
+from worlds.LauncherComponents import icon_paths
 import json
 import traceback
 
-import asyncio, re
 
 import ModuleUpdate
 ModuleUpdate.update()
 
 import Utils
-
-if __name__ == "__main__":
-    Utils.init_logging("ManualClient", exception_logger="Client")
 
 from NetUtils import ClientStatus
 from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProcessor, server_loop
@@ -28,6 +30,9 @@ try:
     tracker_loaded = True
 except ModuleNotFoundError:
     from CommonClient import CommonContext as SuperContext
+
+if typing.TYPE_CHECKING:
+    import kvui
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -58,7 +63,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
 
 class ManualContext(SuperContext):
     command_processor = ManualClientCommandProcessor
-    game = "not set"  # this is changed in server_auth below based on user input
+    game = None  # this is changed in server_auth below based on user input
     items_handling = 0b111  # full remote
     tags = {"AP"}
 
@@ -192,14 +197,15 @@ class ManualContext(SuperContext):
         if cmd in {"Connected", "DataPackage"}:
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
-                goal = args["slot_data"].get("goal")
-                if goal and goal < len(self.victory_names):
-                    self.goal_location = self.get_location_by_name(self.victory_names[goal])
-                if args['slot_data'].get('death_link'):
-                    self.ui.enable_death_link()
-                    self.set_deathlink = True
-                    self.last_death_link = 0
-                logger.info(f"Slot data: {args['slot_data']}")
+                if args.get("slot_data"):
+                    goal = args["slot_data"].get("goal")
+                    if goal and goal < len(self.victory_names):
+                        self.goal_location = self.get_location_by_name(self.victory_names[goal])
+                    if args['slot_data'].get('death_link'):
+                        self.ui.enable_death_link()
+                        self.set_deathlink = True
+                        self.last_death_link = 0
+                    logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
@@ -237,7 +243,7 @@ class ManualContext(SuperContext):
 
         if tracker_error:
             self._messagebox_connection_loss = self.gui_error(
-                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.", 
+                "A Universal Tracker error has occurred. Please ensure that your version of UT matches your version of Archipelago.",
                 formatted_tb)
         else:
             self._messagebox_connection_loss = self.gui_error(msg, formatted_tb)
@@ -322,10 +328,6 @@ class ManualContext(SuperContext):
             background_color = ColorProperty()
 
         class ManualManager(ui):
-            logging_pairs = [
-                ("Client", "Archipelago"),
-                ("Manual", "Manual"),
-            ]
             base_title = "Archipelago Manual Client"
             listed_items = {"(No Category)": []}
             item_categories = ["(No Category)"]
@@ -358,11 +360,7 @@ class ManualContext(SuperContext):
 
                 self.grid.add_widget(self.manual_game_layout, 3)
 
-                for child in self.tabs.tab_list:
-                    if child.text == "Manual":
-                        panel = child # instead of creating a new TabbedPanelItem, use the one we use above to make the tabs show
-
-                panel.content = ManualTabLayout(orientation="vertical")
+                panel = self.add_client_tab("Manual", ManualTabLayout(orientation="vertical"))
 
                 self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(40))
                 self.tracker_and_locations_panel = TrackerAndLocationsLayout(cols = 2)
@@ -511,22 +509,20 @@ class ManualContext(SuperContext):
                         self.listed_locations["(No Category)"].append(location_id)
 
                 victory_location =  self.ctx.goal_location
-                victory_categories = set()
+                victory_categories = set(victory_location.get("category", []))
 
-                if "category" in victory_location and len(victory_location["category"]) > 0:
-                    for category in victory_location["category"]:
-                        if category not in self.location_categories:
-                            self.location_categories.append(category)
+                for category in victory_categories:
+                    if category not in self.location_categories:
+                        self.location_categories.append(category)
 
-                        if category not in self.listed_locations:
-                            self.listed_locations[category] = []
-                            victory_categories.add(category)
+                    if category not in self.listed_locations:
+                        self.listed_locations[category] = []
 
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
                 for category in self.listed_locations:
-                    self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                    self.listed_locations[category].sort()
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -556,8 +552,8 @@ class ManualContext(SuperContext):
                 for location_category in sorted(self.listed_locations.keys()):
                     locations_in_category = len(self.listed_locations[location_category])
 
-                    if ("category" in victory_location and location_category in victory_location["category"]) or \
-                        ("category" not in victory_location and location_category == "(No Category)"):
+                    if (location_category in victory_categories) or \
+                        (not victory_categories and location_category == "(No Category)"):
                         locations_in_category += 1
 
                     category_tree = locations_panel.add_node(
@@ -610,12 +606,12 @@ class ManualContext(SuperContext):
 
                 if self.ctx.search_term:
                     items_length = len([
-                        i for i in self.ctx.items_received 
+                        i for i in self.ctx.items_received
                             if self.ctx.search_term.lower() in self.ctx.item_names.lookup_in_game(i.item).lower()
                     ])
 
                     locations_length = len([
-                        l for l in self.ctx.missing_locations 
+                        l for l in self.ctx.missing_locations
                             if self.ctx.search_term.lower() in self.ctx.location_names.lookup_in_game(l).lower()
                     ])
 
@@ -683,11 +679,13 @@ class ManualContext(SuperContext):
                                 # instead of reusing existing item listings, clear it all out and re-draw with the sorted list
                                 category_grid.clear_widgets()
                                 self.listed_items[category_name].clear()
+                                category_count = 0
+                                category_unique_name_count = 0
 
                                 # Label (for all item listings)
                                 sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received 
-                                ], key=self.ctx.item_names.lookup_in_game)
+                                    i.item for i in self.ctx.items_received
+                                ])
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
@@ -776,7 +774,7 @@ class ManualContext(SuperContext):
                                         if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
                                             # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                             if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                                hide_button_during_search(location_button)                                            
+                                                hide_button_during_search(location_button)
                                             else:
                                                 show_button_during_search(location_button)
                                                 category_count += 1
@@ -804,10 +802,10 @@ class ManualContext(SuperContext):
 
                                         # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
-                                            hide_button_during_search(location_button)                                            
+                                            hide_button_during_search(location_button)
                                         else:
                                             show_button_during_search(location_button)
-                                                                                        
+
                                             if was_reachable:
                                                 reachable_count += 1
 
@@ -939,6 +937,12 @@ def launch() -> None:
     colorama.init()
     asyncio.run(main(args))
     colorama.deinit()
+
+    if not os.path.exists(icon_paths["manual"]):
+        # Download the icon for next time
+        icon_url = "https://manualforarchipelago.github.io/ManualBuilder/images/ap-manual-discord-logo-square-96x96.png"
+        with open(icon_paths["manual"], 'wb') as f:
+            f.write(requests.get(icon_url).content)
 
 if __name__ == '__main__':
     launch()

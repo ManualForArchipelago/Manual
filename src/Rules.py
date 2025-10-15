@@ -1,12 +1,16 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
-from worlds.generic.Rules import set_rule, add_rule
+from operator import eq, ge, le
+
 from .Regions import regionMap
 from .hooks import Rules
+from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value, convert_string_to_type,\
+    format_to_valid_identifier, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import MultiWorld, CollectionState
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled
 from worlds.AutoWorld import World
+from worlds.generic.Rules import set_rule, add_rule
+from Options import Choice, Toggle, Range, NamedRange
 
 import re
 import math
@@ -35,7 +39,7 @@ def construct_logic_error(location_or_region: dict, source: LogicErrorSource) ->
     elif source == LogicErrorSource.EVALUATE_POSTFIX:
         source_text = "There may be missing || around item names, or an AND/OR that is missing a value on one side, or other invalid syntax for the requires."
     elif source == LogicErrorSource.EVALUATE_STACK_SIZE:
-        source_text = "There may be missing {} around requirement functions like YamlEnabled() / YamlDisabled(), or other invalid syntax for the requires." 
+        source_text = "There may be missing {} around requirement functions like YamlEnabled() / YamlDisabled(), or other invalid syntax for the requires."
     else:
         source_text = "This requires includes invalid syntax."
 
@@ -103,7 +107,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         requires_list = area["requires"]
 
         # Get the "real" item counts of item in the pool/placed/starting_items
-        items_counts = world.get_item_counts(player)
+        items_counts = world.get_item_counts(player, only_progression=True)
+
+        # Preparing some variables for exception messages
+        area_type = "region" if area.get("is_region",False) else "location"
+        area_name = area.get("name", f"unknown with these parameters: {area}")
 
         if requires_list == "":
             return True
@@ -111,8 +119,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         def findAndRecursivelyExecuteFunctions(requires_list: str, recursionDepth: int = 0) -> str:
             found_functions = re.findall(r'\{(\w+)\((.*?)\)\}', requires_list)
             if found_functions:
-                if recursionDepth >= world.rules_functions_maximum_recursion:
-                    raise RecursionError(f'One or more functions in "{area.get("name", f"An area with these parameters: {area}")}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
+                if recursionDepth > world.rules_functions_maximum_recursion:
+                    raise RecursionError(f'One or more functions in {area_type} "{area_name}"\'s requires looped too many time (maximum recursion is {world.rules_functions_maximum_recursion}) \
                                          \n    As of this Exception the following function(s) are waiting to run: {[f[0] for f in found_functions]} \
                                          \n    And the currently processed requires look like this: "{requires_list}"')
                 else:
@@ -128,10 +136,16 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                             func = getattr(Rules, func_name, None)
 
                         if not callable(func):
-                            raise ValueError(f"Invalid function `{func_name}` in {area}.")
+                            raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area.get("name", f"An area with these parameters: {area}"))
-                        result = func(world, multiworld, state, player, *func_args)
+                        convert_req_function_args(state, func, func_args, area_name)
+                        try:
+                            result = func(*func_args)
+                        except Exception as ex:
+                            raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
+                                                \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
+                                                \nFull error message: \
+                                                \n\n{type(ex).__name__}: {ex}')
                         if isinstance(result, bool):
                             requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "1" if result else "0")
                         else:
@@ -272,8 +286,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     for region in regionMap.keys():
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
-            for exitRegion in multiworld.get_region(region, player).exits:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
+            for exitRegion in multiworld.get_region(region, player).entrances:
+                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
+                    region['name'] = region_name
+                    region['is_region'] = True
+
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
@@ -324,121 +341,69 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(func, args: list[str], areaName: str, warn: bool = False):
+    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownArguments = ["world", "multiworld", "state", "player"]
-        index = 0
-        for parameter, info in parameters.items():
-            if parameter in knownArguments:
+        knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
+        index = -1
+        for parameter in parameters.values():
+            target_type = parameter.annotation
+            index += 1
+            if target_type in knownParameters:
+                if target_type in [World, 'ManualWorld']:
+                    args.insert(index, world)
+                elif target_type == MultiWorld:
+                    args.insert(index, multiworld)
+                elif target_type == CollectionState:
+                    args.insert(index, state)
+                continue
+            if parameter.name.lower() == "player":
+                args.insert(index, player)
                 continue
 
-            argType = info.annotation
-            optional = False
-            try:
-                if issubclass(argType, inspect._empty): #if not set then it wont get converted but still be checked for valid data at index
-                    argType = str
-
-            except TypeError: # Optional
-                if argType.__module__ == 'typing' and argType._name == 'Optional':
-                    optional = True
-                    argType = argType.__args__[0]
-                else:
-                    #Implementing complex typing is not simple so ill skip it for now
-                    index += 1
-                    continue
-
-            try:
+            if index < len(args) and args[index] != "":
                 value = args[index].strip()
-
-            except IndexError:
-                if info is not inspect.Parameter.empty:
-                    value = info.default
-
-                else:
-                    raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its missing")
-
-            if optional:
-                if isinstance(value, type(None)):
-                    index += 1
-                    continue
-                elif isinstance(value, str):
-                    if value.lower() == 'none':
-                        value = None
-                        args[index] = value
-                        index += 1
-                        continue
-
-
-            if not isinstance(value, argType):
-                if issubclass(argType, bool):
-                    #Special conversion to bool
-                    if value.lower() in ['true', '1']:
-                        value = True
-
-                    elif value.lower() in ['false', '0']:
-                        value = False
-
+            else:
+                if parameter.default is not inspect.Parameter.empty:
+                    if index < len(args):
+                        args[index] = parameter.default
                     else:
-                        value = bool(value)
-                        if warn:
-                        # warning here spam the console if called from rules.py, might be worth to make it a data validation instead
-                            logging.warning(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but an unknown string was passed and thus converted to {value}")
-
+                        args.insert(index, parameter.default)
+                    continue
                 else:
-                    try:
-                        value = argType(value)
+                    if parameter.annotation is inspect.Parameter.empty:
+                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value for its argument \"{parameter.name}\" but it's missing.")
+                    else:
+                        raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type} for its argument \"{parameter.name}\" but it's missing.")
 
-                    except ValueError:
-                        raise Exception(f"A call of the {func.__name__} function in '{areaName}'s requirement, asks for a value of type {argType}\nfor its argument '{info.name}' but its value '{value}' cannot be converted to {argType}")
-
+            if target_type == str or parameter.annotation is inspect.Parameter.empty: #Don't convert since its already a string or if we don't know the type to convert to
                 args[index] = value
+                continue
 
-            index += 1
+            try:
+                value = convert_string_to_type(value, target_type)
 
-def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
+            except Exception as e:
+                raise Exception(f"A call of the \"{func.__name__}\" function in \"{areaName}\"'s requirement, asks for a value of type {target_type}\nfor its argument \"{parameter.name}\" but its value \"{value}\" cannot be converted to {target_type} \nOriginal Error:'{e}'")
+
+            args[index] = value
+
+
+def ItemValue(state: CollectionState, player: int, valueCount: str):
     """When passed a string with this format: 'valueName:int',
     this function will check if the player has collect at least 'int' valueName worth of items\n
-    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
-    You can add a second string argument to disable creating/checking the cache like this:
-    '{ItemValue(Coins:12,Disable)}' it can be any string you want
+    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items
     """
 
-    valueCount = valueCount.split(":")
-    if not len(valueCount) == 2 or not valueCount[1].isnumeric():
-        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({valueCount[0]}:12)'")
-    value_name = valueCount[0].lower().strip()
-    requested_count = int(valueCount[1].strip())
+    args: list[str] = valueCount.split(":")
+    if not len(args) == 2 or not args[1].isnumeric():
+        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args[0]}:12)'")
+    value_name = format_state_prog_items_key(ProgItemsCat.VALUE, args[0])
+    requested_count = int(args[1].strip())
+    return state.has(value_name, player, requested_count)
 
-    if not hasattr(world, 'itemvalue_rule_cache'): #Cache made for optimization purposes
-        world.itemvalue_rule_cache = {}
-
-    if not world.itemvalue_rule_cache.get(player, {}):
-        world.itemvalue_rule_cache[player] = {}
-
-    if not skipCache:
-        if not world.itemvalue_rule_cache[player].get(value_name, {}):
-            world.itemvalue_rule_cache[player][value_name] = {
-                'state': {},
-                'count': -1,
-                }
-
-    if (skipCache or world.itemvalue_rule_cache[player][value_name].get('count', -1) == -1
-            or world.itemvalue_rule_cache[player][value_name].get('state') != dict(state.prog_items[player])):
-        # Run First Time, if state changed since last check or if skipCache has a value
-        existing_item_values = get_items_with_value(world, multiworld, value_name)
-        total_Count = 0
-        for name, value in existing_item_values.items():
-            count = state.count(name, player)
-            if count > 0:
-                total_Count += count * value
-        if skipCache:
-            return total_Count >= requested_count
-        world.itemvalue_rule_cache[player][value_name]['count'] = total_Count
-        world.itemvalue_rule_cache[player][value_name]['state'] = dict(state.prog_items[player])
-    return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
+def OptOne(world: "ManualWorld", item: str, items_counts: Optional[dict] = None):
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
@@ -446,7 +411,7 @@ def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player:
     if item == "":
         return "" #Skip this function if item is left blank
     if not items_counts:
-        items_counts = world.get_item_counts()
+        items_counts = world.get_item_counts(only_progression=True)
 
     require_type = 'item'
 
@@ -477,14 +442,14 @@ def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player:
         return f"|{item_name}:{item_count}|"
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
-def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player: int, requires: str):
+def OptAll(world: "ManualWorld", requires: str):
     """Check the passed require string and loop every item to check if they're enabled,
     then returns the require string with items counts adjusted using OptOne\n
     eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
     become "|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|" """
     requires_list = requires
 
-    items_counts = world.get_item_counts()
+    items_counts = world.get_item_counts(only_progression=True)
 
     functions = {}
     if requires_list == "":
@@ -496,7 +461,7 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
         requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "{" + func_name + "(temp)}")
     # parse user written statement into list of each item
     for item in re.findall(r'\|[^|]+\|', requires):
-        itemScanned = OptOne(world, multiworld, state, player, item, items_counts)
+        itemScanned = OptOne(world, item, items_counts)
         requires_list = requires_list.replace(item, itemScanned)
 
     for function in functions:
@@ -504,16 +469,127 @@ def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player:
     return requires_list
 
 # Rule to expose the can_reach_location core function
-def canReachLocation(world: World, multiworld: MultiWorld, state: CollectionState, player: int, location: str):
+def canReachLocation(state: CollectionState, player: int, location: str):
     """Can the player reach the given location?"""
     if state.can_reach_location(location, player):
         return True
     return False
 
-def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
     return is_option_enabled(multiworld, player, param)
 
-def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlDisabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option disabled?"""
     return not is_option_enabled(multiworld, player, param)
+
+def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, args: str, skipCache: bool = False) -> bool:
+    """Is a yaml option's value compared using {comparator} to the requested value
+    \nFormat it like {YamlCompare(OptionName==value)}
+    \nWhere == can be any of the following: ==, !=, >=, <=, <, >
+    \nExample: {YamlCompare(Example_Range > 5)}"""
+    comp_symbols = { #Maybe find a better name for this
+        '==' : eq,
+        '!=' : eq, #complement of ==
+        '>=' : ge,
+        '<=' : le,
+        '=': eq, #Alternate to be like yaml_option
+        '<' : ge, #complement of >=
+        '>' : le, #complement of <=
+    }
+
+    reverse_result = False
+
+    #Find the comparator symbol to split the string with and for logs
+    if '==' in args:
+        comparator = '=='
+    elif '!=' in args:
+        comparator = '!='
+        reverse_result = True #complement of == thus reverse by default
+    elif '>=' in args:
+        comparator = '>='
+    elif '<=' in args:
+        comparator = '<='
+    elif '=' in args:
+        comparator = '='
+    elif '<' in args:
+        comparator = '<'
+        reverse_result = True #complement of >=
+    elif '>' in args:
+        comparator = '>'
+        reverse_result = True #complement of <=
+    else:
+        raise  ValueError(f"Could not find a valid comparator in given string '{args}', it must be one of {comp_symbols.keys()}")
+
+    option_name, value = args.split(comparator)
+
+    initial_option_name = str(option_name).strip() #For exception messages
+    option_name = format_to_valid_identifier(option_name)
+
+    # Detect !reversing of result like yaml_option
+    if option_name.startswith('!'):
+        reverse_result = not reverse_result
+        option_name = option_name.lstrip('!')
+        initial_option_name = initial_option_name.lstrip('!')
+
+    value = value.strip()
+
+    option = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"YamlCompare could not find an option called '{initial_option_name}' to compare against, its either missing on misspelt")
+
+    if not value: #empty string ''
+        raise ValueError(f"Could not find a valid value to compare against in given string '{args}'. \nThere must be a value to compare against after the comparator (in this case '{comparator}').")
+
+    if not skipCache: #Cache made for optimization purposes
+        cacheindex = option_name + '_' + comp_symbols[comparator].__name__ + '_' + format_to_valid_identifier(value.lower())
+
+        if not hasattr(world, 'yaml_compare_rule_cache'):
+            world.yaml_compare_rule_cache = dict[str,bool]()
+
+    if skipCache or world.yaml_compare_rule_cache.get(cacheindex, None) is None:
+        try:
+            if issubclass(type(option), Choice):
+                value = convert_string_to_type(value, str|int)
+                if isinstance(value, str):
+                    value = option.from_text(value).value
+
+            elif issubclass(type(option), Range):
+                if type(option).__base__ == NamedRange:
+                    value = convert_string_to_type(value, str|int)
+                    if isinstance(value, str):
+                        value = option.from_text(value).value
+
+                else:
+                    value = convert_string_to_type(value, int)
+
+            elif issubclass(type(option), Toggle):
+                value = int(convert_string_to_type(value, bool))
+
+            else:
+                raise ValueError(f"YamlCompare does not currently support Option of type {type(option)} \nAsk about it in #Manual-dev and it might be added.")
+
+        except KeyError as ex:
+            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{initial_option_name}\" option supports.\
+                \nRaw error:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        except Exception as ex:
+            raise TypeError(f"YamlCompare failed to convert the requested value to what a {type(option).__base__.__name__} option supports.\
+                \nCaused By:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        if isinstance(value, str) and comp_symbols[comparator].__name__ != 'eq':
+            #At this point if its still a string don't try and compare with strings using > < >= <=
+            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == "eq"]} and you tried to do: "{option.value} {comparator} {value}"')
+
+        result = comp_symbols[comparator](option.value, value)
+
+        if not skipCache:
+            world.yaml_compare_rule_cache[cacheindex] = result
+
+    else: #if exists and not skipCache
+        result = world.yaml_compare_rule_cache[cacheindex]
+
+    return not result if reverse_result else result
+

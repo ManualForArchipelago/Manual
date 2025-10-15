@@ -32,12 +32,12 @@
                     "items": {
                         "type": "string"
                     },
-                    "minItems": 1,
                     "uniqueItems": true
                 },
                 "count": {
                     "description": "(Optional) Total number of this item that will be in the itempool for randomization.",
-                    "type": "integer",
+                    "type": ["string", "integer"],
+                    "pattern": "^[0-9]+$",
                     "default": 1
                 },
                 "value": {
@@ -99,6 +99,20 @@
                     "description": "(Optional) How many copies of this item (or 'true' if all copies) are supposed to be early and only in your locations. \nCan be used to mark some of the copies of an item to be early and local since 'local' is a toggle between none or all of them.",
                     "type": ["boolean", "integer"],
                     "default": false
+                },
+                "classification_count": {
+                    "description": "(Optional) (Advanced) A dictionary of how many copy of certain type this item has. \nWhere the properties keys must be the string name of a type ('progression') or an integer/binary representation of its type(s) ('6' or '0b0110') \nIt can also be a concatenated form of those using a + eg. 'progression + useful'",
+                    "type": "object",
+                    "patternProperties": {
+                        "^.+$": {
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "description": "A Count of how many copy of this item with this type will be in generation. Must be 'name':integer \neg. \"useful\": 10"
+                                }
+                            ]
+                        }
+                    }
                 },
                 "id": {
                     "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
