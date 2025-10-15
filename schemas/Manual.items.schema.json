@@ -57,7 +57,7 @@
                 "classification": {
                     "description": "(Optional) The classification of this item.",
                     "type": "string",
-                    "enum": ["filler", "trap", "useful", "progression", "progression_skip_balancing"],
+                    "enum": ["filler", "trap", "useful", "progression", "progression_skip_balancing", "trap,useful", "trap,progression", "trap,progression_skip_balancing"],
                     "default": "filler"
                 },
                 "progression": {
