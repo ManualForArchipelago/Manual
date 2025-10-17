@@ -1,4 +1,5 @@
 from base64 import b64encode
+from functools import reduce
 import logging
 import os
 import json
@@ -280,6 +281,9 @@ class ManualWorld(World):
             classification = class_override
         else:
             classification = ItemClassification.filler
+
+        if "classification" in item and item["classification"]:
+            classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification] for str_classification in item["classification"].split(",")})
 
             if "trap" in item and item["trap"]:
                 classification |= ItemClassification.trap
