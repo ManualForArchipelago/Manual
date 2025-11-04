@@ -21,7 +21,7 @@ from .Regions import create_regions
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import CollectionState, ItemClassification, Item
 from Options import PerGameCommonOptions
@@ -261,7 +261,7 @@ class ManualWorld(World):
                 for starting_item in items:
                     items_started.append(starting_item)
                     self.multiworld.push_precollected(starting_item)
-                    pool.remove(starting_item)
+                    remove_specific_item(pool, starting_item)
 
         self.start_inventory = {i.name: items_started.count(i) for i in items_started}
 
@@ -273,7 +273,18 @@ class ManualWorld(World):
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
 
-        real_pool = pool + items_started
+        # Filter Precollected items for those not in logic aka created by start_inventory(_from_pool)
+        precollected_items = list(self.multiworld.precollected_items[self.player])
+
+        # UT doesn't precollect the exceptions so this can be skipped
+        if not hasattr(self.multiworld, "generation_is_fake"):
+            precollected_exceptions = self.options.start_inventory.value + self.options.start_inventory_from_pool.value # type: ignore
+            for item, count in precollected_exceptions.items():
+                items_iter = iter([i for i in precollected_items if i.name == item])
+                for _ in range(count):
+                    precollected_items.remove(next(items_iter))
+
+        real_pool = pool + precollected_items
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
         self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
@@ -395,7 +406,7 @@ class ManualWorld(World):
             location.place_locked_item(item_to_place)
 
             # remove the item we're about to place from the pool so it isn't placed twice
-            self.multiworld.itempool.remove(item_to_place)
+            remove_specific_item(self.multiworld.itempool, item_to_place)
 
 
         after_generate_basic(self, self.multiworld, self.player)
@@ -506,7 +517,7 @@ class ManualWorld(World):
                 else:
                     logging.warning("Could not remove enough non-progression items from the pool.")
                     break
-                item_pool.remove(popped)
+                remove_specific_item(item_pool, popped)
 
         return item_pool
 
