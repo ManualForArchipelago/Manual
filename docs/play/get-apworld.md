@@ -4,7 +4,8 @@ This post assumes you are familiar with local generation of officially supported
 If you are not, please read through AP's guide on multiworld setup first: https://archipelago.gg/tutorial/Archipelago/setup/en
 
 1. Locate the worlds you want to play and their associated yamls, as well as the location of your Archipelago installation.
-2. Go into your Archipelago folder, then into the `lib` folder, then the `worlds` folder. You should see all your existing worlds; move the Manual .apworlds here as well.
-3. (Recommended): Download [Universal Tracker](https://discord.com/channels/1097532591650910289/1176939614985011200) and add it to lib/worlds
+2. Go into your Archipelago install's folder, then into the `custom_worlds` folder. Move the Manual .apworlds here.
+3. Still in your Archipelago install's folder, go into the `Players` folder. Move the Manual .yamls here.
+4. **Recommended:** Download Universal Tracker from [their channel's pins in the Archipelago Discord](https://discord.com/channels/731205301247803413/1367270230635839539) **(recommended)** or from [their GitHub releases](https://github.com/FarisTheAncient/Archipelago/releases?q=Tracker&expanded=true), and add it to your Archipelago install's "custom_worlds" folder.
 
 Next: [Connecting](connect-client.md)

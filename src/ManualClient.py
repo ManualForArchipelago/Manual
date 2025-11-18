@@ -1,11 +1,15 @@
 from __future__ import annotations
 import asyncio
-import json
 import os
 import re
+import json
 import sys
 import time
 import typing
+from typing import Any, Optional
+
+import requests
+from worlds.LauncherComponents import icon_paths
 import traceback
 import urllib
 from typing import Any, Optional
@@ -15,9 +19,6 @@ import ModuleUpdate
 ModuleUpdate.update()
 
 import Utils
-
-if __name__ == "__main__":
-    Utils.init_logging("ManualClient", exception_logger="Client")
 
 from NetUtils import ClientStatus
 from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProcessor, server_loop
@@ -30,6 +31,9 @@ try:
     tracker_loaded = True
 except ModuleNotFoundError:
     from CommonClient import CommonContext as SuperContext
+
+if typing.TYPE_CHECKING:
+    import kvui
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -60,7 +64,7 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
 
 class ManualContext(SuperContext):
     command_processor = ManualClientCommandProcessor
-    game = "not set"  # this is changed in server_auth below based on user input
+    game = None  # this is changed in server_auth below based on user input
     items_handling = 0b111  # full remote
     tags = {"AP"}
 
@@ -194,14 +198,15 @@ class ManualContext(SuperContext):
         if cmd in {"Connected", "DataPackage"}:
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
-                goal = args["slot_data"].get("goal")
-                if goal and goal < len(self.victory_names):
-                    self.goal_location = self.get_location_by_name(self.victory_names[goal])
-                if args['slot_data'].get('death_link'):
-                    self.ui.enable_death_link()
-                    self.set_deathlink = True
-                    self.last_death_link = 0
-                logger.info(f"Slot data: {args['slot_data']}")
+                if args.get("slot_data"):
+                    goal = args["slot_data"].get("goal")
+                    if goal and goal < len(self.victory_names):
+                        self.goal_location = self.get_location_by_name(self.victory_names[goal])
+                    if args['slot_data'].get('death_link'):
+                        self.ui.enable_death_link()
+                        self.set_deathlink = True
+                        self.last_death_link = 0
+                    logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
@@ -324,10 +329,6 @@ class ManualContext(SuperContext):
             background_color = ColorProperty()
 
         class ManualManager(ui):
-            logging_pairs = [
-                ("Client", "Archipelago"),
-                ("Manual", "Manual"),
-            ]
             base_title = "Archipelago Manual Client"
             listed_items = {"(No Category)": []}
             item_categories = ["(No Category)"]
@@ -360,11 +361,7 @@ class ManualContext(SuperContext):
 
                 self.grid.add_widget(self.manual_game_layout, 3)
 
-                for child in self.tabs.tab_list:
-                    if child.text == "Manual":
-                        panel = child # instead of creating a new TabbedPanelItem, use the one we use above to make the tabs show
-
-                panel.content = ManualTabLayout(orientation="vertical")
+                panel = self.add_client_tab("Manual", ManualTabLayout(orientation="vertical"))
 
                 self.controls_panel = ManualControlsLayout(orientation="horizontal", size_hint_y=None, height=dp(40))
                 self.tracker_and_locations_panel = TrackerAndLocationsLayout(cols = 2)
@@ -526,7 +523,7 @@ class ManualContext(SuperContext):
                     victory_categories.add("(No Category)")
 
                 for category in self.listed_locations:
-                    self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game)
+                    self.listed_locations[category].sort()
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -683,11 +680,13 @@ class ManualContext(SuperContext):
                                 # instead of reusing existing item listings, clear it all out and re-draw with the sorted list
                                 category_grid.clear_widgets()
                                 self.listed_items[category_name].clear()
+                                category_count = 0
+                                category_unique_name_count = 0
 
                                 # Label (for all item listings)
                                 sorted_items_received = sorted([
                                     i.item for i in self.ctx.items_received
-                                ], key=self.ctx.item_names.lookup_in_game)
+                                ])
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
@@ -880,11 +879,8 @@ async def game_watcher_manual(ctx: ManualContext):
             ctx.deathlink_out = False
             await ctx.send_death()
 
-        sending = []
         victory = ("__Victory__" in ctx.items_received)
-        ctx.locations_checked = sending
-        message = [{"cmd": 'LocationChecks', "locations": sending}]
-        await ctx.send_msgs(message)
+        ctx.locations_checked = []
         if not ctx.finished_game and victory:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
             ctx.finished_game = True
@@ -950,6 +946,12 @@ def launch() -> None:
     colorama.init()
     asyncio.run(main(args))
     colorama.deinit()
+
+    if not os.path.exists(icon_paths["manual"]):
+        # Download the icon for next time
+        icon_url = "https://manualforarchipelago.github.io/ManualBuilder/images/ap-manual-discord-logo-square-96x96.png"
+        with open(icon_paths["manual"], 'wb') as f:
+            f.write(requests.get(icon_url).content)
 
 if __name__ == '__main__':
     launch()
