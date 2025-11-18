@@ -1,3 +1,4 @@
+import sys
 from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
 from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
@@ -65,7 +66,8 @@ if len(victory_names) > 1:
     if manual_options.get('goal'):
         logging.warning("Existing Goal option found created via Hooks, it will be overwritten by Manual's generated Goal option.\nIf you want to support old yaml you will need to add alias in after_options_defined")
 
-    goal = {'option_' + v: i for i, v in enumerate(victory_names)}
+    goal: dict[str, Any] = {'option_' + v: i for i, v in enumerate(victory_names)}
+    goal['__module__'] = __name__
 
     manual_options['goal'] = type('goal', (Choice,), dict(goal))
     manual_options['goal'].__doc__ = "Choose your victory condition."
@@ -98,6 +100,7 @@ for option_name, option in option_table.get('core', {}).items():
 
                 if original_option.__base__ != option_type: #only recreate if needed
                     args = getOriginalOptionArguments(original_option)
+                    args['__module__'] = __name__
                     manual_options[option_name] = type(option_name, (option_type,), dict(args)) # Type checker doesn't like having a variable as a base for the type # type: ignore
                     logging.debug(f"Manual: Option.json converted option '{option_display_name}' into a {option_type}")
 
@@ -123,6 +126,7 @@ for option_name, option in option_table.get('core', {}).items():
                 args['range_end'] = original_option.range_end
                 args['special_range_names'] = {**args['special_range_names'], **{l.lower(): v for l, v in option['values'].items()}}
 
+                args['__module__'] = __name__
                 manual_options[option_name] = type(option_name, (NamedRange,), dict(args))
                 logging.debug(f"Manual: Option.json converted option '{option_display_name}' into a {NamedRange}")
 
@@ -185,6 +189,8 @@ for option_name, option in option_table.get('user', {}).items():
         elif option.get('visibility'):
             args['visibility'] = convertOptionVisibility(option['visibility'])
 
+        args['__module__'] = __name__
+
         manual_options[option_name] = type(option_name, (option_class,), args ) # Same as the first ignore above # type: ignore
         manual_options[option_name].__doc__ = convert_to_long_string(option.get('description', "an Option"))
 
@@ -201,7 +207,7 @@ for category in category_table:
             option_name = option_name[1:]
         option_name = format_to_valid_identifier(option_name)
         if option_name not in manual_options:
-            manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
+            manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True, "__module__": __name__})
             manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
 
 if starting_items:
@@ -212,7 +218,7 @@ if starting_items:
                     option_name = option_name[1:]
                 option_name = format_to_valid_identifier(option_name)
                 if option_name not in manual_options:
-                    manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True})
+                    manual_options[option_name] = type(option_name, (DefaultOnToggle,), {"default": True, "__module__": __name__})
                     manual_options[option_name].__doc__ = "Should items/locations linked to this option be enabled?"
 
 ######################
@@ -241,3 +247,9 @@ def make_options_group() -> list[OptionGroup]:
 
 manual_options_data = make_dataclass('ManualOptionsClass', manual_options.items(), bases=(PerGameCommonOptions,))
 after_options_defined(manual_options_data)
+
+# Make the options available in this module for import, needed for WebWorld compatibility
+this = sys.modules[__name__]
+for name, obj in manual_options.items():
+    setattr(this, name, obj)
+del this
