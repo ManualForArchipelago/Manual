@@ -88,3 +88,16 @@ The reason for this is that every location will pick a category randomly. If A, 
 
 This is only really a risk if you are working with small item pools, or item pools of comparable size to the locations they're placed in: If you have 60 pieces of equipment and want your 12 bosses to each give a random piece guaranteed, you're extremely unlikely to run into any issues doing it that way.
 
+## Prehinting items
+
+Sometimes, you may find yourself making locations where the player knows their contents in advance.  This is a thing APWorlds will commonly do for Shops.
+
+This can be done by marking a location as prehinted:
+```
+        {
+            "name": "Shop Item 1",
+            "category": ["Shop"],
+            "region": "Shop",
+            "prehint": true
+        },
+```
