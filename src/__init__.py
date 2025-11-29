@@ -1,4 +1,3 @@
-from base64 import b64encode
 import logging
 import os
 import json
@@ -10,7 +9,7 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, region_table, category_table
+from .Data import item_table, location_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
@@ -22,6 +21,7 @@ from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
 from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+from .container import APManualFile
 
 from BaseClasses import CollectionState, ItemClassification, Item
 from Options import PerGameCommonOptions
@@ -435,10 +435,12 @@ class ManualWorld(World):
         return slot_data
 
     def generate_output(self, output_directory: str):
-        data = self.client_data()
         filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
-        with open(os.path.join(output_directory, filename), 'wb') as f:
-            f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
+        zf_path = os.path.join(output_directory, filename)
+
+        apmanual = APManualFile(zf_path, player=self.player, player_name=self.player_name)
+        apmanual.write()
+
 
     def write_spoiler(self, spoiler_handle):
         before_write_spoiler(self, self.multiworld, spoiler_handle)
@@ -543,18 +545,6 @@ class ManualWorld(World):
         else:
             return self.item_counts.get(player, Counter())
 
-
-    def client_data(self):
-        return {
-            "game": self.game,
-            'player_name': self.multiworld.get_player_name(self.player),
-            'player_id': self.player,
-            'items': self.item_name_to_item,
-            'locations': self.location_name_to_location,
-            # todo: extract connections out of multiworld.get_regions() instead, in case hooks have modified the regions.
-            'regions': region_table,
-            'categories': category_table
-        }
 
 ###
 # Non-world client methods

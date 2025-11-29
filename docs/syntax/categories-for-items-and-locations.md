@@ -4,7 +4,7 @@ Categories are an argument like "victory" and "count", except it requires [Squar
 ```
 { 
     "name": "Coins",
-    "category": ["Currencies"]
+    "category": ["Currencies"],
     "count": 25, 
     "progression": true
 }

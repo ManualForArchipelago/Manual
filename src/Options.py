@@ -238,6 +238,10 @@ def make_options_group() -> list[OptionGroup]:
             base_item_loc_group = manual_option_groups.pop('Item & Location Options') #Put the custom options before the base AP options
             base_item_loc_group.extend(item_and_loc_options)
 
+        if 'Game Options' in manual_option_groups.keys():
+            # Archipelago automatically assign ungrouped options to this group unless its defined so by deleting it here we let AP recreate it later
+            manual_option_groups.pop('Game Options')
+
         for group, options in manual_option_groups.items():
             option_groups.append(OptionGroup(group, options))
 
