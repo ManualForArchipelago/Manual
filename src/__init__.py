@@ -1,9 +1,7 @@
 import logging
 import os
-import json
-from typing import Callable, Optional, Union, ClassVar, Counter, Any
+from typing import Callable, Optional, ClassVar, Counter, Any
 import webbrowser
-import settings
 
 import Utils
 from worlds.generic.Rules import forbid_items_for_player
@@ -38,25 +36,10 @@ from .hooks.World import \
     after_collect_item, after_remove_item
 from .hooks.Data import hook_interpret_slot_data
 
-class ManualSettings(settings.Group):
-    class ItemsSorting(str):
-        """Set your preferred Items sorting order
-        You can get the valid options by doing /items_sorting in the client
-        """
-    class LocationsSorting(str):
-        """Set your preferred Locations sorting order
-        You can get the valid options by doing /locations_sorting in the client
-        """
-
-    items_sorting_order: ItemsSorting = ItemsSorting("default")
-    locations_sorting_order: LocationsSorting = LocationsSorting("default")
-
 class ManualWorld(World):
     __doc__ = world_description
-    game: str = game_name
+    game: ClassVar[str] = game_name
     web = world_webworld
-    settings: ClassVar[ManualSettings]
-    settings_key: ClassVar[str] = "manual_settings"
 
     options_dataclass = manual_options_data
     data_version = 2
@@ -565,7 +548,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_09_29 # YYYYMMDD
+    version = 2025_11_30 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

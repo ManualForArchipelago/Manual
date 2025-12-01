@@ -127,22 +127,13 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
         )
 
         if usable:
-            if algorithm == "default":
-                algorithm = valid_algorithms.default.name
-
-            if target_items:
-                self.ctx.items_sorting = algorithm
-            else:
-                self.ctx.locations_sorting = algorithm
-                self.ctx.ui.build_tracker_and_locations_table() #The best place I could find to sort the locations
-
-            self.ctx.ui.request_update_tracker_and_locations_table()
-            self.ctx.save_options()
-            self.output(f"Set {'Items' if target_items else 'Locations'} sorting algorithm to {algorithm}")
+            config_key = "items_sorting_order" if target_items else "locations_sorting_order"
+            self.ctx.ui.config.set("manual", config_key, algorithm)
+            self.ctx.ui.on_config_change(self.ctx.ui.config, "manual", config_key, algorithm)
             return True
-        else:
-            self.output(response)
-            return False
+
+        self.output(response)
+        return False
 
 
 
@@ -381,20 +372,22 @@ class ManualContext(SuperContext):
             from kvui import GameManager
             ui = GameManager
 
+        from kivy.core.window import Window
+        from kivy.lang import Builder
         from kivy.metrics import dp
-        from kivy.uix.button import Button
+        from kivy.properties import ColorProperty
         from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.button import Button
         from kivy.uix.dropdown import DropDown
         from kivy.uix.gridlayout import GridLayout
         from kivy.uix.label import Label
         from kivy.uix.layout import Layout
         from kivy.uix.scrollview import ScrollView
+        from kivy.uix.settings import Settings
         from kivy.uix.spinner import Spinner, SpinnerOption
         from kivy.uix.textinput import TextInput
-        from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
-        from kivy.core.window import Window
-        from kivy.lang import Builder
-        from kivy.properties import ColorProperty
+        from kivy.uix.treeview import TreeView, TreeViewLabel, TreeViewNode
+        from kivy.config import ConfigParser
 
         class ManualTabLayout(BoxLayout):
             pass
@@ -485,6 +478,58 @@ class ManualContext(SuperContext):
                 self.build_tracker_and_locations_table()
 
                 return self.container
+
+            def get_application_config(self, defaultpath: str = "") -> str:
+                return Utils.user_path("manual_client.ini")
+
+
+            def build_config(self, config: ConfigParser):
+                super().build_config(config)
+                config.setdefaults("manual", {
+                    "items_sorting_order": SortingOrderItem.default.name,
+                    "locations_sorting_order": SortingOrderLoc.default.name
+                })
+
+            def build_settings(self, settings: Settings):
+                super().build_settings(settings)
+                json_data = json.dumps(
+                    [
+                        {
+                            "type": "title",
+                            "title": "Manual Client Settings"
+                        },
+
+                        {
+                            "type": "options",
+                            "title": "Items Sorting Order",
+                            "section": "manual",
+                            "key": "items_sorting_order",
+                            "options": list(SortingOrderItem._member_names_)
+                        },
+                        {
+                            "type": "options",
+                            "title": "Locations Sorting Order",
+                            "section": "manual",
+                            "key": "locations_sorting_order",
+                            "options": list(SortingOrderLoc._member_names_)
+                        },
+                    ]
+                )
+                settings.add_json_panel("Manual Client Settings", self.config, data=json_data)
+            def on_config_change(self, config, section, key, value):
+                super().on_config_change(config, section, key, value)
+                if section == "manual":
+                    if key == "items_sorting_order":
+                        if value in SortingOrderItem._member_names_:
+                            self.ctx.items_sorting = value
+                            self.ctx.save_options()
+                            self.request_update_tracker_and_locations_table()
+                    elif key == "locations_sorting_order":
+                        if value in SortingOrderLoc._member_names_:
+                            self.ctx.locations_sorting = value
+                            self.ctx.save_options()
+                            self.build_tracker_and_locations_table()
+                            self.request_update_tracker_and_locations_table()
 
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
