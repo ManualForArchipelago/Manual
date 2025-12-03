@@ -89,55 +89,14 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             return False
 
     @mark_raw
-    def _cmd_items_sorting(self, algorithm: Optional[str] = None) -> bool:
-        """Set or get the current items sorting algorithm."""
-        return self.sorting_commands_logic(algorithm, target_items=True)
-
-    @mark_raw
-    def _cmd_locations_sorting(self, algorithm: Optional[str] = None) -> bool:
-        """Set or get the current locations sorting algorithm."""
-        return self.sorting_commands_logic(algorithm, target_items=False)
-
-    def sorting_commands_logic(self, algorithm: Optional[str] = None, target_items: bool = False) -> bool:
-        valid_algorithms: type[SortingOrderLoc] | type[SortingOrderItem] = SortingOrderLoc
-        if target_items:
-            valid_algorithms = SortingOrderItem
-
-        valid_algorithms_names = [e.name for e in valid_algorithms] + ["default"]
-
-        if algorithm is None: #Get
-            cur_sort = self.ctx.items_sorting if target_items else self.ctx.locations_sorting #type: ignore
-            output = f"Currently {'Items' if target_items else 'Locations'} are sorted by: {cur_sort} \
-                \nValid sorting algorithms are:"
-            for algo in valid_algorithms_names:
-                if algo.startswith("inverted_") or algo == "default":
-                    continue
-                else:
-                    output += f"\n  - {algo}/inverted_{algo}: {valid_algorithms[algo].__doc__}"
-            output += f"\n  - default: Set sorting back to default aka '{valid_algorithms.default.name}'"
-
-            self.output(output)
-
+    def _cmd_open_settings(self) -> bool:
+        """Open the settings panel."""
+        if gui_enabled:
+            self.ctx.ui.open_settings()
             return True
-
-        # Set
-        algorithm, usable, response = Utils.get_intended_text(
-            algorithm,
-            valid_algorithms_names
-        )
-
-        if usable:
-            config_key = "items_sorting_order" if target_items else "locations_sorting_order"
-            self.ctx.ui.config.set("manual", config_key, algorithm)
-            self.ctx.ui.on_config_change(self.ctx.ui.config, "manual", config_key, algorithm)
-            return True
-
-        self.output(response)
-        return False
-
-
-
-
+        else:
+            self.output("GUI is not enabled.")
+            return False
 
 class ManualContext(SuperContext):
     command_processor = ManualClientCommandProcessor
