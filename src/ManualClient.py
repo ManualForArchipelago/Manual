@@ -463,14 +463,16 @@ class ManualContext(SuperContext):
                             "title": "Items Sorting Order",
                             "section": "manual",
                             "key": "items_sorting_order",
-                            "options": list(SortingOrderItem._member_names_)
+                            "options": list(SortingOrderItem._member_names_),
+                            "desc": '\n'.join([f'{i.name}/inverted_{i.name}: {i.__doc__}' for i in SortingOrderItem if i.__doc__ is not None])
                         },
                         {
                             "type": "options",
                             "title": "Locations Sorting Order",
                             "section": "manual",
                             "key": "locations_sorting_order",
-                            "options": list(SortingOrderLoc._member_names_)
+                            "options": list(SortingOrderLoc._member_names_),
+                            "desc": "\n".join([f'{i.name}/inverted_{i.name}: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
                         },
                     ]
                 )
