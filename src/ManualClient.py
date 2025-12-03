@@ -389,6 +389,9 @@ class ManualContext(SuperContext):
             def build(self) -> Layout:
                 super().build()
 
+                self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
+                self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
+
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
                 game_bar_label = Label(text="Manual Game ID", size=(dp(150), dp(30)), size_hint_y=None, size_hint_x=None)
