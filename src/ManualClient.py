@@ -117,7 +117,6 @@ class ManualContext(SuperContext):
     deathlink_out = False
 
     search_term = ""
-    settings = None
     items_sorting = SortingOrderItem.default.name
     locations_sorting = SortingOrderLoc.default.name
 
@@ -171,24 +170,6 @@ class ManualContext(SuperContext):
             self.victory_names = ["__Manual Game Complete__"]
             self.goal_location = self.get_location_by_name("__Manual Game Complete__")
 
-        self.settings = Utils.get_settings().get("manual_settings", None) #.get(self.game.lower(), None)
-        if self.settings is not None:
-            has_error = False
-            if hasattr(self.settings, "items_sorting_order"):
-                self.items_sorting = self.settings.items_sorting_order
-                if self.items_sorting not in SortingOrderItem._member_names_:
-                    has_error = True
-                    self.items_sorting = SortingOrderItem.default.name
-
-            if hasattr(self.settings, "locations_sorting_order"):
-                self.locations_sorting = self.settings.locations_sorting_order
-                if self.locations_sorting not in SortingOrderLoc._member_names_:
-                    has_error = True
-                    self.locations_sorting = SortingOrderLoc.default.name
-
-            if has_error:
-                self.save_options()
-
         await self.get_username()
         await self.send_connect()
 
@@ -238,12 +219,6 @@ class ManualContext(SuperContext):
 
     def clear_search(self):
         self.search_term = ""
-
-    def save_options(self):
-        if self.settings is not None:
-            self.settings.items_sorting_order = self.items_sorting
-            self.settings.locations_sorting_order = self.locations_sorting
-            Utils.get_settings().save()
 
     @property
     def endpoints(self):
@@ -483,12 +458,10 @@ class ManualContext(SuperContext):
                     if key == "items_sorting_order":
                         if value in SortingOrderItem._member_names_:
                             self.ctx.items_sorting = value
-                            self.ctx.save_options()
                             self.request_update_tracker_and_locations_table()
                     elif key == "locations_sorting_order":
                         if value in SortingOrderLoc._member_names_:
                             self.ctx.locations_sorting = value
-                            self.ctx.save_options()
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
 
