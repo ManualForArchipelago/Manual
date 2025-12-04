@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Callable, Optional, Counter, Any
+from typing import Callable, Optional, ClassVar, Counter, Any
 import webbrowser
 
 import Utils
@@ -38,7 +38,7 @@ from .hooks.Data import hook_interpret_slot_data
 
 class ManualWorld(World):
     __doc__ = world_description
-    game: str = game_name
+    game: ClassVar[str] = game_name
     web = world_webworld
 
     options_dataclass = manual_options_data
@@ -550,7 +550,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_08_12 # YYYYMMDD
+    version = 2025_11_30 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
