@@ -218,8 +218,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             if total <= item_count:
                 requires_list = requires_list.replace(item_base, "0")
 
-        requires_list = re.sub(r'\s?\bAND\b\s?', '&', requires_list, 0, re.IGNORECASE)
-        requires_list = re.sub(r'\s?\bOR\b\s?', '|', requires_list, 0, re.IGNORECASE)
+        requires_list = re.sub(r'\s?\bAND\b\s?', '&', requires_list, count=0, flags=re.IGNORECASE)
+        requires_list = re.sub(r'\s?\bOR\b\s?', '|', requires_list, count=0, flags=re.IGNORECASE)
 
         requires_string = infix_to_postfix("".join(requires_list), area)
         return (evaluate_postfix(requires_string, area))
