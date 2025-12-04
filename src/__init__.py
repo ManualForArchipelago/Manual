@@ -23,7 +23,7 @@ from .container import APManualFile
 
 from BaseClasses import CollectionState, ItemClassification, Item
 from Options import PerGameCommonOptions
-from worlds.AutoWorld import World
+from worlds.AutoWorld import World, AutoWorldRegister
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
@@ -548,9 +548,21 @@ class VersionedComponent(Component):
     def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None, icon: Optional[str] = None):
         super().__init__(display_name=display_name, script_name=script_name, func=func, component_type=Type.CLIENT, file_identifier=file_identifier, icon=icon)
         self.version = version
+        self.supports_uri = True
+
+    @property
+    def game_name(self) -> list[str]:
+        return [name for name in AutoWorldRegister.world_types.keys() if name.startswith("Manual_")]
+
+    @game_name.setter
+    def game_name(self, value: str):
+        # This needs to exist because the base class sets it to [] in the __init__ method
+        if value:
+            raise ValueError("Manual Client does not support setting game_name manually.")
+
 
 def add_client_to_launcher() -> None:
-    version = 2025_08_12 # YYYYMMDD
+    version = 2025_11_19 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
@@ -560,6 +572,11 @@ def add_client_to_launcher() -> None:
     for c in components:
         if c.display_name == "Manual Client":
             found = True
+            if not getattr(c, "supports_uri", False):
+                components.remove(c)
+                found = False
+                break
+
             if getattr(c, "version", 0) < version:  # We have a newer version of the Manual Client than the one the last apworld added
                 c.version = version
                 c.func = launch_client
