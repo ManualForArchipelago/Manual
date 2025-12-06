@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncio
+from functools import cache
 import os
 import re
 import sys
@@ -63,6 +64,17 @@ SortingOrderItem.custom.__doc__ = "Sort alphabetically using the custom sorting 
 SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in items.json."
 SortingOrderItem.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
+
+@cache
+def strip_articles(title: str) -> str:
+    lower = title.lower()
+    if lower.startswith("the "):
+        title = title[4:]
+    elif lower.startswith("a "):
+        title = title[2:]
+    elif lower.startswith("an "):
+        title = title[3:]
+    return title
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -629,11 +641,14 @@ class ManualContext(SuperContext):
 
                 elif abs(loc_sorting) == SortingOrderLoc.natural:
                     # Modified from https://stackoverflow.com/a/11150413
-                    convert = lambda text: int(text) if text.isdigit() else text.lower()
-                    alphanum_key = lambda i: [
-                                convert(c) for c in re.split('([0-9]+)', \
-                                self.ctx.get_location_by_id(i).get("sort-key", self.ctx.get_location_by_id(i).get("name", "")))
-                            ]
+                    def convert(text):
+                        return int(text) if text.isdigit() else text.lower()
+
+                    def alphanum_key(i):
+                        name = strip_articles(self.ctx.get_location_by_id(i).get("name", ""))
+
+                        return [convert(c) for c in re.split('([0-9]+)', self.ctx.get_location_by_id(i).get("sort-key", name))]
+
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
 
@@ -810,13 +825,15 @@ class ManualContext(SuperContext):
                                     reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.natural:
-                                    convert = lambda text: int(text) if text.isdigit() else text.lower()
-                                    alphanum_key = lambda i: [
-                                                convert(c) for c in re.split('([0-9]+)', \
-                                                self.ctx.get_item_by_id(i).get("sort-key", self.ctx.get_item_by_id(i).get("name", "")))
-                                            ]
-                                    sorted_items_received = sorted(sorted_items_received,
-                                    key=alphanum_key, reverse=item_sorting < 0)
+                                    def convert(text):
+                                        return int(text) if text.isdigit() else text.lower()
+                                    def alphanum_key(i):
+                                        name = self.ctx.get_item_by_id(i).get("name", "")
+                                        name = strip_articles(name)
+
+                                        return [convert(c) for c in re.split('([0-9]+)',self.ctx.get_item_by_id(i).get("sort-key", name))
+                                                                                ]
+                                    sorted_items_received = sorted(sorted_items_received, key=alphanum_key, reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.received:
                                     if item_sorting < 0:
