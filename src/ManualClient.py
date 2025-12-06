@@ -157,7 +157,7 @@ class ManualContext(SuperContext):
 
         world = AutoWorldRegister.world_types.get(self.game)
         if not self.location_table and not self.item_table and world is None:
-            raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
+            raise Exception(f"Cannot load {self.game}, please add the apworld to custom_worlds/")
 
         data_package = network_data_package["games"].get(self.game, {})
 
