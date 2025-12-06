@@ -72,6 +72,8 @@ def strip_articles(title: str) -> str:
         title = title[4:]
     elif lower.startswith("a "):
         title = title[2:]
+    elif lower.startswith("an "):
+        title = title[3:]
     return title
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
