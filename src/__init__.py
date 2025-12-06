@@ -1,3 +1,4 @@
+from functools import reduce
 import logging
 import os
 from typing import Callable, Optional, ClassVar, Counter, Any
@@ -281,6 +282,9 @@ class ManualWorld(World):
             classification = class_override
         else:
             classification = ItemClassification.filler
+
+        if "classification" in item and item["classification"]:
+            classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification.strip()] for str_classification in item["classification"].split(",")})
 
             if "trap" in item and item["trap"]:
                 classification |= ItemClassification.trap
