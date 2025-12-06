@@ -1,5 +1,6 @@
 
 from BaseClasses import Tutorial
+from enum import Enum
 from worlds.AutoWorld import World, WebWorld
 from .Data import meta_table
 from .Helpers import convert_to_long_string
