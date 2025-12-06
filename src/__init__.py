@@ -284,7 +284,7 @@ class ManualWorld(World):
             classification = ItemClassification.filler
 
         if "classification" in item and item["classification"]:
-            classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification] for str_classification in item["classification"].split(",")})
+            classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification.strip()] for str_classification in item["classification"].split(",")})
 
             if "trap" in item and item["trap"]:
                 classification |= ItemClassification.trap
