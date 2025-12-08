@@ -392,7 +392,7 @@ class ManualContext(SuperContext):
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
-                self.ctx.block_unreachable_location_press = True if self.config.get('manual', 'block_unreachable_location_press') == "Yes" else False
+                self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -426,7 +426,9 @@ class ManualContext(SuperContext):
                 super().build_config(config)
                 config.setdefaults("manual", {
                     "items_sorting_order": SortingOrderItem.default.name,
-                    "locations_sorting_order": SortingOrderLoc.default.name,
+                    "locations_sorting_order": SortingOrderLoc.default.name
+                })
+                config.setdefaults("universal-tracker", {
                     "block_unreachable_location_press": "Yes"
                 })
 
@@ -464,7 +466,7 @@ class ManualContext(SuperContext):
                         {
                             "type": "bool",
                             "title": "Stop accidental button press",
-                            "section": "manual",
+                            "section": "universal-tracker",
                             "key": "block_unreachable_location_press",
                             "desc": "Should only green location be able to be pressed",
                             "values": ["No", "Yes"]
@@ -484,7 +486,8 @@ class ManualContext(SuperContext):
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
-                    elif key == "block_unreachable_location_press":
+                elif section == "universal-tracker":
+                    if key == "block_unreachable_location_press":
                         self.ctx.block_unreachable_location_press = True if value == "Yes" else False
 
             def clear_lists(self):
