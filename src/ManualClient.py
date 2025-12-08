@@ -392,7 +392,7 @@ class ManualContext(SuperContext):
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
-                self.ctx.block_unreachable_location_press = True if self.config.get('manual', 'unreachable_location_press_block') == "Yes" else False# bool(int(self.config.get('manual', 'unreachable_location_press_block')))
+                self.ctx.block_unreachable_location_press = True if self.config.get('manual', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -427,16 +427,15 @@ class ManualContext(SuperContext):
                 config.setdefaults("manual", {
                     "items_sorting_order": SortingOrderItem.default.name,
                     "locations_sorting_order": SortingOrderLoc.default.name,
-                    "unreachable_location_press_block": "Yes"
+                    "block_unreachable_location_press": "Yes"
                 })
 
             def build_settings(self, settings: Settings):
                 super().build_settings(settings)
-                json_data = json.dumps(
-                    [
+                json_data = [
                         {
                             "type": "title",
-                            "title": "Manual Client Settings"
+                            "title": "Manual Client"
                         },
 
                         {
@@ -454,18 +453,25 @@ class ManualContext(SuperContext):
                             "key": "locations_sorting_order",
                             "options": list(SortingOrderLoc._member_names_),
                             "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
+                        }
+                    ]
+                if tracker_loaded:
+                    json_data.extend([
+                        {
+                            "type": "title",
+                            "title": "Universal Tracker Compatibility"
                         },
                         {
                             "type": "bool",
-                            "title": "UT stop accidental button press",
+                            "title": "Stop accidental button press",
                             "section": "manual",
-                            "key": "unreachable_location_press_block",
-                            "desc": "If UT is installed and working, should only green location be able to be pressed",
+                            "key": "block_unreachable_location_press",
+                            "desc": "Should only green location be able to be pressed",
                             "values": ["No", "Yes"]
                         }
-                    ]
-                )
-                settings.add_json_panel("Manual Client Settings", self.config, data=json_data)
+                    ])
+
+                settings.add_json_panel("Manual Client Settings", self.config, data=json.dumps(json_data))
             def on_config_change(self, config, section, key, value):
                 super().on_config_change(config, section, key, value)
                 if section == "manual":
@@ -478,8 +484,8 @@ class ManualContext(SuperContext):
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
-                    elif key == "unreachable_location_press_block":
-                        self.ctx.block_unreachable_location_press = True if value == "Yes" else False # bool(int(value))
+                    elif key == "block_unreachable_location_press":
+                        self.ctx.block_unreachable_location_press = True if value == "Yes" else False
 
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
