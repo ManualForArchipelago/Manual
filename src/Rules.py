@@ -480,8 +480,6 @@ def RangeRequire(world: "ManualWorld", state: CollectionState, player: int, opti
 
 def RangeRequirePercent(world: "ManualWorld", state: CollectionState, player: int, option_name: str, item: str) -> bool:
     """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Range option 'option_name'."""
-    # """Returns true if the current count of item is >= to the percentage of total copy of said item,
-    # precentage decided by the value set in the player's yaml"""
     option = getattr(world.options, option_name, None)
     if option is None:
         raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
