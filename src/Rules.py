@@ -475,6 +475,35 @@ def canReachLocation(state: CollectionState, player: int, location: str):
         return True
     return False
 
+def RangeRequire(world: "ManualWorld", state: CollectionState, player: int, option_name: str, item: str) -> bool:
+    """Set the required count of 'item' to be the value set in the player's yaml of the Range option 'option_name'."""
+    option = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
+    if not isinstance(option, Range):
+        raise ValueError(f"option {option_name} is not of type 'Range' and thus incompatible with RangeRequirePercent")
+
+    if state.count(item, player) >= option.value:
+        return True
+    return False
+
+def RangeRequirePercent(world: "ManualWorld", state: CollectionState, player: int, option_name: str, item: str) -> bool:
+    """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Range option 'option_name'."""
+    # """Returns true if the current count of item is >= to the percentage of total copy of said item,
+    # precentage decided by the value set in the player's yaml"""
+    option = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
+    if not isinstance(option, Range):
+        raise ValueError(f"option {option_name} is not of type 'Range' and thus incompatible with RangeRequirePercent")
+    count = world.item_counts_progression[player].get(item, 0)
+
+    percent = clamp(float(option.value) / 100, 0, 1)
+    item_count = math.ceil(count * percent)
+    if state.count(item, player) >= item_count:
+        return True
+    return False
+
 def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
     return is_option_enabled(multiworld, player, param)
