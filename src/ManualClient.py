@@ -455,7 +455,7 @@ class ManualContext(SuperContext):
                             "key": "locations_sorting_order",
                             "options": list(SortingOrderLoc._member_names_),
                             "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
-                        }
+                        },
                     ]
                 if tracker_loaded:
                     json_data.extend([
@@ -470,7 +470,7 @@ class ManualContext(SuperContext):
                             "key": "block_unreachable_location_press",
                             "desc": "Should only green location be able to be pressed",
                             "values": ["No", "Yes"]
-                        }
+                        },
                     ])
 
                 settings.add_json_panel("Manual Client Settings", self.config, data=json.dumps(json_data))
