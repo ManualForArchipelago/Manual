@@ -466,32 +466,35 @@ def canReachLocation(state: CollectionState, player: int, location: str) -> bool
         return True
     return False
 
-def RangeRequire(world: "ManualWorld", state: CollectionState, player: int, option_name: str, item: str) -> bool:
+def RangeRequire(world: "ManualWorld", option_name: str, item: str) -> str:
     """Set the required count of 'item' to be the value set in the player's yaml of the Range option 'option_name'."""
     option = getattr(world.options, option_name, None)
     if option is None:
         raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
     if not isinstance(option, Range):
         raise ValueError(f"option {option_name} is not of type 'Range' and thus incompatible with RangeRequirePercent")
+    is_category = False
 
-    if state.count(item, player) >= option.value:
-        return True
-    return False
+    if '@' in item[:2]:
+        is_category = True
 
-def RangeRequirePercent(world: "ManualWorld", state: CollectionState, player: int, option_name: str, item: str) -> bool:
+    item = item.lstrip('|@').rstrip('|')
+    return f"|{'@' if is_category else ''}{item}:{option.value}|"
+
+def RangeRequirePercent(world: "ManualWorld", option_name: str, item: str) -> str:
     """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Range option 'option_name'."""
     option = getattr(world.options, option_name, None)
     if option is None:
         raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
     if not isinstance(option, Range):
         raise ValueError(f"option {option_name} is not of type 'Range' and thus incompatible with RangeRequirePercent")
-    count = world.item_counts_progression[player].get(item, 0)
+    is_category = False
 
-    percent = clamp(float(option.value) / 100, 0, 1)
-    item_count = math.ceil(count * percent)
-    if state.count(item, player) >= item_count:
-        return True
-    return False
+    if '@' in item[:2]:
+        is_category = True
+
+    item = item.lstrip('|@').rstrip('|')
+    return f"|{'@' if is_category else ''}{item}:{option.value}%|"
 
 def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
