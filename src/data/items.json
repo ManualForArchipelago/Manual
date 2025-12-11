@@ -2,6 +2,11 @@
     "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.items.schema.json",
     "data": [
         {
+            "name": "Example_Range_items",
+            "count": 5,
+            "progression": true
+        },
+        {
             "name": "Jill",
             "category": [
                 "Characters",

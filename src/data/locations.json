@@ -2,6 +2,10 @@
 	"$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.locations.schema.json",
     "data": [
         {
+            "name": "Example_Range decide the amount of Example_Range_items required for this option",
+            "requires": "{OptionCount(Example_Range, |Example_Range_items|)}"
+        },
+        {
             "name": "Beat the Game - Ryu",
             "category": ["Starter Team", "Left Side"],
             "region": "ExampleRegion"
