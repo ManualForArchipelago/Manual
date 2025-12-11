@@ -10,7 +10,7 @@ from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
-from Options import Choice, Toggle, Range, NamedRange
+from Options import Choice, Toggle, Range, NamedRange, NumericOption
 
 import re
 import math
@@ -466,13 +466,16 @@ def canReachLocation(state: CollectionState, player: int, location: str) -> bool
         return True
     return False
 
-def RangeRequire(world: "ManualWorld", option_name: str, item: str) -> str:
+def OptionCount(world: "ManualWorld", option_name: str, item: str) -> str:
     """Set the required count of 'item' to be the value set in the player's yaml of the Range option 'option_name'."""
-    option = getattr(world.options, option_name, None)
+    option: NumericOption | None = getattr(world.options, option_name, None)
     if option is None:
-        raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
-    if not isinstance(option, Range):
-        raise ValueError(f"option {option_name} is not of type 'Range' and thus incompatible with RangeRequirePercent")
+        raise ValueError(f"OptionCount could not find an option named: {option_name}")
+
+    # Verification that the value is compatible
+    if not isinstance(option.value, int):
+        raise ValueError(f"OptionCount cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
+
     is_category = False
 
     if '@' in item[:2]:
@@ -481,13 +484,16 @@ def RangeRequire(world: "ManualWorld", option_name: str, item: str) -> str:
     item = item.lstrip('|@').rstrip('|')
     return f"|{'@' if is_category else ''}{item}:{option.value}|"
 
-def RangeRequirePercent(world: "ManualWorld", option_name: str, item: str) -> str:
+def OptionCountPercent(world: "ManualWorld", option_name: str, item: str) -> str:
     """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Range option 'option_name'."""
-    option = getattr(world.options, option_name, None)
+    option: NumericOption | None = getattr(world.options, option_name, None)
     if option is None:
-        raise ValueError(f"RangeRequirePercent could not find option named: {option_name}")
-    if not isinstance(option, Range):
-        raise ValueError(f"option {option_name} is not of type 'Range' and thus incompatible with RangeRequirePercent")
+        raise ValueError(f"OptionCountPercent could not find an option named: {option_name}")
+
+    # Verification that the value is compatible
+    if not isinstance(option.value, int):
+        raise ValueError(f"OptionCountPercent cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
+
     is_category = False
 
     if '@' in item[:2]:
