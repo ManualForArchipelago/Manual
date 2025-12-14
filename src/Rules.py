@@ -474,7 +474,7 @@ def OptionCountPercent(world: "ManualWorld", option_name: str, item: str) -> str
     """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Numerical option 'option_name'."""
     return _optionCountLogic(world, option_name, item, is_percent=True)
 
-def _optionCountLogic(world: "ManualWorld", option_name: str, item: str, is_percent: bool = False):
+def _optionCountLogic(world: "ManualWorld", option_name: str, item: str, is_percent: bool = False) -> str:
     option: NumericOption | None = getattr(world.options, option_name, None)
     if option is None:
         raise ValueError(f"Could not find an option named: {option_name}")
