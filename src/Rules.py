@@ -467,32 +467,21 @@ def canReachLocation(state: CollectionState, player: int, location: str) -> bool
     return False
 
 def OptionCount(world: "ManualWorld", option_name: str, item: str) -> str:
-    """Set the required count of 'item' to be the value set in the player's yaml of the Range option 'option_name'."""
-    option: NumericOption | None = getattr(world.options, option_name, None)
-    if option is None:
-        raise ValueError(f"OptionCount could not find an option named: {option_name}")
-
-    # Verification that the value is compatible
-    if not isinstance(option.value, int):
-        raise ValueError(f"OptionCount cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
-
-    is_category = False
-
-    if '@' in item[:2]:
-        is_category = True
-
-    item = item.lstrip('|@').rstrip('|')
-    return f"|{'@' if is_category else ''}{item}:{option.value}|"
+    """Set the required count of 'item' to be the value set in the player's yaml of the Numerical option 'option_name'."""
+    return _optionCountLogic(world, option_name, item)
 
 def OptionCountPercent(world: "ManualWorld", option_name: str, item: str) -> str:
-    """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Range option 'option_name'."""
+    """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Numerical option 'option_name'."""
+    return _optionCountLogic(world, option_name, item, is_percent=True)
+
+def _optionCountLogic(world: "ManualWorld", option_name: str, item: str, is_percent: bool = False):
     option: NumericOption | None = getattr(world.options, option_name, None)
     if option is None:
-        raise ValueError(f"OptionCountPercent could not find an option named: {option_name}")
+        raise ValueError(f"Could not find an option named: {option_name}")
 
     # Verification that the value is compatible
     if not isinstance(option.value, int):
-        raise ValueError(f"OptionCountPercent cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
+        raise ValueError(f"Cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
 
     is_category = False
 
@@ -500,7 +489,7 @@ def OptionCountPercent(world: "ManualWorld", option_name: str, item: str) -> str
         is_category = True
 
     item = item.lstrip('|@').rstrip('|')
-    return f"|{'@' if is_category else ''}{item}:{option.value}%|"
+    return f"|{'@' if is_category else ''}{item}:{option.value}{'%' if is_percent else ''}|"
 
 def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
