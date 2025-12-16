@@ -1,8 +1,6 @@
-from base64 import b64encode
 import logging
 import os
-import json
-from typing import Callable, Optional
+from typing import Callable, Optional, ClassVar, Counter, Any
 import webbrowser
 
 import Utils
@@ -20,25 +18,26 @@ from .Regions import create_regions, create_events
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option
+from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+from .container import APManualFile
 
-from BaseClasses import ItemClassification, Item
+from BaseClasses import CollectionState, ItemClassification, Item
 from Options import PerGameCommonOptions
 from worlds.AutoWorld import World
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
-    before_create_items_starting, before_create_items_filler, after_create_items, \
+    before_create_items_all, before_create_items_starting, before_create_items_filler, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
-    before_extend_hint_information, after_extend_hint_information
-from .hooks.Data import hook_interpret_slot_data
+    before_extend_hint_information, after_extend_hint_information, \
+    after_collect_item, after_remove_item, before_generate_early, hook_interpret_slot_data
 
 class ManualWorld(World):
     __doc__ = world_description
-    game: str = game_name
+    game: ClassVar[str] = game_name
     web = world_webworld
 
     options_dataclass = manual_options_data
@@ -58,7 +57,8 @@ class ManualWorld(World):
 
     filler_item_name = filler_item_name
 
-    item_counts = {}
+    item_counts: dict[int, Counter[str]] = {}
+    item_counts_progression: dict[int, Counter[str]] = {}
     start_inventory = {}
 
     location_id_to_name = location_id_to_name
@@ -75,22 +75,26 @@ class ManualWorld(World):
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
-    def interpret_slot_data(self, slot_data: dict[str, any]):
+    def interpret_slot_data(self, slot_data: dict[str, Any]) -> dict[str, Any]:
         #this is called by tools like UT
+        if not slot_data:
+            return {}
 
-        regen = False
-        for key, value in slot_data.items():
-            if key in self.options_dataclass.type_hints:
-                getattr(self.options, key).value = value
-                regen = True
-
-        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        regen = hook_interpret_slot_data(self, self.player, slot_data) or slot_data
         return regen
 
     @classmethod
     def stage_assert_generate(cls, multiworld) -> None:
-        runGenerationDataValidation()
+        runGenerationDataValidation(cls)
 
+    def generate_early(self) -> None:
+        before_generate_early(self, self.multiworld, self.player)
+        if hasattr(self.multiworld, "re_gen_passthrough"):
+            slot_data = self.multiworld.re_gen_passthrough.get(self.game, {})
+            if slot_data:
+                for key, value in slot_data.items():
+                    if hasattr(self.options, key):
+                        getattr(self.options, key).value = value
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
@@ -112,14 +116,13 @@ class ManualWorld(World):
 
     def create_items(self):
         # Generate item pool
-        pool = []
+        pool: list[Item] = []
         traps = []
         configured_item_names = self.item_id_to_name.copy()
 
+        items_config: dict[str, int|dict[ItemClassification | str | int, int]] = {}
         for name in configured_item_names.values():
-            # victory gets placed via place_locked_item at the victory location in create_regions
             if name == "__Victory__": continue
-            # the game.json filler item name is added to the item lookup, so skip it until it's potentially needed later
             if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
 
             item = self.item_name_to_item[name]
@@ -128,22 +131,69 @@ class ManualWorld(World):
             if item.get("trap"):
                 traps.append(name)
 
-            if "category" in item:
-                if not is_item_enabled(self.multiworld, self.player, item):
-                    item_count = 0
+            if not is_item_enabled(self.multiworld, self.player, item):
+                items_config[name] = 0
 
-            if item_count == 0: continue
+            else:
+                if item.get("classification_count"):
+                    items_config[name] = item["classification_count"]
 
-            for _ in range(item_count):
-                new_item = self.create_item(name)
-                pool.append(new_item)
+                else:
+                    items_config[name] = item_count
 
+        items_config = before_create_items_all(items_config, self, self.multiworld, self.player)
+
+        for name, configs in items_config.items():
+            total_created = 0
+            if type(configs) is int:
+                total_created = configs
+                for _ in range(configs):
+                    new_item = self.create_item(name)
+                    pool.append(new_item)
+            elif type(configs) is dict:
+                for cat, count in configs.items():
+                    total_created += count
+                    if isinstance(cat, ItemClassification):
+                        true_class = cat
+                    else:
+                        try:
+                            if isinstance(cat, int):
+                                true_class = ItemClassification(cat)
+                            else:
+                                def stringCheck(string: str) ->  ItemClassification:
+                                    if string.isdigit():
+                                        true_class = ItemClassification(int(string))
+                                    elif string.startswith('0b'):
+                                        true_class = ItemClassification(int(string, base=0))
+                                    else:
+                                        true_class = ItemClassification[string]
+                                    return true_class
+
+                                if "+" in cat:
+                                    true_class = ItemClassification.filler
+                                    for substring in cat.split("+"):
+                                        true_class |= stringCheck(substring.strip())
+
+                                else:
+                                    true_class = stringCheck(cat)
+                        except Exception as ex:
+                            raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+
+                    for _ in range(count):
+                        new_item = self.create_item(name, true_class)
+                        pool.append(new_item)
+            else:
+                raise Exception(f"Item override for {name} improperly defined")
+
+            if total_created == 0: continue
+
+            item = self.item_name_to_item[name]
             if item.get("early"): # Some or all early
                 if isinstance(item["early"],int) or (isinstance(item["early"],str) and item["early"].isnumeric()):
                     self.multiworld.early_items[self.player][name] = int(item["early"])
 
                 elif isinstance(item["early"],bool): #No need to deal with true vs false since false wont get here
-                    self.multiworld.early_items[self.player][name] = item_count
+                    self.multiworld.early_items[self.player][name] = total_created
 
                 else:
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
@@ -157,7 +207,7 @@ class ManualWorld(World):
                     self.multiworld.local_early_items[self.player][name] = int(item["local_early"])
 
                 elif isinstance(item["local_early"],bool):
-                    self.multiworld.local_early_items[self.player][name] = item_count
+                    self.multiworld.local_early_items[self.player][name] = total_created
 
                 else:
                     raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
@@ -165,7 +215,7 @@ class ManualWorld(World):
 
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 
-        items_started = []
+        items_started: list[Item] = []
 
         if starting_items:
             for starting_item_block in starting_items:
@@ -200,7 +250,7 @@ class ManualWorld(World):
                 for starting_item in items:
                     items_started.append(starting_item)
                     self.multiworld.push_precollected(starting_item)
-                    pool.remove(starting_item)
+                    remove_specific_item(pool, starting_item)
 
         self.start_inventory = {i.name: items_started.count(i) for i in items_started}
 
@@ -212,22 +262,40 @@ class ManualWorld(World):
         # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
 
-    def create_item(self, name: str) -> Item:
+        # Filter Precollected items for those not in logic aka created by start_inventory(_from_pool)
+        precollected_items = list(self.multiworld.precollected_items[self.player])
+
+        # UT doesn't precollect the exceptions so this can be skipped
+        if not hasattr(self.multiworld, "generation_is_fake"):
+            precollected_exceptions = self.options.start_inventory.value + self.options.start_inventory_from_pool.value # type: ignore
+            for item, count in precollected_exceptions.items():
+                items_iter = iter([i for i in precollected_items if i.name == item])
+                for _ in range(count):
+                    precollected_items.remove(next(items_iter))
+
+        real_pool = pool + precollected_items
+        self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
+        self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
+
+    def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)
 
         item = self.item_name_to_item[name]
-        classification = ItemClassification.filler
+        if class_override is not None:
+            classification = class_override
+        else:
+            classification = ItemClassification.filler
 
-        if "trap" in item and item["trap"]:
-            classification |= ItemClassification.trap
+            if "trap" in item and item["trap"]:
+                classification |= ItemClassification.trap
 
-        if "useful" in item and item["useful"]:
-            classification |= ItemClassification.useful
+            if "useful" in item and item["useful"]:
+                classification |= ItemClassification.useful
 
-        if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
-            classification |= ItemClassification.progression_skip_balancing
-        elif "progression" in item and item["progression"]:
-            classification |= ItemClassification.progression
+            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+                classification |= ItemClassification.progression_skip_balancing
+            elif "progression" in item and item["progression"]:
+                classification |= ItemClassification.progression
 
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
@@ -235,6 +303,25 @@ class ManualWorld(World):
         item_object = after_create_item(item_object, self, self.multiworld, self.player)
 
         return item_object
+
+    # Item Value need a tweaked collect and remove:
+    def collect(self, state: CollectionState, item: Item) -> bool:
+        change = super().collect(state, item)
+        manual_item = self.item_name_to_item.get(item.name, {})
+        if change and manual_item.get("value"):
+            for key, value in manual_item["value"].items():
+                state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] += int(value)
+        after_collect_item(self, state, change, item)
+        return change
+
+    def remove(self, state: CollectionState, item: Item) -> bool:
+        change = super().remove(state, item)
+        manual_item = self.item_name_to_item.get(item.name, {})
+        if change and manual_item.get("value"):
+            for key, value in manual_item["value"].items():
+                state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] -= int(value)
+        after_remove_item(self, state, change, item)
+        return change
 
     def set_rules(self):
         before_set_rules(self, self.multiworld, self.player)
@@ -308,7 +395,7 @@ class ManualWorld(World):
             location.place_locked_item(item_to_place)
 
             # remove the item we're about to place from the pool so it isn't placed twice
-            self.multiworld.itempool.remove(item_to_place)
+            remove_specific_item(self.multiworld.itempool, item_to_place)
 
 
         after_generate_basic(self, self.multiworld, self.player)
@@ -346,10 +433,12 @@ class ManualWorld(World):
         return slot_data
 
     def generate_output(self, output_directory: str):
-        data = self.client_data()
         filename = f"{self.multiworld.get_out_file_name_base(self.player)}.apmanual"
-        with open(os.path.join(output_directory, filename), 'wb') as f:
-            f.write(b64encode(bytes(json.dumps(data), 'utf-8')))
+        zf_path = os.path.join(output_directory, filename)
+
+        apmanual = APManualFile(zf_path, player=self.player, player_name=self.player_name)
+        apmanual.write()
+
 
     def write_spoiler(self, spoiler_handle):
         before_write_spoiler(self, self.multiworld, spoiler_handle)
@@ -377,7 +466,7 @@ class ManualWorld(World):
     One thing to remember is the more you loop the longer generation will take. So probably leave it as is unless you really needs it."""
 
     def add_filler_items(self, item_pool, traps):
-        Utils.deprecate("Use adjust_filler_items instead.")
+        Utils.deprecate("You're calling the deprecated add_filler_items() function. Use the adjust_filler_items() function instead.")
         return self.adjust_filler_items(item_pool, traps)
 
     def adjust_filler_items(self, item_pool, traps):
@@ -428,31 +517,32 @@ class ManualWorld(World):
                 else:
                     logging.warning("Could not remove enough non-progression items from the pool.")
                     break
-                item_pool.remove(popped)
+                remove_specific_item(item_pool, popped)
 
         return item_pool
 
-    def get_item_counts(self, player: Optional[int] = None, reset: bool = False) -> dict[str, int]:
-        """returns the player real item count"""
+    def get_item_counts(self, player: Optional[int] = None, pool: list[Item] | None | bool = None, only_progression: bool = False) -> Counter[str]:
+        """Returns the player real item counts.\n
+        If you provide an item pool using the pool argument, then it's item counts will be returned.
+        Otherwise, this function will only work after create_items, before then an empty Counter is returned.\n
+        The only_progression argument let you filter the items to only get the count of progression items."""
         if player is None:
             player = self.player
 
-        if not self.item_counts.get(player, {}) or reset:
-            real_pool = get_items_for_player(self.multiworld, player, True)
-            self.item_counts[player] = {i.name: real_pool.count(i) for i in real_pool}
-        return self.item_counts.get(player)
+        if isinstance(pool, bool):
+            Utils.deprecate("the 'reset' argument of get_item_counts has been deprecated to increase the stability of item counts.\
+                \nIt should be removed. If you require a new up to date count you can get it using the 'pool' argument.\
+                \nThat result wont be saved to world unless you override the values of world.item_counts_progression or world.item_counts depending on if you counted only the items with progresion or not.")
+            pool = None
 
-    def client_data(self):
-        return {
-            "game": self.game,
-            'player_name': self.multiworld.get_player_name(self.player),
-            'player_id': self.player,
-            'items': self.item_name_to_item,
-            'locations': self.location_name_to_location,
-            # todo: extract connections out of multiworld.get_regions() instead, in case hooks have modified the regions.
-            'regions': region_table,
-            'categories': category_table
-        }
+        if pool is not None:
+            return Counter([i.name for i in pool if not only_progression or i.advancement])
+
+        if only_progression:
+            return self.item_counts_progression.get(player, Counter())
+        else:
+            return self.item_counts.get(player, Counter())
+
 
 ###
 # Non-world client methods
@@ -473,7 +563,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_03_28 # YYYYMMDD
+    version = 2025_12_16 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
