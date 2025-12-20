@@ -73,10 +73,10 @@ Now that we know how to require multiple of an item, we can revise our Boss 2 ex
 > Boss 2 simply requires **FIVE hearts**, a way to strike it (Sword, Spear or Club) and a way to dodge it (Double Jump, Dash or Slide): we're looking at different sets, and picking one item from which. It's many ORs inside a big set of ANDs.
 >
 > ```json
-> {
+>{
 >    "name": "Boss 2",
 >    "requires": "|Heart:5| and (|Sword| or |Spear| or |Club|) and (|Double Jump| or |Dash| or |Slide|)"
-> }
+>}
 > ```
 
 In addition to specific item counts, you can also specify a broad relative amount like "all of this item" or "half of this item", or even percentages of that item versus the total in the pool. We'll demonstrate those briefly below as well.
