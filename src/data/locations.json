@@ -3,7 +3,7 @@
     "data": [
         {
             "name": "Example_Range decide the amount of Example_Range_items required for this option",
-            "requires": "{OptionCount(Example_Range, |Example_Range_items|)}"
+            "requires": "{OptionCount(Example_Range, Item Name for OptionCount Example)}"
         },
         {
             "name": "Beat the Game - Ryu",
