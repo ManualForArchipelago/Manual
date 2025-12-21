@@ -258,7 +258,7 @@ class ManualContext(SuperContext):
                         self.ui.enable_death_link()
                         self.set_deathlink = True
                         self.last_death_link = 0
-                self.visible_events = args['slot_data'].get('visible_events', {})
+                    self.visible_events = args['slot_data'].get('visible_events', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -281,7 +281,7 @@ class ManualContext(SuperContext):
         self.tracker_reachable_events = events
         if events:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
-    
+
     def is_event_visible(self, event_name, category_name):
         if event_name not in self.visible_events:
             return False
