@@ -131,6 +131,7 @@ class ManualContext(SuperContext):
     search_term = ""
     items_sorting = SortingOrderItem.default.name
     locations_sorting = SortingOrderLoc.default.name
+    block_unreachable_location_press = True
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -403,6 +404,7 @@ class ManualContext(SuperContext):
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
+                self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -438,14 +440,16 @@ class ManualContext(SuperContext):
                     "items_sorting_order": SortingOrderItem.default.name,
                     "locations_sorting_order": SortingOrderLoc.default.name
                 })
+                config.setdefaults("universal-tracker", {
+                    "block_unreachable_location_press": "Yes"
+                })
 
             def build_settings(self, settings: Settings):
                 super().build_settings(settings)
-                json_data = json.dumps(
-                    [
+                json_data = [
                         {
                             "type": "title",
-                            "title": "Manual Client Settings"
+                            "title": "Manual Client"
                         },
 
                         {
@@ -465,8 +469,23 @@ class ManualContext(SuperContext):
                             "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
                         },
                     ]
-                )
-                settings.add_json_panel("Manual Client Settings", self.config, data=json_data)
+                if tracker_loaded:
+                    json_data.extend([
+                        {
+                            "type": "title",
+                            "title": "Universal Tracker Compatibility"
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Stop accidental button press",
+                            "section": "universal-tracker",
+                            "key": "block_unreachable_location_press",
+                            "desc": "Should only green location be able to be pressed",
+                            "values": ["No", "Yes"]
+                        },
+                    ])
+
+                settings.add_json_panel("Manual Client Settings", self.config, data=json.dumps(json_data))
             def on_config_change(self, config, section, key, value):
                 super().on_config_change(config, section, key, value)
                 if section == "manual":
@@ -479,6 +498,9 @@ class ManualContext(SuperContext):
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
+                elif section == "universal-tracker":
+                    if key == "block_unreachable_location_press":
+                        self.ctx.block_unreachable_location_press = True if value == "Yes" else False
 
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
@@ -997,9 +1019,12 @@ class ManualContext(SuperContext):
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
 
                 if location_id:
-                    self.ctx.locations_checked.append(location_id)
-                    self.ctx.syncing = True
-                    button.parent.remove_widget(button)
+                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.text not in self.ctx.tracker_reachable_locations:
+                        logger.debug(f"button for location '{button.text}' was pressed while unreachable")
+                    else:
+                        self.ctx.locations_checked.append(location_id)
+                        self.ctx.syncing = True
+                        button.parent.remove_widget(button)
 
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
