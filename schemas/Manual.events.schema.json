@@ -4,7 +4,7 @@
     "description": "Schema for Manual's events.json",
     "type": ["array", "object"],
     "items": {
-        "$ref": "#/definitions/Events"
+        "$ref": "#/definitions/Event"
     },
     "properties": {
         "$schema": {
@@ -14,12 +14,12 @@
         "data": {
             "description": "List of events for this apworld",
             "type": "array",
-            "items": {"$ref": "#/definitions/Events"}
+            "items": {"$ref": "#/definitions/Event"}
         },
         "_comment": {"$ref": "#/definitions/comment"}
     },
     "definitions": {
-        "Location": {
+        "Event": {
             "type": "object",
             "properties": {
                 "name": {
