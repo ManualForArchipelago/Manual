@@ -61,7 +61,7 @@
             ],
             "range_start": 0,
             "default": 1,
-            "range_end": 10,
+            "range_end": 5,
             "values": {"example": 2},
             "group": "Example Options"
         },
