@@ -7,14 +7,14 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, category_table
+from .Data import item_table, location_table, event_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
-from .Regions import create_regions
+from .Regions import create_regions, create_events
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
@@ -47,6 +47,7 @@ class ManualWorld(World):
     # These properties are set from the imports of the same name above.
     item_table = item_table
     location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+    event_table = event_table
     category_table = category_table
 
     item_id_to_name = item_id_to_name
@@ -65,6 +66,8 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
+
+    event_name_to_event = event_name_to_event
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
@@ -97,6 +100,8 @@ class ManualWorld(World):
         before_create_regions(self, self.multiworld, self.player)
 
         create_regions(self, self.multiworld, self.player)
+
+        create_events(self, self.multiworld, self.player)
 
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
@@ -413,6 +418,15 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
+        
+        slot_data["visible_events"] = {}
+        for _, event in self.event_name_to_event.items():
+            event_name = event["name"]
+            if event["visible"] and event_name not in slot_data["visible_events"]:
+                slot_data["visible_events"][event_name] = event.get("category", [])
+            elif event_name in slot_data["visible_events"]:
+                temp_list = event.get("category", []) + slot_data["visible_events"][event_name]
+                slot_data["visible_events"][event_name] = list(set(temp_list))
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
@@ -549,7 +563,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_12_09 # YYYYMMDD
+    version = 2025_12_25 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
