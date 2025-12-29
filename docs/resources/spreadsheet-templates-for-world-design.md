@@ -9,7 +9,7 @@ https://docs.google.com/spreadsheets/d/1HUk_V5N0RgYASlpxDWNwZlfOb6NQ2DlG5s-tDHSx
 It's view-only. To get your own editable copy, go to File -> Make a copy. You can then edit the copy to your liking to fit your world's specific documentation needs.
 
 ## Advanced Planning Spreadsheet Template
-A Manual community member, Lynn, has created an awesome Google Sheets template to help with organizing all aspects of your apworld! This sheet goes into a lot more detail compared to the basic template above, and does a great job of showing what notes in a sheet would look like as syntax in a Manual world. 
+A Manual community member, Pixie, has created an awesome Google Sheets template to help with organizing all aspects of your apworld! This sheet goes into a lot more detail compared to the basic template above, and does a great job of showing what notes in a sheet would look like as syntax in a Manual world. 
 
 An example of the sheet can be found here: https://docs.google.com/spreadsheets/d/1HuvLL_4XbwTEna7b-DFeWsA0lDduQkmb__jtVMv10Hc/edit?usp=sharing
 
