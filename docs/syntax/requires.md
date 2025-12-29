@@ -139,7 +139,7 @@ Takes an entire requires string, and applies the above check to each item inside
 
 For example, `requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"` will be transformed into `"|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|"`
 
-### `OptionCount(option_name, item_name)` and `OptionCountPercent(option_name, item_name)`
+### `OptionCount(item_name, option_name)` and `OptionCountPercent(item_name, option_name)`
 
 Returns an Item string where the required count is decided by the option's value in the yaml.  
 OptionCount returns just the count while OptionCountPercent will add the `%` so it requires a percentage of total copies of 'item_name'  

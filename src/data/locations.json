@@ -2,8 +2,8 @@
 	"$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.locations.schema.json",
     "data": [
         {
-            "name": "Example_Range decide the amount of Example_Range_items required for this option",
-            "requires": "{OptionCount(Example_Range, Item Name for OptionCount Example)}"
+            "name": "Example_Range decide the amount of items required for this location",
+            "requires": "{OptionCount(Item Name for OptionCount Example, Example_Range)}"
         },
         {
             "name": "Beat the Game - Ryu",

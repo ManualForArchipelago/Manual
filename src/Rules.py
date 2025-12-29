@@ -468,11 +468,11 @@ def canReachLocation(state: CollectionState, player: int, location: str) -> bool
 
 def OptionCount(world: "ManualWorld", item: str, option_name: str) -> str:
     """Set the required count of 'item' to be the value set in the player's yaml of the Numerical option 'option_name'."""
-    return _optionCountLogic(world, option_name, item)
+    return _optionCountLogic(world, item, option_name )
 
 def OptionCountPercent(world: "ManualWorld", item: str, option_name: str) -> str:
     """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Numerical option 'option_name'."""
-    return _optionCountLogic(world, option_name, item, is_percent=True)
+    return _optionCountLogic(world, item, option_name, is_percent=True)
 
 def _optionCountLogic(world: "ManualWorld", item: str, option_name: str, is_percent: bool = False) -> str:
     option: NumericOption | None = getattr(world.options, option_name, None)
