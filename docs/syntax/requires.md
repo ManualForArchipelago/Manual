@@ -150,7 +150,7 @@ Any Options that return a numerical value is supported EX: Range, Choice (but no
 For example,
 
 ```json
-"requires": "{OptionCount(Example_Range, Potato)} and {OptionCountPercent(Example_range_to_100, @Ducks)}"
+"requires": "{OptionCount(Potato, Example_Range)} and {OptionCountPercent(@Ducks, Example_range_to_100)}"
 ```
 
 Will becomes the following in generation if Example_Range's value is 3 and Example_range_to_100's value is 55:
