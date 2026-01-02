@@ -5,7 +5,7 @@ You can specify items that the player should start with using the `starting_item
 ```
 {
     "game": "20230611",
-    "player": "Unstable",
+    "creator": "Unstable",
 
     "filler_item_name": "Free Character of Your Choice",
 
