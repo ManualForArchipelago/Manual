@@ -418,7 +418,7 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
-        
+
         slot_data["visible_events"] = {}
         for _, event in self.event_name_to_event.items():
             event_name = event["name"]
@@ -563,7 +563,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_12_25 # YYYYMMDD
+    version = 2026_01_02 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

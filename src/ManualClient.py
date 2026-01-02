@@ -404,6 +404,8 @@ class ManualContext(SuperContext):
             update_requested_time: Optional[float] = None
             update_requested_highlights: bool = False
 
+            mouse_pos: tuple
+
             ctx: ManualContext
 
             def __init__(self, ctx):
@@ -580,7 +582,45 @@ class ManualContext(SuperContext):
                 self.ctx.clear_search()
                 self.request_update_tracker_and_locations_table() # if we want search to be "snappier", we can just make this update
 
+            def window_mouseover(self, window, pos):
+                self.set_mouse_pos(window, pos)
+
+            def set_mouse_pos(self, window, pos):
+                self.mouse_pos = pos
+
+            def are_top_controls_at_mouse_pos(self) -> bool:
+                # check server connect section and controls
+                if self.connect_layout.collide_point(*self.mouse_pos):
+                    return True
+
+                # check game id section and dropdown
+                if self.manual_game_layout.collide_point(*self.mouse_pos):
+                    return True
+
+                # check tabbed navigation
+                if self.tabs.collide_point(*self.mouse_pos):
+                    return True
+
+                return False
+
+            def get_top_obj_at_mouse_pos(self) -> Any:
+                for child in self.connect_layout.children:
+                    if child.collide_point(*self.mouse_pos):
+                        return child
+
+                for child in self.manual_game_layout.children:
+                    if child.collide_point(*self.mouse_pos):
+                        return child
+
+                for child in self.tabs.children:
+                    if child.collide_point(*self.mouse_pos):
+                        return child
+
+                return None
+
             def build_tracker_and_locations_table(self):
+                Window.bind(mouse_pos=self.window_mouseover)
+
                 self.controls_panel.clear_widgets()
                 self.tracker_and_locations_panel.clear_widgets()
 
@@ -1051,6 +1091,17 @@ class ManualContext(SuperContext):
                 if button.text not in self.ctx.location_names_to_id:
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
 
+                # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
+                if self.are_top_controls_at_mouse_pos():
+                    # if there's an obj in the top controls/tab at the current mouse position, click it instead
+                    if hovered_obj := self.get_top_obj_at_mouse_pos():
+                        if hasattr(hovered_obj, 'trigger_action'): # buttons, tabs, etc.
+                            hovered_obj.trigger_action(duration=0)
+                        elif hasattr(hovered_obj, 'focus'): # text inputs
+                            hovered_obj.focus = True
+
+                    return
+
                 if location_id:
                     if tracker_loaded and self.ctx.block_unreachable_location_press and button.text not in self.ctx.tracker_reachable_locations:
                         logger.debug(f"button for location '{button.text}' was pressed while unreachable")
@@ -1063,6 +1114,17 @@ class ManualContext(SuperContext):
                     # self.ctx.send_msgs(message)
 
             def victory_button_callback(self, button):
+                # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
+                if self.are_top_controls_at_mouse_pos():
+                    # if there's an obj in the top controls/tab at the current mouse position, click it instead
+                    if hovered_obj := self.get_top_obj_at_mouse_pos():
+                        if hasattr(hovered_obj, 'trigger_action'): # buttons, tabs, etc.
+                            hovered_obj.trigger_action(duration=0)
+                        elif hasattr(hovered_obj, 'focus'): # text inputs
+                            hovered_obj.focus = True
+
+                    return
+
                 self.ctx.items_received.append("__Victory__")
                 self.ctx.syncing = True
 
