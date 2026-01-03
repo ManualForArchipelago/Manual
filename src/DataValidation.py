@@ -12,13 +12,15 @@ class ValidationError(Exception):
 class DataValidation():
     game_table: dict[str, Any] = {}
     item_table: list[dict[str, Any]] = []
+    item_table_with_events = []
     location_table: list[dict[str, Any]] = []
     region_table: dict[str, Any] = {}
+    location_table_with_events = []
 
 
     @staticmethod
     def checkItemNamesInLocationRequires():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table_with_events:
             if "requires" not in location:
                 continue
 
@@ -53,7 +55,7 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table_with_events if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
@@ -74,7 +76,7 @@ class DataValidation():
                             if len(or_item_parts) > 1:
                                 or_item_name = or_item_parts[0]
 
-                            item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == or_item_name]) > 0
+                            item_exists = len([item["name"] for item in DataValidation.item_table_with_events if item["name"] == or_item_name]) > 0
 
                             if not item_exists:
                                 raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (or_item_name, location["name"]))
@@ -85,7 +87,7 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table_with_events if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location["name"]))
@@ -129,7 +131,7 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table_with_events if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
@@ -150,7 +152,7 @@ class DataValidation():
                             if len(or_item_parts) > 1:
                                 or_item_name = or_item_parts[0]
 
-                            item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == or_item_name]) > 0
+                            item_exists = len([item["name"] for item in DataValidation.item_table_with_events if item["name"] == or_item_name]) > 0
 
                             if not item_exists:
                                 raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (or_item_name, region_name))
@@ -161,14 +163,14 @@ class DataValidation():
                         if len(item_parts) > 1:
                             item_name = item_parts[0]
 
-                        item_exists = len([item["name"] for item in DataValidation.item_table if item["name"] == item_name]) > 0
+                        item_exists = len([item["name"] for item in DataValidation.item_table_with_events if item["name"] == item_name]) > 0
 
                         if not item_exists:
                             raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
 
     @staticmethod
     def checkRegionNamesInLocations():
-        for location in DataValidation.location_table:
+        for location in DataValidation.location_table_with_events:
             if "region" not in location or location["region"] in ["Menu", "Manual"]:
                 continue
 
@@ -251,7 +253,7 @@ class DataValidation():
                 if has_progression:
                     continue
             # check location requires for the presence of item name
-            for location in DataValidation.location_table:
+            for location in DataValidation.location_table_with_events:
                 if "requires" not in location:
                     continue
 

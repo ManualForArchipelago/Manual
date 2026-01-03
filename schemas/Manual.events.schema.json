@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/ManualForArchipelago/Manual/main/schemas/Manual.events.schema.json",
+    "description": "Schema for Manual's events.json",
+    "type": ["array", "object"],
+    "items": {
+        "$ref": "#/definitions/Event"
+    },
+    "properties": {
+        "$schema": {
+            "type":"string",
+            "description": "The schema to verify this document against."
+        },
+        "data": {
+            "description": "List of events for this apworld",
+            "type": "array",
+            "items": {"$ref": "#/definitions/Event"}
+        },
+        "_comment": {"$ref": "#/definitions/comment"}
+    },
+    "definitions": {
+        "Event": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The name of the event. Event names do not need to be unique.",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "(Optional) A list of categories to be applied to this event.",
+                    "type": ["string", "array"],
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                },
+                "copy_location": {
+                    "description": "(Optional) Copies all information from the named location.",
+                    "type": "string"
+                },
+                "requires": {
+                    "description": "(Optional) A boolean logic string that describes the required items, counts, etc. needed to trigger this event.",
+                    "type": [ "string", "array" ],
+                    "items": {
+                        "$ref": "#/definitions/Require"
+                    },
+                    "uniqueItems": true
+                },
+                "region": {
+                    "description": "(Optional) The name of the region this event is part of.",
+                    "type": "string"
+                },
+                "visible": {
+                    "description": "(Optional) Should this event be visible in the client?",
+                    "type": "boolean",
+                    "default": false
+                },
+                "_comment": {"$ref": "#/definitions/comment"}
+            }
+        },
+        "Require": {
+            "type": ["string", "array", "object"],
+            "items": {"type": ["string","array","object"]},
+            "properties": {
+                "or": {
+                    "description": "alternate to previous property",
+                    "type": "array",
+                    "items": {
+                        "type":"string",
+                        "description": "Alternate item"
+                    }
+                }
+            }
+        },
+        "comment": {
+            "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",
+            "type": ["string", "array"],
+            "items": {
+                "description": "A line of comment",
+                "type":"string"
+            }
+        }
+    }
+}

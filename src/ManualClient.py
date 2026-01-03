@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncio
+from functools import cache
 import os
 import re
 import sys
@@ -64,6 +65,17 @@ SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of i
 SortingOrderItem.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
 
+@cache
+def strip_articles(title: str) -> str:
+    lower = title.lower()
+    if lower.startswith("the "):
+        title = title[4:]
+    elif lower.startswith("a "):
+        title = title[2:]
+    elif lower.startswith("an "):
+        title = title[3:]
+    return title
+
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
@@ -116,9 +128,12 @@ class ManualContext(SuperContext):
     last_death_link = 0
     deathlink_out = False
 
+    visible_events = {}
+
     search_term = ""
     items_sorting = SortingOrderItem.default.name
     locations_sorting = SortingOrderLoc.default.name
+    block_unreachable_location_press = True
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -157,7 +172,7 @@ class ManualContext(SuperContext):
 
         world = AutoWorldRegister.world_types.get(self.game)
         if not self.location_table and not self.item_table and world is None:
-            raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
+            raise Exception(f"Cannot load {self.game}, please add the apworld to custom_worlds/")
 
         data_package = network_data_package["games"].get(self.game, {})
 
@@ -244,6 +259,7 @@ class ManualContext(SuperContext):
                         self.ui.enable_death_link()
                         self.set_deathlink = True
                         self.last_death_link = 0
+                    self.visible_events = args['slot_data'].get('visible_events', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -266,6 +282,13 @@ class ManualContext(SuperContext):
         self.tracker_reachable_events = events
         if events:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
+
+    def is_event_visible(self, event_name, category_name):
+        if event_name not in self.visible_events:
+            return False
+        if category_name == "(No Category)" and len(self.visible_events[event_name]) == 0:
+            return True
+        return category_name in self.visible_events[event_name]
 
     def handle_connection_loss(self, msg: str) -> None:
         """Helper for logging and displaying a loss of connection. Must be called from an except block."""
@@ -391,6 +414,7 @@ class ManualContext(SuperContext):
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
+                self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -426,14 +450,16 @@ class ManualContext(SuperContext):
                     "items_sorting_order": SortingOrderItem.default.name,
                     "locations_sorting_order": SortingOrderLoc.default.name
                 })
+                config.setdefaults("universal-tracker", {
+                    "block_unreachable_location_press": "Yes"
+                })
 
             def build_settings(self, settings: Settings):
                 super().build_settings(settings)
-                json_data = json.dumps(
-                    [
+                json_data = [
                         {
                             "type": "title",
-                            "title": "Manual Client Settings"
+                            "title": "Manual Client"
                         },
 
                         {
@@ -453,8 +479,23 @@ class ManualContext(SuperContext):
                             "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
                         },
                     ]
-                )
-                settings.add_json_panel("Manual Client Settings", self.config, data=json_data)
+                if tracker_loaded:
+                    json_data.extend([
+                        {
+                            "type": "title",
+                            "title": "Universal Tracker Compatibility"
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Stop accidental button press",
+                            "section": "universal-tracker",
+                            "key": "block_unreachable_location_press",
+                            "desc": "Should only green location be able to be pressed",
+                            "values": ["No", "Yes"]
+                        },
+                    ])
+
+                settings.add_json_panel("Manual Client Settings", self.config, data=json.dumps(json_data))
             def on_config_change(self, config, section, key, value):
                 super().on_config_change(config, section, key, value)
                 if section == "manual":
@@ -467,6 +508,9 @@ class ManualContext(SuperContext):
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
+                elif section == "universal-tracker":
+                    if key == "block_unreachable_location_press":
+                        self.ctx.block_unreachable_location_press = True if value == "Yes" else False
 
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
@@ -575,6 +619,16 @@ class ManualContext(SuperContext):
                             if category not in self.listed_items:
                                 self.listed_items[category] = []
 
+                for event, categories in self.ctx.visible_events.items():
+                    for category in categories:
+                        category_settings = self.ctx.category_table.get(category) or getattr(AutoWorldRegister.world_types[self.ctx.game], "category_table", {}).get(category, {})
+                        if "hidden" in category_settings and category_settings["hidden"]:
+                            continue
+                        if category not in self.item_categories:
+                            self.item_categories.append(category)
+                        if category not in self.listed_items:
+                            self.listed_items[category] = []
+
 
                 # Items are not received on connect, so don't bother attempting to work with received items here
 
@@ -629,11 +683,14 @@ class ManualContext(SuperContext):
 
                 elif abs(loc_sorting) == SortingOrderLoc.natural:
                     # Modified from https://stackoverflow.com/a/11150413
-                    convert = lambda text: int(text) if text.isdigit() else text.lower()
-                    alphanum_key = lambda i: [
-                                convert(c) for c in re.split('([0-9]+)', \
-                                self.ctx.get_location_by_id(i).get("sort-key", self.ctx.get_location_by_id(i).get("name", "")))
-                            ]
+                    def convert(text):
+                        return int(text) if text.isdigit() else text.lower()
+
+                    def alphanum_key(i):
+                        name = strip_articles(self.ctx.get_location_by_id(i).get("name", ""))
+
+                        return [convert(c) for c in re.split('([0-9]+)', self.ctx.get_location_by_id(i).get("sort-key", name))]
+
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
 
@@ -765,8 +822,11 @@ class ManualContext(SuperContext):
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
                                         old_item_text = item.text
                                         item_name = re.sub(r"\s\(\d+\)$", "", item.text)
-                                        item_id = self.ctx.item_names_to_id[item_name]
-                                        item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
+                                        item_id = self.ctx.item_names_to_id.get(item_name, False)
+                                        if item_id:
+                                            item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
+                                        else:
+                                            item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == item_name))
 
                                         # if the player is searching for text and the item name doesn't contain it, skip it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in item_name.lower():
@@ -810,13 +870,15 @@ class ManualContext(SuperContext):
                                     reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.natural:
-                                    convert = lambda text: int(text) if text.isdigit() else text.lower()
-                                    alphanum_key = lambda i: [
-                                                convert(c) for c in re.split('([0-9]+)', \
-                                                self.ctx.get_item_by_id(i).get("sort-key", self.ctx.get_item_by_id(i).get("name", "")))
-                                            ]
-                                    sorted_items_received = sorted(sorted_items_received,
-                                    key=alphanum_key, reverse=item_sorting < 0)
+                                    def convert(text):
+                                        return int(text) if text.isdigit() else text.lower()
+                                    def alphanum_key(i):
+                                        name = self.ctx.get_item_by_id(i).get("name", "")
+                                        name = strip_articles(name)
+
+                                        return [convert(c) for c in re.split('([0-9]+)',self.ctx.get_item_by_id(i).get("sort-key", name))
+                                                                                ]
+                                    sorted_items_received = sorted(sorted_items_received, key=alphanum_key, reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.received:
                                     if item_sorting < 0:
@@ -844,6 +906,16 @@ class ManualContext(SuperContext):
                                         category_grid.add_widget(item_text)
                                         self.listed_items[category_name].append(network_item)
 
+                                        category_count += item_count
+                                        category_unique_name_count += 1
+
+                                for event in sorted(self.ctx.tracker_reachable_events):
+                                    if self.ctx.is_event_visible(event, category_name) and event not in self.listed_items[category_name]:
+                                        item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == event))
+                                        item_text = Label(text="%s (%s)" % (event, item_count),
+                                                    size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
+                                        category_grid.add_widget(item_text)
+                                        self.listed_items[category_name].append(event)
                                         category_count += item_count
                                         category_unique_name_count += 1
 
@@ -980,9 +1052,12 @@ class ManualContext(SuperContext):
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
 
                 if location_id:
-                    self.ctx.locations_checked.append(location_id)
-                    self.ctx.syncing = True
-                    button.parent.remove_widget(button)
+                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.text not in self.ctx.tracker_reachable_locations:
+                        logger.debug(f"button for location '{button.text}' was pressed while unreachable")
+                    else:
+                        self.ctx.locations_checked.append(location_id)
+                        self.ctx.syncing = True
+                        button.parent.remove_widget(button)
 
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
