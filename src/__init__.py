@@ -266,11 +266,27 @@ class ManualWorld(World):
         name = before_create_item(name, self, self.multiworld, self.player)
 
         item = self.item_name_to_item[name]
+        classification: ItemClassification = ItemClassification.filler
         if class_override is not None:
             classification = class_override
-        else:
-            classification = ItemClassification.filler
 
+        elif item.get("classification_count"):
+            # This should only be run if create_item is called outside of create_items
+            not_prog_classes: list[ItemClassification] = []
+            progression_classes: list[ItemClassification] = []
+            for cat, count in item["classification_count"].items():
+                if count:
+                    true_class = convert_string_to_itemclassification(cat)
+                    if ItemClassification.progression in true_class:
+                        progression_classes.append(true_class)
+                    else:
+                        not_prog_classes.append(true_class)
+            if progression_classes:
+                classification |= self.random.choice(progression_classes)
+            elif not_prog_classes:
+                classification |= not_prog_classes[0]
+
+        else:
             if item.get("trap"):
                 classification |= ItemClassification.trap
 
@@ -281,22 +297,6 @@ class ManualWorld(World):
                 classification |= ItemClassification.progression_skip_balancing
             elif item.get("progression"):
                 classification |= ItemClassification.progression
-
-            elif item.get("classification_count"):
-                # This should only be run if create_item is called outside of create_items
-                not_prog_classes: list[ItemClassification] = []
-                progression_classes: list[ItemClassification] = []
-                for cat, count in item["classification_count"].items():
-                    if count:
-                        true_class = convert_string_to_itemclassification(cat)
-                        if ItemClassification.progression in true_class:
-                            progression_classes.append(true_class)
-                        else:
-                            not_prog_classes.append(true_class)
-                if progression_classes:
-                    classification |= self.random.choice(progression_classes)
-                elif not_prog_classes:
-                    classification |= not_prog_classes[0]
 
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
