@@ -18,7 +18,7 @@ from .Regions import create_regions, create_events
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, convert_string_to_itemclassification, ProgItemsCat
 from .container import APManualFile
 
 from BaseClasses import CollectionState, ItemClassification, Item
@@ -160,22 +160,7 @@ class ManualWorld(World):
                             if isinstance(cat, int):
                                 true_class = ItemClassification(cat)
                             else:
-                                def stringCheck(string: str) ->  ItemClassification:
-                                    if string.isdigit():
-                                        true_class = ItemClassification(int(string))
-                                    elif string.startswith('0b'):
-                                        true_class = ItemClassification(int(string, base=0))
-                                    else:
-                                        true_class = ItemClassification[string]
-                                    return true_class
-
-                                if "+" in cat:
-                                    true_class = ItemClassification.filler
-                                    for substring in cat.split("+"):
-                                        true_class |= stringCheck(substring.strip())
-
-                                else:
-                                    true_class = stringCheck(cat)
+                                true_class = convert_string_to_itemclassification(cat)
                         except Exception as ex:
                             raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 

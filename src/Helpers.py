@@ -1,10 +1,10 @@
 import ast
 import csv
-import os
 import pkgutil
 import json
+import re
 
-from BaseClasses import MultiWorld, Item
+from BaseClasses import MultiWorld, Item, ItemClassification
 from enum import IntEnum
 from typing import Optional, List, Union, get_args, get_origin, Any
 from types import GenericAlias
@@ -239,6 +239,25 @@ def format_state_prog_items_key(category: str|ProgItemsCat ,key: str) -> str:
         cat_key = category.name
 
     return f"MANUAL_{cat_key}_{format_to_valid_identifier(key.lower())}"
+
+def convert_string_to_itemclassification(string: str) ->  ItemClassification:
+    def stringCheck(string):
+        if string.isdigit():
+            true_class = ItemClassification(int(string))
+        elif string.startswith('0b'):
+            true_class = ItemClassification(int(string, base=0))
+        else:
+            true_class = ItemClassification[string]
+        return true_class
+
+    if "+" in string or "," in string:
+        true_class = ItemClassification.filler
+        for substring in re.split(r'[+,]', string):
+            true_class |= stringCheck(substring.strip())
+
+    else:
+        true_class = stringCheck(string)
+    return true_class
 
 def convert_string_to_type(input: str, target_type: type) -> Any:
     """Take a string and attempt to convert it to {target_type}
