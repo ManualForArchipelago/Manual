@@ -271,16 +271,32 @@ class ManualWorld(World):
         else:
             classification = ItemClassification.filler
 
-            if "trap" in item and item["trap"]:
+            if item.get("trap"):
                 classification |= ItemClassification.trap
 
-            if "useful" in item and item["useful"]:
+            if item.get("useful"):
                 classification |= ItemClassification.useful
 
-            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            if item.get("progression_skip_balancing"):
                 classification |= ItemClassification.progression_skip_balancing
-            elif "progression" in item and item["progression"]:
+            elif item.get("progression"):
                 classification |= ItemClassification.progression
+
+            elif item.get("classification_count"):
+                # This should only be run if create_item is called outside of create_items
+                not_prog_classes: list[ItemClassification] = []
+                progression_classes: list[ItemClassification] = []
+                for cat, count in item["classification_count"].items():
+                    if count:
+                        true_class = convert_string_to_itemclassification(cat)
+                        if ItemClassification.progression in true_class:
+                            progression_classes.append(true_class)
+                        else:
+                            not_prog_classes.append(true_class)
+                if progression_classes:
+                    classification |= self.random.choice(progression_classes)
+                elif not_prog_classes:
+                    classification |= not_prog_classes[0]
 
         item_object = ManualItem(name, classification,
                         self.item_name_to_id[name], player=self.player)
@@ -403,7 +419,7 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
-        
+
         slot_data["visible_events"] = {}
         for _, event in self.event_name_to_event.items():
             event_name = event["name"]
