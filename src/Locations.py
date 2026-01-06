@@ -1,6 +1,6 @@
 from BaseClasses import Location
 from .Data import location_table, event_table
-from .Game import starting_index
+from .Game import starting_index, game_name
 
 
 ######################
@@ -93,4 +93,4 @@ for key, event in enumerate(event_table):
 
 
 class ManualLocation(Location):
-    game = "Manual"
+    game = game_name
