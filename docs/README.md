@@ -7,7 +7,7 @@ _How does that work?!_ Well, you'll just have to read more below!
 ## What is Manual?
 
 - [Overview](manual/overview.md) 
-- [How does it work?](manual/how-it-works.md) *
+- [How does it work?](manual/how-it-works.md) 
 
 ## FAQ
 
