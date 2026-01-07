@@ -32,7 +32,7 @@ jobs:
           cp -R src/* ap/worlds/${AP_WORLD_DIR}
       - name: Change game name to be generic for ease of use in later steps
         run: |
-          echo "game_name = \"Manual\"" >> ap/worlds/${AP_WORLD_DIR}/Game.py
+          echo "game_name = \"${{ env.AP_WORLD_NAME }}\"" >> ap/worlds/${AP_WORLD_DIR}/Game.py
       - name: Install python
         uses: actions/setup-python@v5
         with:
