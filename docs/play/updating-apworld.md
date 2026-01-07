@@ -1,4 +1,4 @@
-# Updating a Manual
+# Updating a Manual APWorld
 Usually, world creators will keep their Manual apworlds up-to-date. Some worlds might not be updated, though, and are old enough to where they either don't work with our client or don't generate. So whether you're a world creator or someone looking to update a Manual apworld for someone else, this doc is for you!
 
 ## Updating automatically

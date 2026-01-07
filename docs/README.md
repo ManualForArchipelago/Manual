@@ -15,9 +15,9 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 ## Playing a Manual
 
-- [Get the apworld](play/get-apworld.md)
-- [How to connect the Manual client](play/connect-client.md)
-- [Updating a Manual apworld](play/updating-apworld.md)
+- [Get the Manual APworld](play/get-apworld.md)
+- [How to connect the Manual Client](play/connect-client.md)
+- [Updating a Manual APworld](play/updating-apworld.md)
 
 ## Designing your own Manual
 
