@@ -21,7 +21,7 @@ The properties for this file are broken down into these headings below:
 ---
 
 ### Defining your game name
-Your game.json needs to at least contain the identifying information for your Manual game, so it can be differentiated from other games. This includes the "game" property (which details what video game / board game / etc. that you're making this Manual for) and the "creator" property (which helps identify a Manual you created for a game versus one that someone else did).
+Your game.json needs to at least contain the identifying information for your Manual game, so it can be differentiated from other games. This includes the "game" property (which details what video game / board game / etc. that you're making this Manual for) and the "creator" property (which helps identify a Manual you created for a game versus one that someone else made).
 
 Here's an example with the minimum required info:
 

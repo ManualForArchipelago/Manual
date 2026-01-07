@@ -37,7 +37,7 @@ The minimum information you need to provide for a location is its name. Here's a
 
 (It's not recommended to use non-english characters not supported by Archipelago's default font.)
 
-If you then want to categorize that location, you can assign it one or more "category" names to be assigned to. See the [Categories for Items and Locations](categories-for-items-and-locations.md) page for more information.
+If you then want to categorize that location, you can assign it one or more "category" names to be assigned to. See the [Categories for Items and Locations](categories-for-various-objects.md) page for more information.
 
 ---
 
