@@ -1,7 +1,7 @@
 # FAQ
 
 ## Q: What is Manual?
-Manual is a customizable APWorld template for Archipelago that can be applied to any game. You tell it what locations you want to be able to check and what items you want randomized, and it gets rolled into a multiworld as normal. Using the ManualClient program, you can manually check off locations that you've checked, and the client will tell you what items you now have access to use. Limiting what items you use is done manually by you until you see the item in the list. The victory condition is also up to you and, once you've completed it, there's a "Victory!" location at the bottom of the location list that you can click to end your seed.
+Manual is a customizable APWorld template for Archipelago that can be applied to any game. You tell it what locations you want to be able to check and what items you want randomized, and it gets rolled into a multiworld as normal. Using the ManualClient program, you can manually check off locations that you've checked, and the client will tell you what items you now have access to use. **Limiting what items you use is done manually by you until you see the item in the list.** The victory condition is also up to you and, once you've completed it, there's a "Victory!" location at the bottom of the location list that you can click to end your seed.
 
 ## Q: Is the Manual APWorld template or this Discord server endorsed by Archipelago?
 No. Archipelago does not endorse or maintain any portion of Manual. Manual exists as an APWorld because Archipelago allows non-endorsed game implementations to do so. This Discord server primarily exists because the main Archipelago server does not want to have a dedicated Manual section at this time.
