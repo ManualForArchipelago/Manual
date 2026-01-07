@@ -473,8 +473,13 @@ def OptAll(world: "ManualWorld", requires: str):
         requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
     return requires_list
 
-# Rule to expose the can_reach_location core function
+# going to be deprecated to name consistently to other req functions, in pascal case
 def canReachLocation(state: CollectionState, player: int, location: str):
+    logging.warning("The 'canReachLocation' requirement function is being renamed to 'CanReachLocation'. Use that instead, as the lowercase version will be deprecated.")
+    return CanReachLocation(state, player, location)
+
+# Rule to expose the can_reach_location core function
+def CanReachLocation(state: CollectionState, player: int, location: str):
     """Can the player reach the given location?"""
     if state.can_reach_location(location, player):
         return True
