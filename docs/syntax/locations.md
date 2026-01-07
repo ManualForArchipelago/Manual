@@ -55,7 +55,7 @@ Here's an example that sets a location as a victory location:
 }
 ```
 
-Note: Be sure to add requirements to your victory location to prevent it from being in logic too quickly. See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information.
+Note: Be sure to add requirements to your victory location to prevent it from being in logic too quickly. See the [Requires](requires.md) page for more information.
 
 ---
 
@@ -74,7 +74,7 @@ Here's an example that assigns the "Last Dungeon" region to the "Final Door" loc
 ---
 
 ### Logical requirements
-Logical requirements ensure that your location is not put into logic before it should be reachable. See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information.
+Logical requirements ensure that your location is not put into logic before it should be reachable. See the [Requires](requires.md) page for more information.
 
 ---
 

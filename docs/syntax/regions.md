@@ -80,7 +80,7 @@ Logical requirements ensure that your region is not put into logic before it sho
 
 You can use the default `requires` property to assign logical requirements as you would with locations. If you need to be more particular about the logical requirements on each part of traversing a region, you can use `entrance_requires` / `exit_requires` to assign logical requirements specifically to the inbound connection (entrance) of a region or the outbound connection (exit) of a region, respectively.
 
-See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information about requires in general.
+See the [Requires](requires.md) page for more information about requires in general.
 
 NOTE: A region marked as `starting` or referenced in another region's `connects_to` can't be reached if there are logical requirements and those logical requirements are not met.
 

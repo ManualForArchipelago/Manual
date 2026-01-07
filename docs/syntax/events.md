@@ -61,7 +61,7 @@ Here's an example that assigns the "Last Dungeon" region to the "All Purple Butt
 ### Logical requirements
 Just like with locations, logical requirements define what should be required for the event to be "active". However, unlike locations, you don't need to check off events in the client for them to be "completed". Events are completed as soon as their logical requirements are met.
 
-See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information.
+See the [Requires](requires.md) page for more information.
 
 ---
 
