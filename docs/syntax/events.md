@@ -27,6 +27,8 @@ The properties for this file are broken down into these headings below:
 - [Hiding the event in the Manual client](#hiding-the-event-in-the-manual-client)
   - `visible`
 
+---
+
 ### Naming and categorizing
 The minimum information you need to provide for an event is its name. Here's an example of that simple event definition:
 
@@ -38,7 +40,9 @@ The minimum information you need to provide for an event is its name. Here's an 
 
 (A name cannot contain the characters `:` or `|`, and it's not recommended to use non-english characters not supported by Archipelago's default font.)
 
-If you then want to categorize that event, you can assign it one or more "category" names to be assigned to. See the [Categories for Items and Locations](syntax/categories-for-items-and-locations.md) page for more information.
+If you then want to categorize that event, you can assign it one or more "category" names to be assigned to. See the [Categories for Items and Locations](categories-for-items-and-locations.md) page for more information.
+
+---
 
 ### Assigning a region
 Regions can be helpful to either establish a world layout for your world, or to group together events that share logical requirements. Each event can only be assigned to a single region. Once you've determined which region you'd like to assign to a event, you can set the `region` property to the name of the region.
@@ -52,10 +56,14 @@ Here's an example that assigns the "Last Dungeon" region to the "All Purple Butt
 }
 ```
 
+---
+
 ### Logical requirements
 Just like with locations, logical requirements define what should be required for the event to be "active". However, unlike locations, you don't need to check off events in the client for them to be "completed". Events are completed as soon as their logical requirements are met.
 
-See the [Requires for Locations and Regions](syntax/requires-for-locations-and-regions.md) page for more information.
+See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information.
+
+---
 
 ### Using an accessible location as an event
 Another use case for events is to reduce the number of duplicate locations that you would've previously used to give a "gating" item for logic.
@@ -74,6 +82,8 @@ Here's an example that creates an event that copies the "Player Level Up - Level
 ```
 
 That way, you can have a randomized item on the "Player Level Up - Level 10" location, but also track when the player's level reached 10.
+
+---
 
 ### Hiding the event in the Manual client
 By default, events are shown in the items half of the Manual client. If you'd like to hide them instead, set the `visible` property to false.

@@ -14,6 +14,8 @@ Here's an example of adding a comment to a location that you've defined:
 }
 ```
 
+---
+
 You can also add comments to the top-level portions of any Manual JSON file.
 
 Here's an example of adding a comment near the top of your locations.json file:

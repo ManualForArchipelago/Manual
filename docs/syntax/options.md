@@ -39,6 +39,8 @@ The properties for this file are broken down into these headings below:
   - `range_end`
   - `values`
 
+---
+
 ### Naming and assigning an option type
 The minimum information you need to provide for an option is its name and its option type. For its name, you'll need to refrain from using spaces or starting the name with a number; just use letters, numbers, and underscores. For its option type, the only supported option types (currently) are "Toggle", "Choice", and "Range". For more information on these default Archipelago option classes, see [their documentation here](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/options%20api.md#basic-option-classes).
 
@@ -53,6 +55,8 @@ Here's an example of an option definition with the minimum required information:
     }
 }
 ```
+
+---
 
 ### Setting a formatted display name
 If you want to customize the way that an option name is displayed in the YAML / spoiler log, you can use the `display_name` property.
@@ -69,6 +73,8 @@ Here's an example of an option definition that customizes its display name:
     }
 }
 ```
+
+---
 
 ### Setting the option description
 It's recommended to add a description to your option so that people configuring their YAML have some idea of what your option does. To add a description, you'd use the `description` property. To support multiline descriptions, you specify the description as an array of each line of the description.
@@ -107,6 +113,8 @@ Here's an example of setting a description to be rich text on a webhost:
     }
 }
 ```
+
+---
 
 ### Setting a default option value
 If you want your option to have a default value, use the `default` property.
@@ -161,6 +169,8 @@ Here's an example of setting more fine-grained visibility settings on an option:
 }
 ```
 
+---
+
 ### Adding the option to an option group
 If you'd like to show one or more options in a option group in the YAML, you can set the `group` property to the name of the option group it should show up in. If the option group doesn't exist, it will be created.
 
@@ -177,8 +187,12 @@ Here's an example of setting an option group for an option:
 }
 ```
 
+---
+
 ### Settings specific to Toggle types
 There are no specific settings for Toggle types that aren't shared by all other option types.
+
+---
 
 ### Settings specific to Choice types
 Choice option types have a few settings that are specific to Choices only.
@@ -240,6 +254,8 @@ Here's an example of a Choice option that allows the player to supply a custom t
 ```
 
 (Internally, this changes the option from a Choice to a TextChoice.)
+
+---
 
 ### Settings specific to Range types
 Range option types have a few settings that are specific to Ranges only.

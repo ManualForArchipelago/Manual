@@ -24,6 +24,8 @@ The properties for this file are broken down into these headings below:
 - [Add hint text for useful info](#add-hint-text-for-useful-info)
   - `hint_entrance`
 
+---
+
 ### Naming and categorizing
 The minimum information you need to provide for a location is its name. Here's an example of that simple location definition:
 
@@ -35,7 +37,9 @@ The minimum information you need to provide for a location is its name. Here's a
 
 (It's not recommended to use non-english characters not supported by Archipelago's default font.)
 
-If you then want to categorize that location, you can assign it one or more "category" names to be assigned to. See the [Categories for Items and Locations](syntax/categories-for-items-and-locations.md) page for more information.
+If you then want to categorize that location, you can assign it one or more "category" names to be assigned to. See the [Categories for Items and Locations](categories-for-items-and-locations.md) page for more information.
+
+---
 
 ### Victory locations
 Victory locations are locations that cannot have an item but, when the location is checked, your world reaches its goal in AP. 
@@ -51,7 +55,9 @@ Here's an example that sets a location as a victory location:
 }
 ```
 
-Note: Be sure to add requirements to your victory location to prevent it from being in logic too quickly. See the [Requires for Locations and Regions](syntax/requires-for-locations-and-regions.md) page for more information.
+Note: Be sure to add requirements to your victory location to prevent it from being in logic too quickly. See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information.
+
+---
 
 ### Assigning a region
 Regions can be helpful to either establish a world layout for your world, or to group together locations that share logical requirements. Each location can only be assigned to a single region. Once you've determined which region you'd like to assign to a location, you can set the `region` property to the name of the region.
@@ -65,8 +71,12 @@ Here's an example that assigns the "Last Dungeon" region to the "Final Door" loc
 }
 ```
 
+---
+
 ### Logical requirements
-Logical requirements ensure that your location is not put into logic before it should be reachable. See the [Requires for Locations and Regions](syntax/requires-for-locations-and-regions.md) page for more information.
+Logical requirements ensure that your location is not put into logic before it should be reachable. See the [Requires for Locations and Regions](requires-for-locations-and-regions.md) page for more information.
+
+---
 
 ### Pre-placing items
 If you want to pre-place items (a.k.a. force locations to have a specific item, or an item from a specific set), you have two resources for this: `place_item` and `place_item_category`
@@ -147,6 +157,8 @@ The reason for this is that every location will pick a category randomly. If A, 
 
 This is only really a risk if you are working with small item pools, or item pools of comparable size to the locations they're placed in: If you have 60 pieces of equipment and want your 12 bosses to each give a random piece guaranteed, you're extremely unlikely to run into any issues doing it that way.
 
+---
+
 ### Pre-hinting this location
 Sometimes, you may find yourself making locations where the player knows their contents in advance.  This is a thing APWorlds will commonly do for Shops.
 
@@ -158,6 +170,8 @@ This can be done by marking a location as prehinted:
     "prehint": true
 },
 ```
+
+---
 
 ### Add hint text for useful info
 If you want to show custom information in the "Entrance" portion of the Hints tab in the client, you can set the `hint_entrance` property. 
