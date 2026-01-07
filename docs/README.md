@@ -52,9 +52,10 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 ## Hooks
   - [Overview](syntax/hooks.md)
-  - [World Hooks](syntax/hooks.md#world-hooks)
-  - [JSON File Hooks](syntax/hooks.md#json-file-hooks)
-  - [Options Hooks](syntax/hooks.md#options-hooks)
+    - [What are hooks?](syntax/hooks.md#what-are-hooks)
+    - [What hooks are available?](syntax/hooks.md#what-hooks-are-available)
+    - [Okay... how would I use hooks?](syntax/hooks.md#okay-how-would-i-use-hooks)
+    - [BONUS: How to find objects to use in hooks](syntax/hooks.md#bonus-how-to-find-objects-to-use-in-hooks)
 
 ## Resources
 
