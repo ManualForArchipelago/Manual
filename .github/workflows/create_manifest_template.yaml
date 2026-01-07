@@ -1,0 +1,66 @@
+name: Create Manifest Template
+
+on: 
+  workflow_run:     # mainly called after create stable/unstable release workflows
+    workflows: [Create Release - Stable, Create Release - Unstable]
+    types: [completed]
+  workflow_dispatch: # ... also allows manually running
+
+env:
+  AP_WORLD_NAME: Manual
+  AP_WORLD_DIR: manual
+
+permissions:
+  contents: write
+
+jobs:
+  create-manifest-template:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this Repo
+        uses: actions/checkout@v4
+        with:
+          path: .
+      - name: Checkout AP
+        uses: actions/checkout@v4
+        with:
+          repository: ArchipelagoMW/Archipelago
+          path: ./ap
+      - name: Copy apworld src into worlds folder
+        run: |
+          mkdir -p ap/worlds/${AP_WORLD_DIR}
+          cp -R src/* ap/worlds/${AP_WORLD_DIR}
+      - name: Change game name to be generic for ease of use in later steps
+        run: |
+          echo "game_name = \"Manual\"" >> ap/worlds/${AP_WORLD_DIR}/Game.py
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '~3.12.7'
+          check-latest: true
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python ModuleUpdate.py --yes --force
+        working-directory: ./ap
+      - name: Create AP World Archive 
+        run: |
+          python Launcher.py "Build APWorlds" -- "${{ env.AP_WORLD_NAME }}"
+        working-directory: ./ap
+      - name: Create Template folder if not exists
+        run: mkdir -p templates
+      - name: Extract built APWorld and get manifest
+        run: |
+          mv ap/build/apworlds/${{ env.AP_WORLD_DIR }}.apworld ap/build/apworlds/${{ env.AP_WORLD_DIR }}.zip
+          unzip ap/build/apworlds/${{ env.AP_WORLD_DIR}}.zip
+          cp manual/archipelago.json templates
+      - name: Commit template manifest change back to repo
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'templates'
+          message: 'Update manifest template'
+          author_name: 'GitHub Actions'
+          author_email: 'actionrunner@veryrealandnotmadeupdomain.com'
+          committer_name: 'GitHub Actions'
+          committer_email: 'actionrunner@veryrealandnotmadeupdomain.com'
+
