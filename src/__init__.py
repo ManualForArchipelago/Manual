@@ -1,11 +1,9 @@
 import logging
 import os
 from typing import Callable, Optional, ClassVar, Counter, Any
-import webbrowser
 
 import Utils
 from worlds.generic.Rules import forbid_items_for_player
-from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
 from .Data import item_table, location_table, event_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
@@ -418,7 +416,7 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
-        
+
         slot_data["visible_events"] = {}
         for _, event in self.event_name_to_event.items():
             event_name = event["name"]
@@ -543,46 +541,3 @@ class ManualWorld(World):
         else:
             return self.item_counts.get(player, Counter())
 
-
-###
-# Non-world client methods
-###
-
-def launch_client(*args):
-    import CommonClient
-    from .ManualClient import launch as Main
-
-    if CommonClient.gui_enabled:
-        launch_subprocess(Main, name="Manual client")
-    else:
-        Main()
-
-class VersionedComponent(Component):
-    def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None, icon: Optional[str] = None):
-        super().__init__(display_name=display_name, script_name=script_name, func=func, component_type=Type.CLIENT, file_identifier=file_identifier, icon=icon)
-        self.version = version
-
-def add_client_to_launcher() -> None:
-    version = 2025_12_25 # YYYYMMDD
-    found = False
-
-    if "manual" not in icon_paths:
-        icon_paths["manual"] = Utils.user_path('data', 'manual.png')
-
-    discord_component = None
-    for c in components:
-        if c.display_name == "Manual Client":
-            found = True
-            if getattr(c, "version", 0) < version:  # We have a newer version of the Manual Client than the one the last apworld added
-                c.version = version
-                c.func = launch_client
-                c.icon = "manual"
-        elif c.display_name == "Manual Discord Server":
-            discord_component = c
-
-    if not found:
-        components.append(VersionedComponent("Manual Client", "ManualClient", func=launch_client, version=version, file_identifier=SuffixIdentifier('.apmanual'), icon="manual"))
-    if not discord_component:
-        components.append(Component("Manual Discord Server", "ManualDiscord", func=lambda: webbrowser.open("https://discord.gg/hm4rQnTzQ5"), icon="discord", component_type=Type.ADJUSTER))
-
-add_client_to_launcher()

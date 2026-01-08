@@ -24,6 +24,8 @@ from NetUtils import ClientStatus
 from CommonClient import gui_enabled, logger, get_base_parser, ClientCommandProcessor, server_loop
 from MultiServer import mark_raw
 
+from . import CLIENT_VERSION
+
 tracker_loaded = False
 try:
     from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext, TrackerCommandProcessor
@@ -195,8 +197,8 @@ class ManualContext(SuperContext):
     def suggested_game(self) -> str:
         if self.game:
             return self.game
-        from .Game import game_name  # This will at least give us the name of a manual they've installed
-        return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
+        # from .Game import game_name  # This will at least give us the name of a manual they've installed
+        return Utils.persistent_load().get("client", {}).get("last_manual_game", "")
 
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
@@ -392,7 +394,7 @@ class ManualContext(SuperContext):
             background_color = ColorProperty()
 
         class ManualManager(ui):
-            base_title = "Archipelago Manual Client"
+            base_title = f"Manual for AP Client - Manual {CLIENT_VERSION}, AP"
             listed_items = {"(No Category)": []}
             item_categories = ["(No Category)"]
             listed_locations = {"(No Category)": []}
@@ -419,11 +421,12 @@ class ManualContext(SuperContext):
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
                 game_bar_label = Label(text="Manual Game ID", size=(dp(150), dp(30)), size_hint_y=None, size_hint_x=None)
-                manuals = [w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w]
+                manuals = [w for w in AutoWorldRegister.world_types.keys() if "Manual_" in w and w != "Manual_Client"]
                 manuals.sort()  # Sort by alphabetical order, not load order
                 self.manual_game_layout.add_widget(game_bar_label)
+
                 self.game_bar_text = Spinner(text=self.ctx.suggested_game, size_hint_y=None, height=dp(30), sync_height=True,
-                                             values=manuals, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
+                                             values=manuals) #, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
@@ -1117,6 +1120,7 @@ async def main(args):
     config_file = {}
     if args.apmanual_file:
         config_file = read_apmanual_file(args.apmanual_file)
+
     ctx = ManualContext(args.connect, args.password, config_file.get("game"), config_file.get("player_name"))
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="server loop")
 
@@ -1129,15 +1133,14 @@ async def main(args):
         ctx.run_generator()
     if gui_enabled:
         ctx.run_gui()
+
     ctx.run_cli()
     progression_watcher = asyncio.create_task(
         game_watcher_manual(ctx), name="ManualProgressionWatcher")
 
     await ctx.exit_event.wait()
     ctx.server_address = None
-
     await progression_watcher
-
     await ctx.shutdown()
 
 def launch() -> None:
@@ -1152,6 +1155,7 @@ def launch() -> None:
         args.remove("Manual Client")
     args, rest = parser.parse_known_args(args=args)
     colorama.init()
+
     asyncio.run(main(args))
     colorama.deinit()
 
@@ -1163,3 +1167,4 @@ def launch() -> None:
 
 if __name__ == '__main__':
     launch()
+
