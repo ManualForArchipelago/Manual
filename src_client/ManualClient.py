@@ -197,7 +197,6 @@ class ManualContext(SuperContext):
     def suggested_game(self) -> str:
         if self.game:
             return self.game
-        # from .Game import game_name  # This will at least give us the name of a manual they've installed
         return Utils.persistent_load().get("client", {}).get("last_manual_game", "")
 
     def get_location_by_name(self, name) -> dict[str, Any]:
@@ -426,7 +425,7 @@ class ManualContext(SuperContext):
                 self.manual_game_layout.add_widget(game_bar_label)
 
                 self.game_bar_text = Spinner(text=self.ctx.suggested_game, size_hint_y=None, height=dp(30), sync_height=True,
-                                             values=manuals) #, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
+                                             values=manuals, option_cls=GameSelectOption, dropdown_cls=GameSelectDropDown)
                 self.manual_game_layout.add_widget(self.game_bar_text)
 
                 self.grid.add_widget(self.manual_game_layout, 3)
@@ -1133,14 +1132,15 @@ async def main(args):
         ctx.run_generator()
     if gui_enabled:
         ctx.run_gui()
-
     ctx.run_cli()
     progression_watcher = asyncio.create_task(
         game_watcher_manual(ctx), name="ManualProgressionWatcher")
 
     await ctx.exit_event.wait()
     ctx.server_address = None
+
     await progression_watcher
+
     await ctx.shutdown()
 
 def launch() -> None:
@@ -1155,7 +1155,6 @@ def launch() -> None:
         args.remove("Manual Client")
     args, rest = parser.parse_known_args(args=args)
     colorama.init()
-
     asyncio.run(main(args))
     colorama.deinit()
 
