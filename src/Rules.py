@@ -485,6 +485,7 @@ def OptionCountPercent(world: "ManualWorld", item: str, option_name: str) -> str
     return _optionCountLogic(world, item, option_name, is_percent=True)
 
 def _optionCountLogic(world: "ManualWorld", item: str, option_name: str, is_percent: bool = False) -> str:
+    option_name = option_name.strip()
     option: NumericOption | None = getattr(world.options, option_name, None)
     if option is None:
         raise ValueError(f"Could not find an option named: {option_name}")
@@ -493,13 +494,8 @@ def _optionCountLogic(world: "ManualWorld", item: str, option_name: str, is_perc
     if not isinstance(option.value, int):
         raise ValueError(f"Cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
 
-    is_category = False
-
-    if '@' in item[:2]:
-        is_category = True
-
-    item = item.lstrip('|@').rstrip('|')
-    return f"|{'@' if is_category else ''}{item}:{option.value}{'%' if is_percent else ''}|"
+    item = item.strip('|').strip()
+    return f"|{item}:{option.value}{'%' if is_percent else ''}|"
 
 def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
