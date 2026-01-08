@@ -1,4 +1,4 @@
-# Requires for Locations and Regions
+# Requires for Locations, Regions, and Events
 
 _Let's start with the bad:_
 

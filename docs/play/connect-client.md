@@ -1,4 +1,4 @@
-# Playing a Manual
+# How to connect the Manual Client
 
 1. Either use a provided yaml, or click the "Generate Template Options" button in the launcher to generate one.
 ![Generate Template Options](/docs/img/resources/generate-templates.png)
