@@ -154,7 +154,7 @@ This will distribute your 2 keys and 2 boots randomly between the locations.
 
 In this example the item that could be placed there is either the "Sword" or any items from either category "Keys" or "Boots"
 
-If you want to exclude some item(s) from those possible picked you can use [`dont_place_item` or `dont_place_item_category`](#removing-items-from-those-pre-placed) but those will be explained bellow.
+If you want to exclude some item(s) from those possible picked you can use [`dont_place_item` or `dont_place_item_category`](#removing-items-from-those-pre-placed) and those will be explained just below.
 
 #### Removing items from those pre-placed
 
