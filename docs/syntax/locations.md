@@ -161,7 +161,7 @@ If you want to exclude some item(s) from those possible picked you can use [`don
 `dont_place_item` or `dont_place_item_category` work mostly like [`place_item` or `place_item_category`](#pre-placing-items) but instead of deciding which item will be placed in a location, It stop the specified item/item_category from being placed in this location.  
 Depending on if either `place_item` or `place_item_category` are present the logic behind is slightly different but the result is the same either way, the specified item/item_category wont be placed there.
 
-When `place_item` or `place_item_category` are present items that could be randomly picked will be filtered by those in `dont_place_item/_category`
+When `place_item` or `place_item_category` are present items that could be randomly picked will be filtered by those in `dont_place_item/_category`.
 
 ```json
 {   
@@ -172,9 +172,9 @@ When `place_item` or `place_item_category` are present items that could be rando
 },
 ```
 
-In this example the item that will be placed in the "Area F" location will either be the "Sword", an item from the "Boots" category, an item from the "Keys" category but not the "Key Z"
+In this example the item that will be placed in the "Area F" location will either be the "Sword", an item from the "Boots" category, an item from the "Keys" category but not the "Key Z".
 
-Like place_item_category, dont_place_item_category can be used to filter out an entire category worth of item
+Like place_item_category, dont_place_item_category can be used to filter out an entire category worth of item.
 
 ```json
 {
@@ -184,7 +184,7 @@ Like place_item_category, dont_place_item_category can be used to filter out an 
 },
 ```
 
-This "Heroes Recruit 1" location will have an Hero but not any from the "Magic Users" category
+This "Heroes Recruit 1" location will have an Hero but not any from the "Magic Users" category.
 
 And finally,
 
@@ -192,10 +192,10 @@ And finally,
 
 AKA `dont_place_item` or `dont_place_item_category` but [`place_item` or `place_item_category`](#pre-placing-items) are not present.
 
-When included in a location without pre-placement of items, item(s) specified will be blocked from generating there  
-**Warning:** Usage of `dont_place_item` or `dont_place_item_category` can lead to some impossible logic if you forbid too many items and generation run out of things to place in a location so use carefully and sparingly
+When included in a location without pre-placement of items, the player's own copy of item(s) specified will be blocked from generating there.  
+**Warning:** Usage of `dont_place_item` or `dont_place_item_category` can lead to some impossible logic if you forbid too many items and generation run out of things to place in a location so use carefully and sparingly.
 
-(For the AP dev enjoyers reading this: Its done using the forbid_items_for_player function)
+(For the AP dev enjoyers reading this: Its done using the forbid_items_for_player function.)
 
 ```json
 {
@@ -204,9 +204,9 @@ When included in a location without pre-placement of items, item(s) specified wi
 },
 ```
 
-This "Quest Rewards A" location would let any item be placed there in generation **Except** the player's own "Death Trap"
+This "Quest Rewards A" location would let any item be placed there in generation **Except** the player's own "Death Trap".
 
-Its usefull if you feel like the reward for the quest shouldn't be to die to your own trap
+Its usefull if you feel like the reward for the quest shouldn't be to die to your own trap.
 
 ```json
 {
@@ -215,7 +215,7 @@ Its usefull if you feel like the reward for the quest shouldn't be to die to you
 },
 ```
 
-Same as above but any item from the Trap category
+Same as above but any item from the Trap category.
 
 ```json
 {
@@ -225,7 +225,7 @@ Same as above but any item from the Trap category
 },
 ```
 
-Also like [`place_item` and `place_item_category`](#pre-placing-items) you can combine them together to forbid both the "Master Sword" and all the items from the "Trap" category
+Also like [`place_item` and `place_item_category`](#pre-placing-items) you can combine them together to forbid both the "Master Sword" and all the items from the "Trap" category.
 
 ---
 
