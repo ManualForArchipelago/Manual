@@ -5,6 +5,7 @@ from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, ItemClassification
 from typing import Any
 
+from .Helpers import convert_string_to_itemclassification
 
 class ValidationError(Exception):
     pass
@@ -189,20 +190,7 @@ class DataValidation():
                 if count == 0:
                     continue
                 try:
-                    def stringCheck(string: str):
-                        if string.isdigit():
-                            ItemClassification(int(string))
-                        elif string.startswith('0b'):
-                            ItemClassification(int(string, base=0))
-                        else:
-                            ItemClassification[string]
-
-                    if "+" in cat:
-                        for substring in cat.split("+"):
-                            stringCheck(substring.strip())
-
-                    else:
-                        stringCheck(cat)
+                    convert_string_to_itemclassification(cat)
 
                 except KeyError as ex:
                     raise ValidationError(f"Item '{item.get('name', '')}''s classification_count '{cat}' is misspelled or does not exist.\n Valid names are {', '.join(ItemClassification.__members__.keys())} \n\n{type(ex).__name__}:{ex}")
@@ -227,21 +215,7 @@ class DataValidation():
                     if count == 0:
                         continue
                     try:
-                        def stringCheck(string: str) -> ItemClassification:
-                            if string.isdigit():
-                                true_class = ItemClassification(int(string))
-                            elif string.startswith('0b'):
-                                true_class = ItemClassification(int(string, base=0))
-                            else:
-                                true_class = ItemClassification[string]
-                            return true_class
-
-                        if "+" in cat:
-                            true_class = ItemClassification.filler
-                            for substring in cat.split("+"):
-                                true_class |= stringCheck(substring.strip())
-                        else:
-                            true_class = stringCheck(cat)
+                        true_class = convert_string_to_itemclassification(cat)
 
                     except:
                         # Skip since this validation error is dealt with in checkItemsHasValidClassificationCount
