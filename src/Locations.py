@@ -48,14 +48,15 @@ location_name_to_location: dict[str, dict] = {}
 location_name_groups: dict[str, list[str]] = {}
 event_name_to_event: dict[str, list[str]] = {}
 
-for item in location_table:
-    location_id_to_name[item["id"]] = item["name"]
-    location_name_to_location[item["name"]] = item
+for loc in location_table:
+    loc_name = loc.get("name", f"Unnamed Location {loc['id']}")
+    location_id_to_name[loc["id"]] = loc_name
+    location_name_to_location[loc_name] = loc
 
-    for c in item.get("category", []):
+    for c in loc.get("category", []):
         if c not in location_name_groups:
             location_name_groups[c] = []
-        location_name_groups[c].append(item["name"])
+        location_name_groups[c].append(loc_name)
 
 
 # location_id_to_name[None] = "__Manual Game Complete__"

@@ -38,7 +38,7 @@ for key, val in enumerate(item_table):
     count += 1
 
 for item in item_table:
-    item_name = item["name"]
+    item_name = item.get("name", f"Unnamed Item {item['id']}")
     item_id_to_name[item["id"]] = item_name
     item_name_to_item[item_name] = item
 
