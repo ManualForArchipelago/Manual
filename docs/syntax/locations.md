@@ -1,5 +1,5 @@
 # Locations - locations.json
-Your locations.json contains the details about all of the locations in your world. 
+Your locations.json contains the details about all of the locations in your world.
 
 This file contains multiple objects, so you'll want to have a `[]` surrounding the `{}` objects to be valid JSON. If your locations.json has a "$schema" property at the top, use the `[]` in the "data" property instead.
 
@@ -8,6 +8,7 @@ If you'd like to see all the available properties and their allowed values, view
 
 ## The locations.json structure
 The properties for this file are broken down into these headings below:
+
 - [Naming and categorizing](#naming-and-categorizing)
   - `name`
   - `category`
@@ -17,8 +18,11 @@ The properties for this file are broken down into these headings below:
   - `region`
 - [Logical requirements](#logical-requirements)
   - `requires`
-- [Pre-placing items](#pre-placing-items)
-  - `place_item` / `place_item_category`
+- [Manipulating what item can/will be in this location](#manipulating-what-item-canwill-be-in-this-location)
+  - [`place_item` / `place_item_category`](#pre-placing-items)
+  - `dont_place_item` / `dont_place_item_category`
+    - [when `place_item` / `place_item_category` present](#removing-items-from-those-pre-placed)
+    - [when `place_item` / `place_item_category` not present](#forbiding-items-from-a-location)
 - [Pre-hinting this location](#pre-hinting-this-location)
   - `prehint`
 - [Add hint text for useful info](#add-hint-text-for-useful-info)
@@ -42,13 +46,13 @@ If you then want to categorize that location, you can assign it one or more "cat
 ---
 
 ### Victory locations
-Victory locations are locations that cannot have an item but, when the location is checked, your world reaches its goal in AP. 
+Victory locations are locations that cannot have an item but, when the location is checked, your world reaches its goal in AP.
 
 Your world can have any number of victory locations, but only one is active for each playthrough. Manual's built-in `goal` YAML option allows your players to choose which goal location is active for that playthrough.
 
 Here's an example that sets a location as a victory location:
 
-```
+```json
 { 
     "name": "Final Door", 
     "victory": true 
@@ -64,7 +68,7 @@ Regions can be helpful to either establish a world layout for your world, or to 
 
 Here's an example that assigns the "Last Dungeon" region to the "Final Door" location:
 
-```
+```json
 { 
     "name": "Final Door", 
     "region": "Last Dungeon"
@@ -78,11 +82,13 @@ Logical requirements ensure that your location is not put into logic before it s
 
 ---
 
-### Pre-placing items
+### Manipulating what item can/will be in this location
+#### Pre-placing items
 If you want to pre-place items (a.k.a. force locations to have a specific item, or an item from a specific set), you have two resources for this: `place_item` and `place_item_category`
 
 The simplest example is a one-to-one situation. Say a boss fight, "Boss A", gives an in-game key, "Key X". You want "Key X" as an item to use for your logic, but you want to keep it tied to "Boss A".
-```
+
+```json
 {   
     "name": "Kill Boss A", 
     "place_item": ["Key X"] 
@@ -92,7 +98,8 @@ The simplest example is a one-to-one situation. Say a boss fight, "Boss A", give
 This will ensure that the "Kill Boss A" location will always award your "Key X" item.
 
 If you had multiple keys you wanted as possible rewards, you could list them all, separated by commas:
-```    
+
+```json
 {   
     "name": "Kill Boss A", 
     "place_item": ["Key X", "Key Y", "Key Z"] 
@@ -101,61 +108,124 @@ If you had multiple keys you wanted as possible rewards, you could list them all
 
 This doesn't give all three keys: It guarantees one random drop, selected between those 3 keys.
 
-If you wanted it to give any key from a category you already have, you would use place_item_category instead:
-```    
+If you wanted it to give any key from a category you already have, you would use `place_item_category` instead:
+
+```json
 {   
     "name": "Kill Boss A", 
     "place_item_category": ["Boss Keys"] 
 }
 ```
 
-The location will award any item in the "Boss Keys" category. Like place_item, you can list multiple categories - it will pick a random category, and place a random item from that category.
+The location will award any item in the "Boss Keys" category. Like `place_item`, you can list multiple categories - it will place a random item from all of those category.
 
 The following will work:
-```
+
+```json
 {   
     "name": "Area A",
-    "place_item_category": ["Keys and Boots"] 
+    "place_item_category": ["Keys", "Boots"]
 },
 {   
     "name": "Area B",
-    "place_item_category": ["Keys and Boots"] 
+    "place_item_category": ["Keys", "Boots"]
 },
 {   
     "name": "Area C",
-    "place_item_category": ["Keys and Boots"] 
+    "place_item_category": ["Keys", "Boots"]
 },
 {   
     "name": "Area D",
-    "place_item_category": ["Keys and Boots"] 
-}
+    "place_item_category": ["Keys", "Boots"]
+},
 ```
 
 This will distribute your 2 keys and 2 boots randomly between the locations.
-  
-However, this will fail:
-```
+
+`place_item` and `place_item_category` can be combined together if you want to specify some specific item(s) that could be picked on top of those from the category(ies)
+
+```json
 {   
-    "name": "Area A",
-    "place_item_category": ["Keys", "Boots"] 
+    "name": "Area E",
+    "place_item": ["Sword"],
+    "place_item_category": ["Keys", "Boots"]
 },
-{   
-    "name": "Area B",   
-    "place_item_category": ["Keys", "Boots"] 
-},
-{   
-    "name": "Area C",
-    "place_item_category": ["Keys", "Boots"] 
-},
-{   
-    "name": "Area D",
-    "place_item_category": ["Keys", "Boots"] 
-}
 ```
 
-The reason for this is that every location will pick a category randomly. If A, B and C all pick "Keys", for example, you'll be trying to divide 2 keys among 3 locations. One will be empty, and will error.
+In this example the item that could be placed there is either the "Sword" or any items from either category "Keys" or "Boots"
 
-This is only really a risk if you are working with small item pools, or item pools of comparable size to the locations they're placed in: If you have 60 pieces of equipment and want your 12 bosses to each give a random piece guaranteed, you're extremely unlikely to run into any issues doing it that way.
+If you want to exclude some item(s) from those possible picked you can use [`dont_place_item` or `dont_place_item_category`](#removing-items-from-those-pre-placed) and those will be explained just below.
+
+#### Removing items from those pre-placed
+
+`dont_place_item` or `dont_place_item_category` work mostly like [`place_item` or `place_item_category`](#pre-placing-items) but instead of deciding which item will be placed in a location, It stop the specified item/item_category from being placed in this location.  
+Depending on if either `place_item` or `place_item_category` are present the logic behind is slightly different but the result is the same either way, the specified item/item_category wont be placed there.
+
+When `place_item` or `place_item_category` are present items that could be randomly picked will be filtered by those in `dont_place_item/_category`.
+
+```json
+{   
+    "name": "Area F",
+    "place_item": ["Sword"],
+    "place_item_category": ["Keys", "Boots"],
+    "dont_place_item": ["Key Z"]
+},
+```
+
+In this example the item that will be placed in the "Area F" location will either be the "Sword", an item from the "Boots" category, an item from the "Keys" category but not the "Key Z".
+
+Like place_item_category, dont_place_item_category can be used to filter out an entire category worth of item.
+
+```json
+{
+    "name": "Heroes Recruit 1",
+    "place_item_category": ["Heroes"],
+    "dont_place_item_category": ["Magic Users"]
+},
+```
+
+This "Heroes Recruit 1" location will have an Hero but not any from the "Magic Users" category.
+
+And finally,
+
+#### Forbiding items from a location
+
+AKA `dont_place_item` or `dont_place_item_category` but [`place_item` or `place_item_category`](#pre-placing-items) are not present.
+
+When included in a location without pre-placement of items, the player's own copy of item(s) specified will be blocked from generating there.  
+**Warning:** Usage of `dont_place_item` or `dont_place_item_category` can lead to some impossible logic if you forbid too many items and generation run out of things to place in a location so use carefully and sparingly.
+
+(For the AP dev enjoyers reading this: Its done using the forbid_items_for_player function.)
+
+```json
+{
+    "name": "Quest Rewards A",
+    "dont_place_item": ["Death Trap"]
+},
+```
+
+This "Quest Rewards A" location would let any item be placed there in generation **Except** the player's own "Death Trap".
+
+Its usefull if you feel like the reward for the quest shouldn't be to die to your own trap.
+
+```json
+{
+    "name": "Quest Rewards B",
+    "dont_place_item_category": ["Trap"]
+},
+```
+
+Same as above but any item from the Trap category.
+
+```json
+{
+    "name": "Quest Rewards C",
+    "dont_place_item_category": ["Trap"],
+    "dont_place_item": ["Master Sword"]
+},
+```
+
+Also like [`place_item` and `place_item_category`](#pre-placing-items) you can combine them together to forbid both the "Master Sword" and all the items from the "Trap" category.
 
 ---
 
@@ -164,7 +234,7 @@ Sometimes, you may find yourself making locations where the player knows their c
 
 This can be done by marking a location as prehinted:
 
-```
+```json
 {
     "name": "Shop Item 1",
     "prehint": true
@@ -174,14 +244,13 @@ This can be done by marking a location as prehinted:
 ---
 
 ### Add hint text for useful info
-If you want to show custom information in the "Entrance" portion of the Hints tab in the client, you can set the `hint_entrance` property. 
+If you want to show custom information in the "Entrance" portion of the Hints tab in the client, you can set the `hint_entrance` property.
 
 Here's an example where you tell the player how to get to the "Area A" location:
 
-```
+```json
 {   
     "name": "Area A",
     "hint_entrance": "Reachable via the West Bridge" 
 },
 ```
-
