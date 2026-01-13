@@ -18,7 +18,7 @@ from .Regions import create_regions, create_events
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, convert_string_to_itemclassification, ProgItemsCat
 from .container import APManualFile
 
 from BaseClasses import CollectionState, ItemClassification, Item
@@ -160,22 +160,7 @@ class ManualWorld(World):
                             if isinstance(cat, int):
                                 true_class = ItemClassification(cat)
                             else:
-                                def stringCheck(string: str) ->  ItemClassification:
-                                    if string.isdigit():
-                                        true_class = ItemClassification(int(string))
-                                    elif string.startswith('0b'):
-                                        true_class = ItemClassification(int(string, base=0))
-                                    else:
-                                        true_class = ItemClassification[string]
-                                    return true_class
-
-                                if "+" in cat:
-                                    true_class = ItemClassification.filler
-                                    for substring in cat.split("+"):
-                                        true_class |= stringCheck(substring.strip())
-
-                                else:
-                                    true_class = stringCheck(cat)
+                                true_class = convert_string_to_itemclassification(cat)
                         except Exception as ex:
                             raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 
@@ -281,20 +266,36 @@ class ManualWorld(World):
         name = before_create_item(name, self, self.multiworld, self.player)
 
         item = self.item_name_to_item[name]
+        classification: ItemClassification = ItemClassification.filler
         if class_override is not None:
             classification = class_override
-        else:
-            classification = ItemClassification.filler
 
-            if "trap" in item and item["trap"]:
+        elif item.get("classification_count"):
+            # This should only be run if create_item is called outside of create_items
+            not_prog_classes: list[ItemClassification] = []
+            progression_classes: list[ItemClassification] = []
+            for cat, count in item["classification_count"].items():
+                if count:
+                    true_class = convert_string_to_itemclassification(cat)
+                    if ItemClassification.progression in true_class:
+                        progression_classes.append(true_class)
+                    else:
+                        not_prog_classes.append(true_class)
+            if progression_classes:
+                classification |= self.random.choice(progression_classes)
+            elif not_prog_classes:
+                classification |= not_prog_classes[0]
+
+        else:
+            if item.get("trap"):
                 classification |= ItemClassification.trap
 
-            if "useful" in item and item["useful"]:
+            if item.get("useful"):
                 classification |= ItemClassification.useful
 
-            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            if item.get("progression_skip_balancing"):
                 classification |= ItemClassification.progression_skip_balancing
-            elif "progression" in item and item["progression"]:
+            elif item.get("progression"):
                 classification |= ItemClassification.progression
 
         item_object = ManualItem(name, classification,
