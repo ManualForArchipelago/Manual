@@ -343,11 +343,10 @@ class DataValidation():
 
     @staticmethod
     def checkForMissingItemNames():
-        for item in DataValidation.item_table:
-            missing_name_count = len([i for i in DataValidation.item_table if not i.get("name")])
+        missing_name_count = len([i for i in DataValidation.item_table if not i.get("name")])
 
-            if missing_name_count > 0:
-                raise ValidationError("At least one of your items is missing the 'name' field.")
+        if missing_name_count > 0:
+            raise ValidationError("At least one of your items is missing the 'name' field.")
 
     @staticmethod
     def checkForDuplicateItemNames():
@@ -359,11 +358,10 @@ class DataValidation():
 
     @staticmethod
     def checkForMissingLocationNames():
-        for item in DataValidation.location_table:
-            missing_name_count = len([l for l in DataValidation.location_table if not l.get("name")])
+        missing_name_count = len([l for l in DataValidation.location_table if not l.get("name")])
 
-            if missing_name_count > 0:
-                raise ValidationError("At least one of your locations is missing the 'name' field.")
+        if missing_name_count > 0:
+            raise ValidationError("At least one of your locations is missing the 'name' field.")
 
     @staticmethod
     def checkForDuplicateLocationNames():
