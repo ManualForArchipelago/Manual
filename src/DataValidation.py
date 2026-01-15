@@ -3,7 +3,7 @@ import re
 import json
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, ItemClassification
-from typing import Any
+from typing import Any, Counter
 
 from .Helpers import convert_string_to_itemclassification
 
@@ -350,11 +350,21 @@ class DataValidation():
 
     @staticmethod
     def checkForDuplicateItemNames():
+        names: Counter[str] = Counter()
+        problems: list[str] = []
         for item in DataValidation.item_table:
-            name_count = len([i for i in DataValidation.item_table if i.get("name") and i.get("name") == item.get("name")])
-
-            if name_count > 1:
-                raise ValidationError("Item %s is defined more than once." % (item.get("name")))
+            name = item.get("name")
+            if name is not None:
+                # Counter don't require checking that the key exists
+                names[name] += 1
+                if names[name] > 1:
+                    problems.append(name)
+        if problems:
+            if len(problems) == 1:
+                raise ValidationError(f"Item {problems[0]} is defined more than once.")
+            else:
+                separator = '", "'
+                raise ValidationError(f"The following Items are defined more than once.\n   \"{separator.join(problems)}\"")
 
     @staticmethod
     def checkForMissingLocationNames():
@@ -365,11 +375,21 @@ class DataValidation():
 
     @staticmethod
     def checkForDuplicateLocationNames():
+        names: Counter[str] = Counter()
+        problems: list[str] = []
         for location in DataValidation.location_table:
-            name_count = len([l for l in DataValidation.location_table if l.get("name") and l.get("name") == location.get("name")])
-
-            if name_count > 1:
-                raise ValidationError("Location %s is defined more than once." % (location["name"]))
+            name = location.get("name")
+            if name is not None:
+                # Counter don't require checking that the key exists
+                names[name] += 1
+                if names[name] > 1:
+                    problems.append(name)
+        if problems:
+            if len(problems) == 1:
+                raise ValidationError(f"Location {problems[0]} is defined more than once.")
+            else:
+                separator = '", "'
+                raise ValidationError(f"The following Locations are defined more than once.\n   \"{separator.join(problems)}\"")
 
     @staticmethod
     def checkForInvalidRegionNames():
