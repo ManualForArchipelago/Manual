@@ -416,7 +416,7 @@ def OptOne(world: "ManualWorld", item: str) -> str:
     if item == "":
         return "" #Skip this function if item is left blank
 
-    items_counts = world.item_counts_progression[world.player]
+    items_counts = world.get_item_counts(only_progression=True)
 
     require_category = False
 
