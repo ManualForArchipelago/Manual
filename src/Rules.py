@@ -10,7 +10,7 @@ from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
-from Options import Choice, Toggle, Range, NamedRange
+from Options import Choice, Toggle, Range, NamedRange, NumericOption
 
 import re
 import math
@@ -408,20 +408,20 @@ def ItemValue(state: CollectionState, player: int, valueCount: str):
 
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: "ManualWorld", item: str, items_counts: Optional[dict] = None):
+def OptOne(world: "ManualWorld", item: str) -> str:
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
     """
     if item == "":
         return "" #Skip this function if item is left blank
-    if not items_counts:
-        items_counts = world.get_item_counts(only_progression=True)
 
-    require_type = 'item'
+    items_counts = world.get_item_counts(only_progression=True)
+
+    require_category = False
 
     if '@' in item[:2]:
-        require_type = 'category'
+        require_category = True
 
     item = item.lstrip('|@$').rstrip('|')
 
@@ -433,44 +433,35 @@ def OptOne(world: "ManualWorld", item: str, items_counts: Optional[dict] = None)
         item_name = item_parts[0]
         item_count = item_parts[1]
 
-    if require_type == 'category':
+    if require_category:
         if item_count.isnumeric():
             #Only loop if we can use the result to clamp
             category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
             category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
             item_count = clamp(int(item_count), 0, category_items_counts)
         return f"|@{item_name}:{item_count}|"
-    elif require_type == 'item':
+    else:
         if item_count.isnumeric():
             item_current_count = items_counts.get(item_name, 0)
             item_count = clamp(int(item_count), 0, item_current_count)
         return f"|{item_name}:{item_count}|"
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
-def OptAll(world: "ManualWorld", requires: str):
+def OptAll(world: "ManualWorld", requires: str) -> bool|str:
     """Check the passed require string and loop every item to check if they're enabled,
     then returns the require string with items counts adjusted using OptOne\n
     eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
     become "|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|" """
     requires_list = requires
 
-    items_counts = world.get_item_counts(only_progression=True)
-
-    functions = {}
     if requires_list == "":
         return True
-    for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
-        #so this function doesn't try to get item from other functions, in theory.
-        func_name = item[0]
-        functions[func_name] = item[1]
-        requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "{" + func_name + "(temp)}")
+
     # parse user written statement into list of each item
     for item in re.findall(r'\|[^|]+\|', requires):
-        itemScanned = OptOne(world, item, items_counts)
+        itemScanned = OptOne(world, item)
         requires_list = requires_list.replace(item, itemScanned)
 
-    for function in functions:
-        requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
     return requires_list
 
 # going to be deprecated to name consistently to other req functions, in pascal case
@@ -479,11 +470,32 @@ def canReachLocation(state: CollectionState, player: int, location: str):
     return CanReachLocation(state, player, location)
 
 # Rule to expose the can_reach_location core function
-def CanReachLocation(state: CollectionState, player: int, location: str):
+def CanReachLocation(state: CollectionState, player: int, location: str) -> bool:
     """Can the player reach the given location?"""
     if state.can_reach_location(location, player):
         return True
     return False
+
+def OptionCount(world: "ManualWorld", item: str, option_name: str) -> str:
+    """Set the required count of 'item' to be the value set in the player's yaml of the Numerical option 'option_name'."""
+    return _optionCountLogic(world, item, option_name )
+
+def OptionCountPercent(world: "ManualWorld", item: str, option_name: str) -> str:
+    """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Numerical option 'option_name'."""
+    return _optionCountLogic(world, item, option_name, is_percent=True)
+
+def _optionCountLogic(world: "ManualWorld", item: str, option_name: str, is_percent: bool = False) -> str:
+    option_name = option_name.strip()
+    option: NumericOption | None = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"Could not find an option named: {option_name}")
+
+    # Verification that the value is compatible
+    if not isinstance(option.value, int):
+        raise ValueError(f"Cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
+
+    item = item.strip('|').strip()
+    return f"|{item}:{option.value}{'%' if is_percent else ''}|"
 
 def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
