@@ -95,7 +95,7 @@
             "if": {"properties": { "type": {"const": "Toggle"}}},
             "then": {
                 "properties": {
-                    "default": { "$ref": "#/definitions/DefaultToggle"}
+                    "default": { "$ref": "#/definitions/DefaultBool"}
                 },
                 "required": ["default", "type"]
             },
@@ -194,12 +194,12 @@
             "allOf": [{"$ref": "#/definitions/SpecialRangeNames_base"}]
         },
         "DefaultInt": {
-            "description": "(Optional) The default integer value of this option",
+            "description": "(Optional) The default integer value of this option, used with Choice and Range",
             "type": "integer",
             "default": 0
         },
-        "DefaultToggle": {
-            "description": "The default value of this Toggle",
+        "DefaultBool": {
+            "description": "(Optional) The default boolean value of this option, used with Toggle",
             "type": "boolean",
             "default": false
         },

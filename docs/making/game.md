@@ -19,7 +19,7 @@ The [example world](/src/data/) covers every use of it, so here's a breakdown of
 ```json
 {
     "game": "UltimateMarvelVsCapcom3",
-    "player": "ManualTeam",
+    "creator": "ManualTeam",
 
     "filler_item_name": "Free Character of Your Choice",
 

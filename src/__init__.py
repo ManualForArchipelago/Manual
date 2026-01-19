@@ -8,18 +8,18 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, category_table
+from .Data import item_table, location_table, event_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld, enable_region_diagram
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
-from .Regions import create_regions
+from .Regions import create_regions, create_events
 from .Items import ManualItem
 from .Rules import set_rules
 from .Options import manual_options_data
-from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, convert_string_to_itemclassification, ProgItemsCat
 from .container import APManualFile
 
 from BaseClasses import CollectionState, ItemClassification, Item
@@ -34,8 +34,7 @@ from .hooks.World import \
     before_generate_basic, after_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
     before_extend_hint_information, after_extend_hint_information, \
-    after_collect_item, after_remove_item, before_generate_early
-from .hooks.Data import hook_interpret_slot_data
+    after_collect_item, after_remove_item, before_generate_early, hook_interpret_slot_data
 
 class ManualWorld(World):
     __doc__ = world_description
@@ -49,6 +48,7 @@ class ManualWorld(World):
     # These properties are set from the imports of the same name above.
     item_table = item_table
     location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+    event_table = event_table
     category_table = category_table
 
     item_id_to_name = item_id_to_name
@@ -68,24 +68,20 @@ class ManualWorld(World):
     location_name_groups = location_name_groups
     victory_names = victory_names
 
+    event_name_to_event = event_name_to_event
+
     # UT (the universal-est of trackers) can now generate without a YAML
-    ut_can_gen_without_yaml = False  # Temporary disable until we fix the bugs with it
+    ut_can_gen_without_yaml = True
 
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
-    def interpret_slot_data(self, slot_data: dict[str, Any]):
+    def interpret_slot_data(self, slot_data: dict[str, Any]) -> dict[str, Any]:
         #this is called by tools like UT
         if not slot_data:
-            return False
+            return {}
 
-        regen = False
-        for key, value in slot_data.items():
-            if key in self.options_dataclass.type_hints:
-                getattr(self.options, key).value = value
-                regen = True
-
-        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        regen = hook_interpret_slot_data(self, self.player, slot_data) or slot_data
         return regen
 
     @classmethod
@@ -94,11 +90,19 @@ class ManualWorld(World):
 
     def generate_early(self) -> None:
         before_generate_early(self, self.multiworld, self.player)
+        if hasattr(self.multiworld, "re_gen_passthrough"):
+            slot_data = self.multiworld.re_gen_passthrough.get(self.game, {})
+            if slot_data:
+                for key, value in slot_data.items():
+                    if hasattr(self.options, key):
+                        getattr(self.options, key).value = value
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
 
         create_regions(self, self.multiworld, self.player)
+
+        create_events(self, self.multiworld, self.player)
 
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
@@ -157,22 +161,7 @@ class ManualWorld(World):
                             if isinstance(cat, int):
                                 true_class = ItemClassification(cat)
                             else:
-                                def stringCheck(string: str) ->  ItemClassification:
-                                    if string.isdigit():
-                                        true_class = ItemClassification(int(string))
-                                    elif string.startswith('0b'):
-                                        true_class = ItemClassification(int(string, base=0))
-                                    else:
-                                        true_class = ItemClassification[string]
-                                    return true_class
-
-                                if "+" in cat:
-                                    true_class = ItemClassification.filler
-                                    for substring in cat.split("+"):
-                                        true_class |= stringCheck(substring.strip())
-
-                                else:
-                                    true_class = stringCheck(cat)
+                                true_class = convert_string_to_itemclassification(cat)
                         except Exception as ex:
                             raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 
@@ -278,23 +267,37 @@ class ManualWorld(World):
         name = before_create_item(name, self, self.multiworld, self.player)
 
         item = self.item_name_to_item[name]
+        classification: ItemClassification = ItemClassification.filler
         if class_override is not None:
             classification = class_override
+        elif item.get("classification_count"):
+            # This should only be run if create_item is called outside of create_items
+            not_prog_classes: list[ItemClassification] = []
+            progression_classes: list[ItemClassification] = []
+            for cat, count in item["classification_count"].items():
+                if count:
+                    true_class = convert_string_to_itemclassification(cat)
+                    if ItemClassification.progression in true_class:
+                        progression_classes.append(true_class)
+                    else:
+                        not_prog_classes.append(true_class)
+            if progression_classes:
+                classification |= self.random.choice(progression_classes)
+            elif not_prog_classes:
+                classification |= not_prog_classes[0]
         else:
-            classification = ItemClassification.filler
-
-            if "classification" in item and item["classification"]:
+            if item.get("classification"):
                 classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification.strip()] for str_classification in item["classification"].split(",")})
 
-            if "trap" in item and item["trap"]:
+            if item.get("trap"):
                 classification |= ItemClassification.trap
 
-            if "useful" in item and item["useful"]:
+            if item.get("useful"):
                 classification |= ItemClassification.useful
 
-            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+            if item.get("progression_skip_balancing"):
                 classification |= ItemClassification.progression_skip_balancing
-            elif "progression" in item and item["progression"]:
+            elif item.get("progression"):
                 classification |= ItemClassification.progression
 
         item_object = ManualItem(name, classification,
@@ -418,6 +421,15 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
+
+        slot_data["visible_events"] = {}
+        for _, event in self.event_name_to_event.items():
+            event_name = event["name"]
+            if event["visible"] and event_name not in slot_data["visible_events"]:
+                slot_data["visible_events"][event_name] = event.get("category", [])
+            elif event_name in slot_data["visible_events"]:
+                temp_list = event.get("category", []) + slot_data["visible_events"][event_name]
+                slot_data["visible_events"][event_name] = list(set(temp_list))
 
         slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
 
@@ -554,7 +566,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2025_11_30 # YYYYMMDD
+    version = 2026_01_02 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

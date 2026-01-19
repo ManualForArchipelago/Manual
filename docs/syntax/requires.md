@@ -1,4 +1,4 @@
-# Requires for Locations and Regions
+# Requires for Locations, Regions, and Events
 
 _Let's start with the bad:_
 
@@ -138,6 +138,26 @@ Requires an item only if that item exists.  Useful if an item might have been di
 Takes an entire requires string, and applies the above check to each item inside it.
 
 For example, `requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"` will be transformed into `"|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|"`
+
+### `OptionCount(item_name, option_name)` and `OptionCountPercent(item_name, option_name)`
+
+Returns an Item string where the required count is decided by the option's value in the yaml.  
+OptionCount returns just the count while OptionCountPercent will add the `%` so it requires a percentage of total copies of 'item_name'  
+Both supports adding a `@` for categories  
+
+Any Options that return a numerical value is supported EX: Range, Choice (but not if allow_custom_value is set to true)
+
+For example,
+
+```json
+"requires": "{OptionCount(Potato, Example_Range)} and {OptionCountPercent(@Ducks, Example_range_to_100)}"
+```
+
+Will becomes the following in generation if Example_Range's value is 3 and Example_range_to_100's value is 55:
+
+```json
+"requires": "|Potato:3| and |@Ducks:55%|"
+```
 
 ### `YamlEnabled(option_name)` and `YamlDisabled(option_name)`
 
