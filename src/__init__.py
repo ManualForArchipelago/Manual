@@ -1,3 +1,4 @@
+from functools import reduce
 import logging
 import os
 from typing import Callable, Optional, ClassVar, Counter, Any
@@ -269,7 +270,6 @@ class ManualWorld(World):
         classification: ItemClassification = ItemClassification.filler
         if class_override is not None:
             classification = class_override
-
         elif item.get("classification_count"):
             # This should only be run if create_item is called outside of create_items
             not_prog_classes: list[ItemClassification] = []
@@ -285,8 +285,10 @@ class ManualWorld(World):
                 classification |= self.random.choice(progression_classes)
             elif not_prog_classes:
                 classification |= not_prog_classes[0]
-
         else:
+            if item.get("classification"):
+                classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification.strip()] for str_classification in item["classification"].split(",")})
+
             if item.get("trap"):
                 classification |= ItemClassification.trap
 
