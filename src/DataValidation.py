@@ -1,3 +1,4 @@
+from functools import reduce
 import logging
 import re
 import json
@@ -217,6 +218,13 @@ class DataValidation():
             # progression_skip_balancing is also progression, so no check needed
             if item.get("progression_skip_balancing"):
                 continue
+
+            # if the string classification contains progresion then no check needed
+            if item.get("classification"):
+                classification = reduce((lambda a, b: a | b), {ItemClassification[str_classification.strip()] for str_classification in item["classification"].split(",")})
+                if ItemClassification.progression in classification:
+                    continue
+
             # if any of the advanced type is already progression then no check needed
             if item.get("classification_count"):
                 has_progression = False
