@@ -119,12 +119,8 @@ def is_item_enabled(multiworld: MultiWorld, player: int, item: dict[str, Any]) -
     hook_result = before_is_item_enabled(multiworld, player, item)
     if hook_result is not None:
         return hook_result
-    
-    try_resolve = resolve_yaml_option(multiworld, player, item)
-    if try_resolve is None:
-        return _is_manualobject_enabled(multiworld, player, item)
-    else:
-        return try_resolve
+
+    return _is_manualobject_enabled(multiworld, player, item)
 
 def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name: str) -> bool:
     """Check if a location named 'location_name' has been disabled by a yaml option."""
@@ -139,12 +135,8 @@ def is_location_enabled(multiworld: MultiWorld, player: int, location: dict[str,
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
         return hook_result
-    
-    try_resolve = resolve_yaml_option(multiworld, player, location)
-    if try_resolve is None:
-        return _is_manualobject_enabled(multiworld, player, location)
-    else:
-        return try_resolve
+
+    return _is_manualobject_enabled(multiworld, player, location)
 
 def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[str, Any]) -> bool:
     """Internal method: Check if a Manual Object has any category disabled by a yaml option.
@@ -154,7 +146,12 @@ def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[s
         resolve = is_category_enabled(multiworld, player, category)
         if resolve == False:
             return False
-            
+
+    try_resolve = resolve_yaml_option(multiworld, player, object)
+
+    if try_resolve is not None:
+        return try_resolve
+
     return True
 
 def get_items_for_player(multiworld: MultiWorld, player: int, includePrecollected: bool = False) -> List[Item]:
