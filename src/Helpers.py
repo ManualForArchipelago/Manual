@@ -6,7 +6,6 @@ import re
 
 from BaseClasses import MultiWorld, Item, ItemClassification
 from Options import Option
-from copy import deepcopy
 from enum import IntEnum
 from typing import Optional, List, Union, get_args, get_origin, Any
 from types import GenericAlias
@@ -61,10 +60,9 @@ def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str)
         return hook_result
 
     category_data = multiworld.worlds[player].category_table.get(category_name, {})
-    resolve_option = resolve_yaml_option(multiworld, player, category_data)
-    return resolve_option or resolve_option is None
+    return resolve_yaml_option(multiworld, player, category_data)
 
-def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool| None:
+def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
             eval_1 = lambda x, t: x.value
@@ -107,7 +105,7 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
             if not eval_2(option, target_eval):
                 return False
         return True
-    return None
+    return True
 
 def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) -> bool:
     """Check if an item named 'item_name' has been disabled by a yaml option."""
@@ -150,10 +148,8 @@ def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[s
         if resolve == False:
             return False
 
-    try_resolve = resolve_yaml_option(multiworld, player, object)
-
-    if try_resolve is not None:
-        return try_resolve
+    if object.get("yaml_option") and not resolve_yaml_option(multiworld, player, object):
+        return False
 
     return True
 
