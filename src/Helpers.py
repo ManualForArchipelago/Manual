@@ -5,6 +5,7 @@ import json
 import re
 
 from BaseClasses import MultiWorld, Item, ItemClassification
+from Options import Option
 from copy import deepcopy
 from enum import IntEnum
 from typing import Optional, List, Union, get_args, get_origin, Any
@@ -63,11 +64,11 @@ def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str)
     resolve_option = resolve_yaml_option(multiworld, player, category_data)
     return resolve_option or resolve_option is None
 
-def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
+def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool| None:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
             eval_1 = lambda x, t: x.value
-            target = 1
+            target = "1"
             if "<=" in option_name:
                 option_name, target = option_name.split("<=")
                 eval_1 = lambda x, t: x.value <= t
@@ -94,9 +95,11 @@ def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool
                 eval_2 = lambda x, t: not eval_1(x, t)
             else:
                 eval_2 = eval_1
-                
+
             option_name = format_to_valid_identifier(option_name)
-            option = getattr(multiworld.worlds[player].options, option_name, None)
+            option: Option | None = getattr(multiworld.worlds[player].options, option_name, None)
+            if option is None:
+                raise ValueError(f"option {option_name} is myspelt or invalid")
             try:
                 target_eval = int(target)
             except ValueError:
