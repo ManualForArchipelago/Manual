@@ -1,7 +1,8 @@
 
 from BaseClasses import Tutorial
+from enum import Enum
 from worlds.AutoWorld import World, WebWorld
-from .Data import meta_table
+from .Data import game_table, meta_table
 from .Helpers import convert_to_long_string
 
 ##############
@@ -52,7 +53,7 @@ def set_world_webworld(web: WebWorld) -> WebWorld:
                     tutorial.get("language", "English"),
                     tutorial.get("file_name", "setup_en.md"),
                     tutorial.get("link", "setup/en"),
-                    tutorial.get("authors", [meta_table.get("creator", meta_table.get("player", "Unknown"))])
+                    tutorial.get("authors", [game_table.get("creator")])
                 ))
             web.tutorials = tutorials
     return web

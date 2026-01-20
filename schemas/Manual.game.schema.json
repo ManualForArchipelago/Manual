@@ -12,11 +12,6 @@
             "description": "The name of your game, compatible with capital letters.",
             "type": "string"
         },
-        "player": {
-            "description": "Deprecated use 'creator' instead",
-            "type": "string",
-            "deprecated": true
-        },
         "creator": {
             "description": "Your Username.",
             "type": "string"
@@ -44,11 +39,7 @@
         },
         "_comment": {"$ref": "#/definitions/comment"}
     },
-    "required":["game", "filler_item_name"],
-    "oneOf":[
-        {"required":["creator"]},
-        {"required":["player"]}
-    ],
+    "required":["game", "creator", "filler_item_name"],
     "definitions": {
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",

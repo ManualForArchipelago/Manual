@@ -109,8 +109,13 @@
                     "minItems": 1,
                     "uniqueItems": true
                 },
+                "sort-key": {
+                    "description": "(Optional) A string to sort the locations by. If not provided, locations will always be sorted by name.",
+                    "type": "string"
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
-            }
+            },
+            "required": ["name"]
         },
         "Require": {
             "type": ["string", "array", "object"],

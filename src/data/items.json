@@ -2,13 +2,20 @@
     "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.items.schema.json",
     "data": [
         {
+            "name": "Item Name for OptionCount Example",
+            "count": 5,
+            "progression": true
+        },
+        {
             "name": "Jill",
             "category": [
                 "Characters",
                 "Left Side"
             ],
             "value": {"star": 5, "coins": 3},
-            "progression": true
+            "sort-key": "row-0-1",
+            "classification_count": {"useful + progression": 1, "useful": 1},
+            "_comment": "In this example a copy of the 'Jill' item will be created that is useful & progression and another will be created just useful"
         },
         {
             "name": "Shuma-Gorath",
@@ -17,7 +24,8 @@
                 "Right Side"
             ],
             "value": {"star": 5},
-            "progression": true
+            "progression": true,
+            "sort-key": "row-0-8"
         },
         {
             "name": "Nemesis T-Type",
@@ -26,7 +34,8 @@
                 "Left Side"
             ],
             "value": {"coins": 7},
-            "progression": true
+            "progression": true,
+            "sort-key": "row-1-1"
         },
         {
             "name": "Firebrand",
@@ -34,7 +43,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-1-2"
         },
         {
             "name": "Strider Hiryu",
@@ -43,7 +53,8 @@
                 "Left Side"
             ],
             "progression": true,
-            "yaml_option": ["!Example_Toggle"]
+            "yaml_option": ["!Example_Toggle"],
+            "sort-key": "row-1-3"
         },
         {
             "name": "Phoenix Wright",
@@ -52,7 +63,8 @@
                 "Left Side"
             ],
             "progression": true,
-            "yaml_option": ["Example_Choice=start"]
+            "yaml_option": ["Example_Choice=start"],
+            "sort-key": "row-1-4"
         },
         {
             "name": "Nova",
@@ -61,7 +73,8 @@
                 "Right Side"
             ],
             "progression": true,
-            "yaml_option": ["Example_Range<5"]
+            "yaml_option": ["Example_Range<5"],
+            "sort-key": "row-1-5"
         },
         {
             "name": "Ghost Rider",
@@ -69,7 +82,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-1-6"
         },
         {
             "name": "Hawkeye",
@@ -77,7 +91,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-1-7"
         },
         {
             "name": "Doctor Strange",
@@ -85,7 +100,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-1-8"
         },
         {
             "name": "Chris",
@@ -93,7 +109,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-1"
         },
         {
             "name": "Arthur",
@@ -101,7 +118,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-2"
         },
         {
             "name": "Frank West",
@@ -109,7 +127,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-3"
         },
         {
             "name": "Vergil",
@@ -117,7 +136,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-4"
         },
         {
             "name": "Iron Fist",
@@ -125,7 +145,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-5"
         },
         {
             "name": "Rocket Raccoon",
@@ -133,7 +154,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-6"
         },
         {
             "name": "Captain America",
@@ -141,7 +163,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-7"
         },
         {
             "name": "Dormammu",
@@ -149,7 +172,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-2-8"
         },
         {
             "name": "Wesker",
@@ -157,7 +181,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-1"
         },
         {
             "name": "Zero",
@@ -165,7 +190,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-2"
         },
         {
             "name": "Ryu",
@@ -173,7 +199,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-3"
         },
         {
             "name": "Dante",
@@ -181,7 +208,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-4"
         },
         {
             "name": "Deadpool",
@@ -189,7 +217,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-5"
         },
         {
             "name": "Wolverine",
@@ -197,7 +226,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-6"
         },
         {
             "name": "Iron Man",
@@ -205,7 +235,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-7"
         },
         {
             "name": "Doctor Doom",
@@ -213,7 +244,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-3-8"
         },
         {
             "name": "Morrigan",
@@ -221,7 +253,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-1"
         },
         {
             "name": "Tron",
@@ -229,7 +262,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-2"
         },
         {
             "name": "Chun-Li",
@@ -237,7 +271,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-3"
         },
         {
             "name": "Trish",
@@ -245,7 +280,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-4"
         },
         {
             "name": "X-23",
@@ -253,7 +289,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-5"
         },
         {
             "name": "Storm",
@@ -261,7 +298,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-6"
         },
         {
             "name": "Thor",
@@ -269,7 +307,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-7"
         },
         {
             "name": "M.O.D.O.K.",
@@ -277,7 +316,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-4-8"
         },
         {
             "name": "Felicia",
@@ -285,7 +325,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-1"
         },
         {
             "name": "Spencer",
@@ -293,7 +334,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-2"
         },
         {
             "name": "Akuma",
@@ -301,7 +343,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-3"
         },
         {
             "name": "Viewtiful Joe",
@@ -309,7 +352,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-4"
         },
         {
             "name": "Spider-Man",
@@ -317,7 +361,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-5"
         },
         {
             "name": "Sentinel",
@@ -325,7 +370,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-6"
         },
         {
             "name": "Hulk",
@@ -333,7 +379,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-7"
         },
         {
             "name": "Super-Skrull",
@@ -341,7 +388,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-5-8"
         },
         {
             "name": "Hsien-Ko",
@@ -350,7 +398,8 @@
                 "Left Side",
                 "Trash"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-1"
         },
         {
             "name": "Haggar",
@@ -358,7 +407,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-2"
         },
         {
             "name": "C. Viper",
@@ -366,7 +416,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-3"
         },
         {
             "name": "Amaterasu",
@@ -374,7 +425,8 @@
                 "Characters",
                 "Left Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-4"
         },
         {
             "name": "Phoenix",
@@ -382,7 +434,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-5"
         },
         {
             "name": "Magneto",
@@ -390,7 +443,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-6"
         },
         {
             "name": "She-Hulk",
@@ -398,7 +452,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-7"
         },
         {
             "name": "Taskmaster",
@@ -406,7 +461,8 @@
                 "Characters",
                 "Right Side"
             ],
-            "progression": true
+            "progression": true,
+            "sort-key": "row-6-8"
         }
     ]
 }

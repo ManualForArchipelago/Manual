@@ -1,13 +1,16 @@
 from typing import TYPE_CHECKING, Optional
 from enum import IntEnum
+from operator import eq, ge, le
 
 from .Regions import regionMap
 from .hooks import Rules
-from .Helpers import clamp, is_item_enabled, get_items_with_value, is_option_enabled, get_option_value, convert_string_to_type, format_to_valid_identifier
+from .Helpers import clamp, is_item_enabled, is_option_enabled, get_option_value, convert_string_to_type,\
+    format_to_valid_identifier, format_state_prog_items_key, ProgItemsCat
 
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
+from Options import Choice, Toggle, Range, NamedRange, NumericOption
 
 import re
 import math
@@ -104,7 +107,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         requires_list = area["requires"]
 
         # Get the "real" item counts of item in the pool/placed/starting_items
-        items_counts = world.get_item_counts(player)
+        items_counts = world.get_item_counts(player, only_progression=True)
 
         # Preparing some variables for exception messages
         area_type = "region" if area.get("is_region",False) else "location"
@@ -135,9 +138,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         if not callable(func):
                             raise ValueError(f'Invalid function "{func_name}" in {area_type} "{area_name}".')
 
-                        convert_req_function_args(func, func_args, area_name)
+                        convert_req_function_args(state, func, func_args, area_name)
                         try:
-                            result = func(world, multiworld, state, player, *func_args)
+                            result = func(*func_args)
                         except Exception as ex:
                             raise RuntimeError(f'A call to the function "{func_name}" in {area_type} "{area_name}"\'s requires raised an Exception. \
                                                 \nUnless it was called by another function, it should look something like "{{{func_name}({item[1]})}}" in {area_type}s.json. \
@@ -176,6 +179,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             if require_type == 'category':
                 category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
+                category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
                 category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
                 if item_count.lower() == 'all':
                     item_count = category_items_counts
@@ -215,8 +219,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             if total <= item_count:
                 requires_list = requires_list.replace(item_base, "0")
 
-        requires_list = re.sub(r'\s?\bAND\b\s?', '&', requires_list, 0, re.IGNORECASE)
-        requires_list = re.sub(r'\s?\bOR\b\s?', '|', requires_list, 0, re.IGNORECASE)
+        requires_list = re.sub(r'\s?\bAND\b\s?', '&', requires_list, count=0, flags=re.IGNORECASE)
+        requires_list = re.sub(r'\s?\bOR\b\s?', '|', requires_list, count=0, flags=re.IGNORECASE)
 
         requires_string = infix_to_postfix("".join(requires_list), area)
         return (evaluate_postfix(requires_string, area))
@@ -283,8 +287,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     for region in regionMap.keys():
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         if region != "Menu":
-            for exitRegion in multiworld.get_region(region, player).exits:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region]):
+            for exitRegion in multiworld.get_region(region, player).entrances:
+                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
+                    region['name'] = region_name
+                    region['is_region'] = True
+
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
@@ -298,11 +305,15 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 add_rule(exit, lambda state, rule={"requires": exit_rules[e]}: fullLocationOrRegionCheck(state, rule))
 
     # Location access rules
-    for location in world.location_table:
-        if location["name"] not in used_location_names:
+    for location in (world.location_table + world.event_table):
+        if "location_name" in location:
+            name = location["location_name"]
+        elif location["name"] not in used_location_names:
             continue
+        else:
+            name = location["name"]
 
-        locFromWorld = multiworld.get_location(location["name"], player)
+        locFromWorld = multiworld.get_location(name, player)
 
         locationRegion = regionMap[location["region"]] if "region" in location else None
 
@@ -335,15 +346,24 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(func, args: list[str], areaName: str):
+    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
         parameters = inspect.signature(func).parameters
-        knownParameters = ["world", "multiworld", "state", "player"]
+        knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
         index = -1
         for parameter in parameters.values():
-            if parameter.name in knownParameters:
-                continue
-            index += 1
             target_type = parameter.annotation
+            index += 1
+            if target_type in knownParameters:
+                if target_type in [World, 'ManualWorld']:
+                    args.insert(index, world)
+                elif target_type == MultiWorld:
+                    args.insert(index, multiworld)
+                elif target_type == CollectionState:
+                    args.insert(index, state)
+                continue
+            if parameter.name.lower() == "player":
+                args.insert(index, player)
+                continue
 
             if index < len(args) and args[index] != "":
                 value = args[index].strip()
@@ -351,6 +371,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if parameter.default is not inspect.Parameter.empty:
                     if index < len(args):
                         args[index] = parameter.default
+                    else:
+                        args.insert(index, parameter.default)
                     continue
                 else:
                     if parameter.annotation is inspect.Parameter.empty:
@@ -371,63 +393,35 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             args[index] = value
 
 
-def ItemValue(world: World, multiworld: MultiWorld, state: CollectionState, player: int, valueCount: str, skipCache: bool = False):
+def ItemValue(state: CollectionState, player: int, valueCount: str):
     """When passed a string with this format: 'valueName:int',
     this function will check if the player has collect at least 'int' valueName worth of items\n
-    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items\n
-    You can add a second string argument to disable creating/checking the cache like this:
-    '{ItemValue(Coins:12,Disable)}' it can be any string you want
+    eg. {ItemValue(Coins:12)} will check if the player has collect at least 12 coins worth of items
     """
 
-    valueCount = valueCount.split(":")
-    if not len(valueCount) == 2 or not valueCount[1].isnumeric():
-        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({valueCount[0]}:12)'")
-    value_name = valueCount[0].lower().strip()
-    requested_count = int(valueCount[1].strip())
+    args: list[str] = valueCount.split(":")
+    if not len(args) == 2 or not args[1].isnumeric():
+        raise Exception(f"ItemValue needs a number after : so it looks something like 'ItemValue({args[0]}:12)'")
+    value_name = format_state_prog_items_key(ProgItemsCat.VALUE, args[0])
+    requested_count = int(args[1].strip())
+    return state.has(value_name, player, requested_count)
 
-    if not hasattr(world, 'itemvalue_rule_cache'): #Cache made for optimization purposes
-        world.itemvalue_rule_cache = {}
-
-    if not world.itemvalue_rule_cache.get(player, {}):
-        world.itemvalue_rule_cache[player] = {}
-
-    if not skipCache:
-        if not world.itemvalue_rule_cache[player].get(value_name, {}):
-            world.itemvalue_rule_cache[player][value_name] = {
-                'state': {},
-                'count': -1,
-                }
-
-    if (skipCache or world.itemvalue_rule_cache[player][value_name].get('count', -1) == -1
-            or world.itemvalue_rule_cache[player][value_name].get('state') != dict(state.prog_items[player])):
-        # Run First Time, if state changed since last check or if skipCache has a value
-        existing_item_values = get_items_with_value(world, multiworld, value_name)
-        total_Count = 0
-        for name, value in existing_item_values.items():
-            count = state.count(name, player)
-            if count > 0:
-                total_Count += count * value
-        if skipCache:
-            return total_Count >= requested_count
-        world.itemvalue_rule_cache[player][value_name]['count'] = total_Count
-        world.itemvalue_rule_cache[player][value_name]['state'] = dict(state.prog_items[player])
-    return world.itemvalue_rule_cache[player][value_name]['count'] >= requested_count
 
 # Two useful functions to make require work if an item is disabled instead of making it inaccessible
-def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player: int, item: str, items_counts: Optional[dict] = None):
+def OptOne(world: "ManualWorld", item: str) -> str:
     """Check if the passed item (with or without ||) is enabled, then this returns |item:count|
     where count is clamped to the maximum number of said item in the itempool.\n
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
     """
     if item == "":
         return "" #Skip this function if item is left blank
-    if not items_counts:
-        items_counts = world.get_item_counts()
 
-    require_type = 'item'
+    items_counts = world.get_item_counts(only_progression=True)
+
+    require_category = False
 
     if '@' in item[:2]:
-        require_type = 'category'
+        require_category = True
 
     item = item.lstrip('|@$').rstrip('|')
 
@@ -439,57 +433,185 @@ def OptOne(world: World, multiworld: MultiWorld, state: CollectionState, player:
         item_name = item_parts[0]
         item_count = item_parts[1]
 
-    if require_type == 'category':
+    if require_category:
         if item_count.isnumeric():
             #Only loop if we can use the result to clamp
             category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
             category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
             item_count = clamp(int(item_count), 0, category_items_counts)
         return f"|@{item_name}:{item_count}|"
-    elif require_type == 'item':
+    else:
         if item_count.isnumeric():
             item_current_count = items_counts.get(item_name, 0)
             item_count = clamp(int(item_count), 0, item_current_count)
         return f"|{item_name}:{item_count}|"
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
-def OptAll(world: World, multiworld: MultiWorld, state: CollectionState, player: int, requires: str):
+def OptAll(world: "ManualWorld", requires: str) -> bool|str:
     """Check the passed require string and loop every item to check if they're enabled,
     then returns the require string with items counts adjusted using OptOne\n
     eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
     become "|DisabledItem:0| and |@CategoryWithModifedCount:2| and |other items|" """
     requires_list = requires
 
-    items_counts = world.get_item_counts()
-
-    functions = {}
     if requires_list == "":
         return True
-    for item in re.findall(r'\{(\w+)\(([^)]*)\)\}', requires_list):
-        #so this function doesn't try to get item from other functions, in theory.
-        func_name = item[0]
-        functions[func_name] = item[1]
-        requires_list = requires_list.replace("{" + func_name + "(" + item[1] + ")}", "{" + func_name + "(temp)}")
+
     # parse user written statement into list of each item
     for item in re.findall(r'\|[^|]+\|', requires):
-        itemScanned = OptOne(world, multiworld, state, player, item, items_counts)
+        itemScanned = OptOne(world, item)
         requires_list = requires_list.replace(item, itemScanned)
 
-    for function in functions:
-        requires_list = requires_list.replace("{" + function + "(temp)}", "{" + func_name + "(" + functions[func_name] + ")}")
     return requires_list
 
+# going to be deprecated to name consistently to other req functions, in pascal case
+def canReachLocation(state: CollectionState, player: int, location: str):
+    logging.warning("The 'canReachLocation' requirement function is being renamed to 'CanReachLocation'. Use that instead, as the lowercase version will be deprecated.")
+    return CanReachLocation(state, player, location)
+
 # Rule to expose the can_reach_location core function
-def canReachLocation(world: World, multiworld: MultiWorld, state: CollectionState, player: int, location: str):
+def CanReachLocation(state: CollectionState, player: int, location: str) -> bool:
     """Can the player reach the given location?"""
     if state.can_reach_location(location, player):
         return True
     return False
 
-def YamlEnabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def OptionCount(world: "ManualWorld", item: str, option_name: str) -> str:
+    """Set the required count of 'item' to be the value set in the player's yaml of the Numerical option 'option_name'."""
+    return _optionCountLogic(world, item, option_name )
+
+def OptionCountPercent(world: "ManualWorld", item: str, option_name: str) -> str:
+    """Set the required count of 'item' to be a percentage of it total count based on the player's yaml value for Numerical option 'option_name'."""
+    return _optionCountLogic(world, item, option_name, is_percent=True)
+
+def _optionCountLogic(world: "ManualWorld", item: str, option_name: str, is_percent: bool = False) -> str:
+    option_name = option_name.strip()
+    option: NumericOption | None = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"Could not find an option named: {option_name}")
+
+    # Verification that the value is compatible
+    if not isinstance(option.value, int):
+        raise ValueError(f"Cannot use a value that is not a number. Got value of '{option.value}' from option {option_name}")
+
+    item = item.strip('|').strip()
+    return f"|{item}:{option.value}{'%' if is_percent else ''}|"
+
+def YamlEnabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option enabled?"""
     return is_option_enabled(multiworld, player, param)
 
-def YamlDisabled(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, param: str) -> bool:
+def YamlDisabled(multiworld: MultiWorld, player: int, param: str) -> bool:
     """Is a yaml option disabled?"""
     return not is_option_enabled(multiworld, player, param)
+
+def YamlCompare(world: "ManualWorld", multiworld: MultiWorld, state: CollectionState, player: int, args: str, skipCache: bool = False) -> bool:
+    """Is a yaml option's value compared using {comparator} to the requested value
+    \nFormat it like {YamlCompare(OptionName==value)}
+    \nWhere == can be any of the following: ==, !=, >=, <=, <, >
+    \nExample: {YamlCompare(Example_Range > 5)}"""
+    comp_symbols = { #Maybe find a better name for this
+        '==' : eq,
+        '!=' : eq, #complement of ==
+        '>=' : ge,
+        '<=' : le,
+        '=': eq, #Alternate to be like yaml_option
+        '<' : ge, #complement of >=
+        '>' : le, #complement of <=
+    }
+
+    reverse_result = False
+
+    #Find the comparator symbol to split the string with and for logs
+    if '==' in args:
+        comparator = '=='
+    elif '!=' in args:
+        comparator = '!='
+        reverse_result = True #complement of == thus reverse by default
+    elif '>=' in args:
+        comparator = '>='
+    elif '<=' in args:
+        comparator = '<='
+    elif '=' in args:
+        comparator = '='
+    elif '<' in args:
+        comparator = '<'
+        reverse_result = True #complement of >=
+    elif '>' in args:
+        comparator = '>'
+        reverse_result = True #complement of <=
+    else:
+        raise  ValueError(f"Could not find a valid comparator in given string '{args}', it must be one of {comp_symbols.keys()}")
+
+    option_name, value = args.split(comparator)
+
+    initial_option_name = str(option_name).strip() #For exception messages
+    option_name = format_to_valid_identifier(option_name)
+
+    # Detect !reversing of result like yaml_option
+    if option_name.startswith('!'):
+        reverse_result = not reverse_result
+        option_name = option_name.lstrip('!')
+        initial_option_name = initial_option_name.lstrip('!')
+
+    value = value.strip()
+
+    option = getattr(world.options, option_name, None)
+    if option is None:
+        raise ValueError(f"YamlCompare could not find an option called '{initial_option_name}' to compare against, its either missing on misspelt")
+
+    if not value: #empty string ''
+        raise ValueError(f"Could not find a valid value to compare against in given string '{args}'. \nThere must be a value to compare against after the comparator (in this case '{comparator}').")
+
+    if not skipCache: #Cache made for optimization purposes
+        cacheindex = option_name + '_' + comp_symbols[comparator].__name__ + '_' + format_to_valid_identifier(value.lower())
+
+        if not hasattr(world, 'yaml_compare_rule_cache'):
+            world.yaml_compare_rule_cache = dict[str,bool]()
+
+    if skipCache or world.yaml_compare_rule_cache.get(cacheindex, None) is None:
+        try:
+            if issubclass(type(option), Choice):
+                value = convert_string_to_type(value, str|int)
+                if isinstance(value, str):
+                    value = option.from_text(value).value
+
+            elif issubclass(type(option), Range):
+                if type(option).__base__ == NamedRange:
+                    value = convert_string_to_type(value, str|int)
+                    if isinstance(value, str):
+                        value = option.from_text(value).value
+
+                else:
+                    value = convert_string_to_type(value, int)
+
+            elif issubclass(type(option), Toggle):
+                value = int(convert_string_to_type(value, bool))
+
+            else:
+                raise ValueError(f"YamlCompare does not currently support Option of type {type(option)} \nAsk about it in #Manual-dev and it might be added.")
+
+        except KeyError as ex:
+            raise ValueError(f"YamlCompare failed to find the requested value in what the \"{initial_option_name}\" option supports.\
+                \nRaw error:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        except Exception as ex:
+            raise TypeError(f"YamlCompare failed to convert the requested value to what a {type(option).__base__.__name__} option supports.\
+                \nCaused By:\
+                \n\n{type(ex).__name__}:{ex}")
+
+        if isinstance(value, str) and comp_symbols[comparator].__name__ != 'eq':
+            #At this point if its still a string don't try and compare with strings using > < >= <=
+            raise ValueError(f'YamlCompare can only compare strings with one of the following: {[s for s, v in comp_symbols.items() if v.__name__ == "eq"]} and you tried to do: "{option.value} {comparator} {value}"')
+
+        result = comp_symbols[comparator](option.value, value)
+
+        if not skipCache:
+            world.yaml_compare_rule_cache[cacheindex] = result
+
+    else: #if exists and not skipCache
+        result = world.yaml_compare_rule_cache[cacheindex]
+
+    return not result if reverse_result else result
+
