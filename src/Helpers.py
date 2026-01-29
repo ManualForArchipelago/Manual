@@ -5,6 +5,7 @@ import json
 import re
 
 from BaseClasses import MultiWorld, Item, ItemClassification
+from Options import Option
 from enum import IntEnum
 from typing import Optional, List, Union, get_args, get_origin, Any
 from types import GenericAlias
@@ -53,26 +54,57 @@ def clamp(value, min, max):
         return value
 
 def is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> bool:
-    from .Data import category_table
     """Check if a category has been disabled by a yaml option."""
     hook_result = before_is_category_enabled(multiworld, player, category_name)
     if hook_result is not None:
         return hook_result
 
-    category_data = category_table.get(category_name, {})
+    category_data = multiworld.worlds[player].category_table.get(category_name, {})
     return resolve_yaml_option(multiworld, player, category_data)
 
 def resolve_yaml_option(multiworld: MultiWorld, player: int, data: dict) -> bool:
     if "yaml_option" in data:
         for option_name in data["yaml_option"]:
-            required = True
+            eval_1 = lambda x, t: x.value
+            target = "1"
+            if "<=" in option_name:
+                option_name, target = option_name.split("<=")
+                eval_1 = lambda x, t: x.value <= t
+            elif ">=" in option_name:
+                option_name, target = option_name.split(">=")
+                eval_1 = lambda x, t: x.value >= t
+            elif "!=" in option_name:
+                option_name, target = option_name.split("!=")
+                eval_1 = lambda x, t:  x.value != t
+            elif "==" in option_name:
+                option_name, target = option_name.split("==")
+                eval_1 = lambda x, t: x.value == t
+            elif "<" in option_name:
+                option_name, target = option_name.split("<")
+                eval_1 = lambda x, t: x.value < t
+            elif ">" in option_name:
+                option_name, target = option_name.split(">")
+                eval_1 = lambda x, t: x.value > t
+            elif "=" in option_name:
+                option_name, target = option_name.split("=")
+                eval_1 = lambda x, t: x.value == t
             if option_name.startswith("!"):
                 option_name = option_name[1:]
-                required = False
+                eval_2 = lambda x, t: not eval_1(x, t)
+            else:
+                eval_2 = eval_1
 
             option_name = format_to_valid_identifier(option_name)
-            if is_option_enabled(multiworld, player, option_name) != required:
+            option: Option | None = getattr(multiworld.worlds[player].options, option_name, None)
+            if option is None:
+                raise ValueError(f"option {option_name} is myspelt or invalid")
+            try:
+                target_eval = int(target)
+            except ValueError:
+                target_eval = option.options[target]
+            if not eval_2(option, target_eval):
                 return False
+        return True
     return True
 
 def is_item_name_enabled(multiworld: MultiWorld, player: int, item_name: str) -> bool:
@@ -111,13 +143,15 @@ def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[s
     """Internal method: Check if a Manual Object has any category disabled by a yaml option.
     \nPlease use the proper is_'item/location'_enabled or is_'item/location'_name_enabled methods instead.
     """
-    enabled = True
     for category in object.get("category", []):
-        if not is_category_enabled(multiworld, player, category):
-            enabled = False
-            break
+        resolve = is_category_enabled(multiworld, player, category)
+        if resolve == False:
+            return False
 
-    return enabled
+    if object.get("yaml_option") and not resolve_yaml_option(multiworld, player, object):
+        return False
+
+    return True
 
 def get_items_for_player(multiworld: MultiWorld, player: int, includePrecollected: bool = False) -> List[Item]:
     """Return list of items of a player including placed items"""

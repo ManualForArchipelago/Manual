@@ -100,6 +100,15 @@
                     "description": "(Optional) Skips the item ID forward to the given value.\nThis can be used to provide buffer space for future items.",
                     "type": "integer"
                 },
+                "yaml_option": {
+                    "description": "(Optional) Array of Options that will decide if this location is enabled",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
                 "sort-key": {
                     "description": "(Optional) A string to sort the locations by. If not provided, locations will always be sorted by name.",
                     "type": "string"
