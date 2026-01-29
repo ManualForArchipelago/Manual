@@ -3,3 +3,4 @@
 .vs/
 /*.code-workspace
 .idea
+.venv/
