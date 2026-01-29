@@ -68,5 +68,3 @@ world_description: str = set_world_description("""
     the player must manually refrain from using these gathered items until the tracker shows that they have been acquired or sent.
     """)
 world_webworld: ManualWeb = set_world_webworld(ManualWeb())
-
-enable_region_diagram = bool(meta_table.get("enable_region_diagram", False))
