@@ -6,8 +6,6 @@ If you'd like to see all the available properties and their allowed values, view
 
 ## The meta.json structure
 The properties for this file are broken down into these headings below:
-- [Visualizing region connections with UML](#visualizing-region-connections-with-uml)
-  - `enable_region_diagram`
 - [APWorld description](#apworld-description)
   - `apworld_description`
 - [WebWorld - Tutorials](#webworld---tutorials)
@@ -22,19 +20,6 @@ The properties for this file are broken down into these headings below:
   - `options_page`
 - [WebWorld - Bug Report Page](#webworld---bug-report-page)
   - `bug_report_page`
-
----
-
-### Visualizing region connections with UML
-When troubleshooting region connections while building a world, it can be helpful to see that you've connected those regions (and their locations) properly. By setting the `enable_region_diagram` property to true, a UML file will be added to your Archipelago install folder when you generate this world. Open that UML file in a UML viewer (such as PlantUML), and it will lay out region connections with boxes and lines interconnecting them.
-
-Here's an example of enabling the creation of a region diagram during generation:
-
-```json
-{
-    "enable_region_diagram": true
-}
-```
 
 ---
 
