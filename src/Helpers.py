@@ -205,12 +205,16 @@ def convert_to_long_string(input: str | list[str]) -> str:
     return input
 
 def format_to_valid_identifier(input: str) -> str:
+    from keyword import iskeyword
     """Make sure the input is a valid python identifier"""
     input = input.strip()
-    if input.isidentifier():
+    if input.isidentifier() and not iskeyword(input):
         return input
 
-    if input[:1].isdigit():
+    if iskeyword(input):
+        input = "_" + input
+
+    elif input[:1].isdigit():
         input = "_" + input
 
     return re.sub(r"[^a-zA-Z0-9_]", "_", input)
