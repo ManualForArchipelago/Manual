@@ -207,9 +207,13 @@ def convert_to_long_string(input: str | list[str]) -> str:
 def format_to_valid_identifier(input: str) -> str:
     """Make sure the input is a valid python identifier"""
     input = input.strip()
+    if input.isidentifier():
+        return input
+
     if input[:1].isdigit():
         input = "_" + input
-    return input.replace(" ", "_")
+
+    return re.sub(r"[^a-zA-Z0-9_]", "_", input)
 
 def remove_specific_item(source: list[Item], item: Item) -> Item:
     """Remove and return an item from a list in a more precise way, base AP only check for name and player id before removing.
