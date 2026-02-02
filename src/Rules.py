@@ -45,10 +45,10 @@ def construct_logic_error(location_or_region: dict, source: LogicErrorSource) ->
 
     return KeyError(f"Invalid 'requires' for {object_type} '{object_name}': {source_text} (ERROR {source})")
 
-def infix_to_postfix(expr, location):
-    prec = {"&": 2, "|": 2, "!": 3}
-    stack = []
-    postfix = ""
+def infix_to_postfix(expr: str, location: dict) -> str:
+    prec: dict[str, int] = {"&": 2, "|": 2, "!": 3}
+    stack: list[str] = []
+    postfix: str = ""
 
     try:
         for c in expr:
@@ -73,8 +73,8 @@ def infix_to_postfix(expr, location):
     return postfix
 
 
-def evaluate_postfix(expr: str, location: str) -> bool:
-    stack = []
+def evaluate_postfix(expr: str, location: dict) -> bool:
+    stack: list[bool] = []
 
     try:
         for c in expr:
@@ -167,9 +167,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 require_category = True
 
             item_base = item
-            item = item.lstrip('|@$').rstrip('|')
+            item: str = item.lstrip('|@$').rstrip('|')
 
-            item_parts = item.split(":")  # type: list[str]
+            item_parts: list[str] = item.rsplit(":", 1)
             item_name = item
             item_count: str | int = "1"
 
@@ -338,7 +338,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
+    def convert_req_function_args(state: CollectionState, func, args: list[str| Any], areaName: str):
         parameters = inspect.signature(func).parameters
         knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
         index = -1
