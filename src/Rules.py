@@ -162,9 +162,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 # previous instance of this item was already processed
                 continue
 
-            require_category = False
-            if '|@' in item:
-                require_category = True
+            require_category = '|@' in item
 
             item_base = item
             item: str = item.lstrip('|@$').rstrip('|')
@@ -177,6 +175,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             if len(item_parts) > 1:
                 item_name = item_parts[0].strip()
                 item_count = item_parts[1].strip()
+
+                # If invalid count assume its actually part of the item name
+                if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
+                    item_name = item
+                    item_count = "1"
 
             total = 0
             valid_items: list[str] = []
