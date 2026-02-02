@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
 from enum import IntEnum
 from operator import eq, ge, le
 
@@ -178,43 +178,32 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             total = 0
 
             if require_type == 'category':
-                category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-                category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
-                category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
-                if item_count.lower() == 'all':
-                    item_count = category_items_counts
-                elif item_count.lower() == 'half':
-                    item_count = int(category_items_counts / 2)
-                elif item_count.endswith('%') and len(item_count) > 1:
-                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-                    item_count = math.ceil(category_items_counts * percent)
-                else:
-                    try:
-                        item_count = int(item_count)
-                    except ValueError as e:
-                        raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
+                valid_items: list[dict[str, Any]] = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
+                valid_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
+            else:
+                valid_items = [world.item_name_to_item[item_name]]
 
-                for category_item in category_items:
-                    total += state.count(category_item["name"], player)
+            item_current_count = sum([items_counts.get(valid_item["name"], 0) for valid_item in valid_items])
 
-                    if total >= item_count:
-                        requires_list = requires_list.replace(item_base, "1")
-            elif require_type == 'item':
-                item_current_count = items_counts.get(item_name, 0)
-                if item_count.lower() == 'all':
-                    item_count = item_current_count
-                elif item_count.lower() == 'half':
-                    item_count = int(item_current_count / 2)
-                elif item_count.endswith('%') and len(item_count) > 1:
-                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-                    item_count = math.ceil(item_current_count * percent)
-                else:
-                    item_count = int(item_count)
+            if item_count.lower() == 'all':
+                item_count = item_current_count
+            elif item_count.lower() == 'half':
+                item_count = int(item_current_count / 2)
+            elif item_count.endswith('%') and len(item_count) > 1:
+                percent = clamp(float(item_count[:-1]) / 100, 0, 1)
+                item_count = math.ceil(item_current_count * percent)
 
-                total = state.count(item_name, player)
+            try:
+                item_count = int(item_count)
+            except ValueError as e:
+                raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
+
+            for valid_item in valid_items:
+                total += state.count(valid_item["name"], player)
 
                 if total >= item_count:
                     requires_list = requires_list.replace(item_base, "1")
+                    break
 
             if total <= item_count:
                 requires_list = requires_list.replace(item_base, "0")
