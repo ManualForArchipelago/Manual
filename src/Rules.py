@@ -179,14 +179,14 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 item_count = item_parts[1].strip()
 
             total = 0
-
+            valid_items: list[str] = []
             if require_category:
-                valid_items: list[dict[str, Any]] = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-                valid_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
+                valid_items.extend([item["name"] for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]])
+                valid_items.extend([event["name"] for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]])
             else:
-                valid_items = [world.item_name_to_item[item_name]]
+                valid_items.append(item_name)
 
-            item_current_count = sum([items_counts.get(valid_item["name"], 0) for valid_item in valid_items])
+            item_current_count = sum([items_counts.get(valid_item, 0) for valid_item in valid_items])
 
             if item_count.lower() == 'all':
                 item_count = item_current_count
@@ -202,7 +202,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
 
             for valid_item in valid_items:
-                total += state.count(valid_item["name"], player)
+                total += state.count(valid_item, player)
 
                 if total >= item_count:
                     requires_list = requires_list.replace(item_base, "1")
