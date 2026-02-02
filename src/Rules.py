@@ -158,17 +158,20 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', requires_list):
-            require_type = 'item'
+            if item not in requires_list:
+                # previous instance of this item was already processed
+                continue
 
+            require_category = False
             if '|@' in item:
-                require_type = 'category'
+                require_category = True
 
             item_base = item
             item = item.lstrip('|@$').rstrip('|')
 
             item_parts = item.split(":")  # type: list[str]
             item_name = item
-            item_count = "1"
+            item_count: str | int = "1"
 
 
             if len(item_parts) > 1:
@@ -177,7 +180,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
             total = 0
 
-            if require_type == 'category':
+            if require_category:
                 valid_items: list[dict[str, Any]] = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
                 valid_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
             else:
@@ -205,7 +208,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     requires_list = requires_list.replace(item_base, "1")
                     break
 
-            if total <= item_count:
+            if total < item_count:
                 requires_list = requires_list.replace(item_base, "0")
 
         requires_list = re.sub(r'\s?\bAND\b\s?', '&', requires_list, count=0, flags=re.IGNORECASE)
