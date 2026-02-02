@@ -31,35 +31,31 @@ class DataValidation():
                     if item.lower() == "or" or item.lower() == "and" or item == ")" or item == "(":
                         continue
                     else:
+                        is_category = '|@' in item
+                        item: str = item.lstrip('|@').rstrip('|')
+                        item_parts = item.rsplit(":", 1)
+                        item_name = item
+
+                        if len(item_parts) > 1:
+                            item_name = item_parts[0]
+                            item_count = item_parts[1]
+                            if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
+                                logging.debug(f'Invalid item_count "{item_count}" found, reverting to initial item_name "{item}"')
+                                item_name = item
+
                         # if it's a category, validate that the category exists
-                        if '@' in item:
-                            item = item.replace("|", "")
-                            item_parts = item.split(":")
-                            item_name = item
-
-                            if len(item_parts) > 1:
-                                item_name = item_parts[0]
-
-                            item_name = item_name[1:]
+                        if is_category:
                             item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
 
                             if not item_category_exists:
                                 raise ValidationError("Item category %s is required by location %s but is misspelled or does not exist." % (item_name, location.get("name")))
 
                             continue
+                        else:
+                            item_exists = len([item.get("name") for item in DataValidation.item_table_with_events if item.get("name") == item_name]) > 0
 
-                        item = item.replace("|", "")
-
-                        item_parts = item.split(":")
-                        item_name = item
-
-                        if len(item_parts) > 1:
-                            item_name = item_parts[0]
-
-                        item_exists = len([item.get("name") for item in DataValidation.item_table_with_events if item.get("name") == item_name]) > 0
-
-                        if not item_exists:
-                            raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location.get("name")))
+                            if not item_exists:
+                                raise ValidationError("Item %s is required by location %s but is misspelled or does not exist." % (item_name, location.get("name")))
 
             else:  # item access is in dict form
                 for item in location["requires"]:
@@ -107,35 +103,30 @@ class DataValidation():
                     if item.lower() == "or" or item.lower() == "and" or item == ")" or item == "(":
                         continue
                     else:
+                        is_category = '|@' in item
+                        item: str = item.lstrip('|@').rstrip('|')
+                        item_parts = item.rsplit(":", 1)
+                        item_name = item
+
+                        if len(item_parts) > 1:
+                            item_name = item_parts[0]
+                            item_count = item_parts[1]
+                            if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
+                                logging.debug(f'Invalid item_count "{item_count}" found, reverting to initial item_name "{item}"')
+                                item_name = item
+
                         # if it's a category, validate that the category exists
-                        if '@' in item:
-                            item = item.replace("|", "")
-                            item_parts = item.split(":")
-                            item_name = item
-
-                            if len(item_parts) > 1:
-                                item_name = item_parts[0]
-
-                            item_name = item_name[1:]
+                        if is_category:
                             item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
 
                             if not item_category_exists:
                                 raise ValidationError("Item category %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
 
-                            continue
+                        else:
+                            item_exists = len([item.get("name") for item in DataValidation.item_table_with_events if item.get("name") == item_name]) > 0
 
-                        item = item.replace("|", "")
-
-                        item_parts = item.split(":")
-                        item_name = item
-
-                        if len(item_parts) > 1:
-                            item_name = item_parts[0]
-
-                        item_exists = len([item.get("name") for item in DataValidation.item_table_with_events if item.get("name") == item_name]) > 0
-
-                        if not item_exists:
-                            raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
+                            if not item_exists:
+                                raise ValidationError("Item %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
 
             else:  # item access is in dict form
                 for item in region["requires"]:

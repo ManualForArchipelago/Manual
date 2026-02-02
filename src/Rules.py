@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
 from enum import IntEnum
 from operator import eq, ge, le
 
@@ -45,10 +45,10 @@ def construct_logic_error(location_or_region: dict, source: LogicErrorSource) ->
 
     return KeyError(f"Invalid 'requires' for {object_type} '{object_name}': {source_text} (ERROR {source})")
 
-def infix_to_postfix(expr, location):
-    prec = {"&": 2, "|": 2, "!": 3}
-    stack = []
-    postfix = ""
+def infix_to_postfix(expr: str, location: dict) -> str:
+    prec: dict[str, int] = {"&": 2, "|": 2, "!": 3}
+    stack: list[str] = []
+    postfix: str = ""
 
     try:
         for c in expr:
@@ -73,8 +73,8 @@ def infix_to_postfix(expr, location):
     return postfix
 
 
-def evaluate_postfix(expr: str, location: str) -> bool:
-    stack = []
+def evaluate_postfix(expr: str, location: dict) -> bool:
+    stack: list[bool] = []
 
     try:
         for c in expr:
@@ -158,65 +158,60 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
         # parse user written statement into list of each item
         for item in re.findall(r'\|[^|]+\|', requires_list):
-            require_type = 'item'
+            if item not in requires_list:
+                # previous instance of this item was already processed
+                continue
 
-            if '|@' in item:
-                require_type = 'category'
+            require_category = '|@' in item
 
             item_base = item
-            item = item.lstrip('|@$').rstrip('|')
+            item: str = item.lstrip('|@$').rstrip('|')
 
-            item_parts = item.split(":")  # type: list[str]
+            item_parts: list[str] = item.rsplit(":", 1)
             item_name = item
-            item_count = "1"
+            item_count: str | int = "1"
 
 
             if len(item_parts) > 1:
                 item_name = item_parts[0].strip()
                 item_count = item_parts[1].strip()
 
+                # If invalid count assume its actually part of the item name
+                if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
+                    item_name = item
+                    item_count = "1"
+
             total = 0
+            valid_items: list[str] = []
+            if require_category:
+                valid_items.extend([item["name"] for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]])
+                valid_items.extend([event["name"] for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]])
+            else:
+                valid_items.append(item_name)
 
-            if require_type == 'category':
-                category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-                category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
-                category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
-                if item_count.lower() == 'all':
-                    item_count = category_items_counts
-                elif item_count.lower() == 'half':
-                    item_count = int(category_items_counts / 2)
-                elif item_count.endswith('%') and len(item_count) > 1:
-                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-                    item_count = math.ceil(category_items_counts * percent)
-                else:
-                    try:
-                        item_count = int(item_count)
-                    except ValueError as e:
-                        raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
+            item_current_count = sum([items_counts.get(valid_item, 0) for valid_item in valid_items])
 
-                for category_item in category_items:
-                    total += state.count(category_item["name"], player)
+            if item_count.lower() == 'all':
+                item_count = item_current_count
+            elif item_count.lower() == 'half':
+                item_count = int(item_current_count / 2)
+            elif item_count.endswith('%') and len(item_count) > 1:
+                percent = clamp(float(item_count[:-1]) / 100, 0, 1)
+                item_count = math.ceil(item_current_count * percent)
 
-                    if total >= item_count:
-                        requires_list = requires_list.replace(item_base, "1")
-            elif require_type == 'item':
-                item_current_count = items_counts.get(item_name, 0)
-                if item_count.lower() == 'all':
-                    item_count = item_current_count
-                elif item_count.lower() == 'half':
-                    item_count = int(item_current_count / 2)
-                elif item_count.endswith('%') and len(item_count) > 1:
-                    percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-                    item_count = math.ceil(item_current_count * percent)
-                else:
-                    item_count = int(item_count)
+            try:
+                item_count = int(item_count)
+            except ValueError as e:
+                raise ValueError(f"Invalid item count `{item_name}` in {area}.") from e
 
-                total = state.count(item_name, player)
+            for valid_item in valid_items:
+                total += state.count(valid_item, player)
 
                 if total >= item_count:
                     requires_list = requires_list.replace(item_base, "1")
+                    break
 
-            if total <= item_count:
+            if total < item_count:
                 requires_list = requires_list.replace(item_base, "0")
 
         requires_list = re.sub(r'\s?\bAND\b\s?', '&', requires_list, count=0, flags=re.IGNORECASE)
@@ -346,7 +341,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     # Victory requirement
     multiworld.completion_condition[player] = lambda state: state.has("__Victory__", player)
 
-    def convert_req_function_args(state: CollectionState, func, args: list[str], areaName: str):
+    def convert_req_function_args(state: CollectionState, func, args: list[str| Any], areaName: str):
         parameters = inspect.signature(func).parameters
         knownParameters = [World, 'ManualWorld', MultiWorld, CollectionState]
         index = -1
