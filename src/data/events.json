@@ -1,0 +1,19 @@
+{
+	"$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.events.schema.json",
+    "data": [
+        {
+            "name": "Marvel event",
+            "requires": "|@Right Side:all|",
+            "visible": true
+        },
+        {
+            "name": "Capcom event",
+            "requires": "|@Left Side:all|"
+        },
+        {
+            "name": "Stars_event",
+            "copy_location": "Stars%"
+        }
+    ]
+}
+

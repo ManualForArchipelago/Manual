@@ -1,7 +1,8 @@
 
 from BaseClasses import Tutorial
+from enum import Enum
 from worlds.AutoWorld import World, WebWorld
-from .Data import meta_table
+from .Data import game_table, meta_table
 from .Helpers import convert_to_long_string
 
 ##############
@@ -52,7 +53,7 @@ def set_world_webworld(web: WebWorld) -> WebWorld:
                     tutorial.get("language", "English"),
                     tutorial.get("file_name", "setup_en.md"),
                     tutorial.get("link", "setup/en"),
-                    tutorial.get("authors", [meta_table.get("creator", meta_table.get("player", "Unknown"))])
+                    tutorial.get("authors", [game_table.get("creator")])
                 ))
             web.tutorials = tutorials
     return web
@@ -67,5 +68,3 @@ world_description: str = set_world_description("""
     the player must manually refrain from using these gathered items until the tracker shows that they have been acquired or sent.
     """)
 world_webworld: ManualWeb = set_world_webworld(ManualWeb())
-
-enable_region_diagram = bool(meta_table.get("enable_region_diagram", False))

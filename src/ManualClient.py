@@ -1,18 +1,19 @@
 from __future__ import annotations
 import asyncio
+from functools import cache
 import os
 import re
 import sys
 import time
 import typing
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
+from enum import IntEnum
 
 import requests
 from worlds import AutoWorldRegister, network_data_package
 from worlds.LauncherComponents import icon_paths
 import json
 import traceback
-
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -34,6 +35,47 @@ except ModuleNotFoundError:
 if typing.TYPE_CHECKING:
     import kvui
 
+class SortingOrderLoc(IntEnum):
+    custom = 1
+    inverted_custom = -1
+    alphabetical = 2
+    inverted_alphabetical = -2
+    natural = 3
+    inverted_natural = -3
+    default = 3
+
+# Docs must be done after because otherwise __doc__ return none
+SortingOrderLoc.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in locations.json if present, and the name otherwise."
+SortingOrderLoc.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
+SortingOrderLoc.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+
+class SortingOrderItem(IntEnum):
+    custom = 1
+    inverted_custom = -1
+    alphabetical = 2
+    inverted_alphabetical = -2
+    natural = 3
+    inverted_natural = -3
+    received = 4
+    inverted_received = -4
+    default = 4
+
+SortingOrderItem.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in items.json if present, and the name otherwise."
+SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in items.json."
+SortingOrderItem.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
+
+@cache
+def strip_articles(title: str) -> str:
+    lower = title.lower()
+    if lower.startswith("the "):
+        title = title[4:]
+    elif lower.startswith("a "):
+        title = title[2:]
+    elif lower.startswith("an "):
+        title = title[3:]
+    return title
+
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
@@ -53,17 +95,24 @@ class ManualClientCommandProcessor(ClientCommandProcessor):
             location_id = self.ctx.location_names_to_id[location_name]
             self.ctx.locations_checked.append(location_id)
             self.ctx.syncing = True
+            return True
         else:
             self.output(response)
             return False
 
-
-
-
+    @mark_raw
+    def _cmd_open_settings(self) -> bool:
+        """Open the settings panel."""
+        if gui_enabled:
+            self.ctx.ui.open_settings()
+            return True
+        else:
+            self.output("GUI is not enabled.")
+            return False
 
 class ManualContext(SuperContext):
     command_processor = ManualClientCommandProcessor
-    game = "not set"  # this is changed in server_auth below based on user input
+    game = None  # this is changed in server_auth below based on user input
     items_handling = 0b111  # full remote
     tags = {"AP"}
 
@@ -79,7 +128,12 @@ class ManualContext(SuperContext):
     last_death_link = 0
     deathlink_out = False
 
+    visible_events = {}
+
     search_term = ""
+    items_sorting = SortingOrderItem.default.name
+    locations_sorting = SortingOrderLoc.default.name
+    block_unreachable_location_press = True
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
@@ -118,7 +172,7 @@ class ManualContext(SuperContext):
 
         world = AutoWorldRegister.world_types.get(self.game)
         if not self.location_table and not self.item_table and world is None:
-            raise Exception(f"Cannot load {self.game}, please add the apworld to lib/worlds/")
+            raise Exception(f"Cannot load {self.game}, please add the apworld to custom_worlds/")
 
         data_package = network_data_package["games"].get(self.game, {})
 
@@ -205,6 +259,7 @@ class ManualContext(SuperContext):
                         self.ui.enable_death_link()
                         self.set_deathlink = True
                         self.last_death_link = 0
+                    self.visible_events = args['slot_data'].get('visible_events', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -227,6 +282,13 @@ class ManualContext(SuperContext):
         self.tracker_reachable_events = events
         if events:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
+
+    def is_event_visible(self, event_name, category_name):
+        if event_name not in self.visible_events:
+            return False
+        if category_name == "(No Category)" and len(self.visible_events[event_name]) == 0:
+            return True
+        return category_name in self.visible_events[event_name]
 
     def handle_connection_loss(self, msg: str) -> None:
         """Helper for logging and displaying a loss of connection. Must be called from an except block."""
@@ -267,20 +329,22 @@ class ManualContext(SuperContext):
             from kvui import GameManager
             ui = GameManager
 
+        from kivy.core.window import Window
+        from kivy.lang import Builder
         from kivy.metrics import dp
-        from kivy.uix.button import Button
+        from kivy.properties import ColorProperty
         from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.button import Button
         from kivy.uix.dropdown import DropDown
         from kivy.uix.gridlayout import GridLayout
         from kivy.uix.label import Label
         from kivy.uix.layout import Layout
         from kivy.uix.scrollview import ScrollView
+        from kivy.uix.settings import Settings
         from kivy.uix.spinner import Spinner, SpinnerOption
         from kivy.uix.textinput import TextInput
-        from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
-        from kivy.core.window import Window
-        from kivy.lang import Builder
-        from kivy.properties import ColorProperty
+        from kivy.uix.treeview import TreeView, TreeViewLabel, TreeViewNode
+        from kivy.config import ConfigParser
 
         class ManualTabLayout(BoxLayout):
             pass
@@ -340,6 +404,8 @@ class ManualContext(SuperContext):
             update_requested_time: Optional[float] = None
             update_requested_highlights: bool = False
 
+            mouse_pos: tuple
+
             ctx: ManualContext
 
             def __init__(self, ctx):
@@ -347,6 +413,10 @@ class ManualContext(SuperContext):
 
             def build(self) -> Layout:
                 super().build()
+
+                self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
+                self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
+                self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -372,10 +442,82 @@ class ManualContext(SuperContext):
 
                 return self.container
 
+            def get_application_config(self, defaultpath: str = "") -> str:
+                return Utils.user_path("manual_client.ini")
+
+
+            def build_config(self, config: ConfigParser):
+                super().build_config(config)
+                config.setdefaults("manual", {
+                    "items_sorting_order": SortingOrderItem.default.name,
+                    "locations_sorting_order": SortingOrderLoc.default.name
+                })
+                config.setdefaults("universal-tracker", {
+                    "block_unreachable_location_press": "Yes"
+                })
+
+            def build_settings(self, settings: Settings):
+                super().build_settings(settings)
+                json_data = [
+                        {
+                            "type": "title",
+                            "title": "Manual Client"
+                        },
+
+                        {
+                            "type": "options",
+                            "title": "Items Sorting Order",
+                            "section": "manual",
+                            "key": "items_sorting_order",
+                            "options": list(SortingOrderItem._member_names_),
+                            "desc": '\n'.join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderItem if i.__doc__ is not None])
+                        },
+                        {
+                            "type": "options",
+                            "title": "Locations Sorting Order",
+                            "section": "manual",
+                            "key": "locations_sorting_order",
+                            "options": list(SortingOrderLoc._member_names_),
+                            "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
+                        },
+                    ]
+                if tracker_loaded:
+                    json_data.extend([
+                        {
+                            "type": "title",
+                            "title": "Universal Tracker Compatibility"
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Stop accidental button press",
+                            "section": "universal-tracker",
+                            "key": "block_unreachable_location_press",
+                            "desc": "Should only green location be able to be pressed",
+                            "values": ["No", "Yes"]
+                        },
+                    ])
+
+                settings.add_json_panel("Manual Client Settings", self.config, data=json.dumps(json_data))
+            def on_config_change(self, config, section, key, value):
+                super().on_config_change(config, section, key, value)
+                if section == "manual":
+                    if key == "items_sorting_order":
+                        if value in SortingOrderItem._member_names_:
+                            self.ctx.items_sorting = value
+                            self.request_update_tracker_and_locations_table()
+                    elif key == "locations_sorting_order":
+                        if value in SortingOrderLoc._member_names_:
+                            self.ctx.locations_sorting = value
+                            self.build_tracker_and_locations_table()
+                            self.request_update_tracker_and_locations_table()
+                elif section == "universal-tracker":
+                    if key == "block_unreachable_location_press":
+                        self.ctx.block_unreachable_location_press = True if value == "Yes" else False
+
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
                 self.item_categories = ["(No Category)"]
-                self.listed_locations = {"(No Category)": [], "(Hinted)": []}
+                self.listed_locations: Dict[str, List[int]] = {"(No Category)": [], "(Hinted)": []}
                 self.location_categories = ["(No Category)", "(Hinted)"]
 
             def set_active_item_accordion(self, instance):
@@ -440,7 +582,45 @@ class ManualContext(SuperContext):
                 self.ctx.clear_search()
                 self.request_update_tracker_and_locations_table() # if we want search to be "snappier", we can just make this update
 
+            def window_mouseover(self, window, pos):
+                self.set_mouse_pos(window, pos)
+
+            def set_mouse_pos(self, window, pos):
+                self.mouse_pos = pos
+
+            def are_top_controls_at_mouse_pos(self) -> bool:
+                # check server connect section and controls
+                if self.connect_layout.collide_point(*self.mouse_pos):
+                    return True
+
+                # check game id section and dropdown
+                if self.manual_game_layout.collide_point(*self.mouse_pos):
+                    return True
+
+                # check tabbed navigation
+                if self.tabs.collide_point(*self.mouse_pos):
+                    return True
+
+                return False
+
+            def get_top_obj_at_mouse_pos(self) -> Any:
+                for child in self.connect_layout.children:
+                    if child.collide_point(*self.mouse_pos):
+                        return child
+
+                for child in self.manual_game_layout.children:
+                    if child.collide_point(*self.mouse_pos):
+                        return child
+
+                for child in self.tabs.children:
+                    if child.collide_point(*self.mouse_pos):
+                        return child
+
+                return None
+
             def build_tracker_and_locations_table(self):
+                Window.bind(mouse_pos=self.window_mouseover)
+
                 self.controls_panel.clear_widgets()
                 self.tracker_and_locations_panel.clear_widgets()
 
@@ -478,6 +658,16 @@ class ManualContext(SuperContext):
 
                             if category not in self.listed_items:
                                 self.listed_items[category] = []
+
+                for event, categories in self.ctx.visible_events.items():
+                    for category in categories:
+                        category_settings = self.ctx.category_table.get(category) or getattr(AutoWorldRegister.world_types[self.ctx.game], "category_table", {}).get(category, {})
+                        if "hidden" in category_settings and category_settings["hidden"]:
+                            continue
+                        if category not in self.item_categories:
+                            self.item_categories.append(category)
+                        if category not in self.listed_items:
+                            self.listed_items[category] = []
 
 
                 # Items are not received on connect, so don't bother attempting to work with received items here
@@ -521,8 +711,29 @@ class ManualContext(SuperContext):
                 if not victory_categories:
                     victory_categories.add("(No Category)")
 
-                for category in self.listed_locations:
-                    self.listed_locations[category].sort()
+                loc_sorting = SortingOrderLoc[self.ctx.locations_sorting]
+
+                if abs(loc_sorting) == SortingOrderLoc.alphabetical:
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game, reverse=loc_sorting < 0)
+                elif abs(loc_sorting) == SortingOrderLoc.custom:
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=lambda i: self.ctx.get_location_by_id(i).get("sort-key", self.ctx.get_location_by_id(i).get("name", "")), \
+                            reverse=loc_sorting < 0)
+
+                elif abs(loc_sorting) == SortingOrderLoc.natural:
+                    # Modified from https://stackoverflow.com/a/11150413
+                    def convert(text):
+                        return int(text) if text.isdigit() else text.lower()
+
+                    def alphanum_key(i):
+                        name = strip_articles(self.ctx.get_location_by_id(i).get("name", ""))
+
+                        return [convert(c) for c in re.split('([0-9]+)', self.ctx.get_location_by_id(i).get("sort-key", name))]
+
+                    for category in self.listed_locations:
+                        self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
+
 
                 items_length = len(self.ctx.items_received)
                 tracker_panel_scrollable = TrackerLayoutScrollable(do_scroll=(False, True), bar_width=10)
@@ -651,8 +862,11 @@ class ManualContext(SuperContext):
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
                                         old_item_text = item.text
                                         item_name = re.sub(r"\s\(\d+\)$", "", item.text)
-                                        item_id = self.ctx.item_names_to_id[item_name]
-                                        item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
+                                        item_id = self.ctx.item_names_to_id.get(item_name, False)
+                                        if item_id:
+                                            item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
+                                        else:
+                                            item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == item_name))
 
                                         # if the player is searching for text and the item name doesn't contain it, skip it
                                         if self.ctx.search_term and not self.ctx.search_term.lower() in item_name.lower():
@@ -683,9 +897,32 @@ class ManualContext(SuperContext):
                                 category_unique_name_count = 0
 
                                 # Label (for all item listings)
-                                sorted_items_received = sorted([
-                                    i.item for i in self.ctx.items_received
-                                ])
+                                item_sorting = SortingOrderItem[self.ctx.items_sorting]
+                                sorted_items_received = [i.item for i in self.ctx.items_received]
+
+                                if abs(item_sorting) == SortingOrderItem.alphabetical:
+                                    sorted_items_received = sorted(sorted_items_received,
+                                    key=self.ctx.item_names.lookup_in_game,
+                                    reverse=item_sorting < 0)
+                                elif abs(item_sorting) == SortingOrderItem.custom:
+                                    sorted_items_received = sorted(sorted_items_received,
+                                    key=lambda i: self.ctx.get_item_by_id(i).get("sort-key", self.ctx.get_item_by_id(i).get("name", "")),
+                                    reverse=item_sorting < 0)
+
+                                elif abs(item_sorting) == SortingOrderItem.natural:
+                                    def convert(text):
+                                        return int(text) if text.isdigit() else text.lower()
+                                    def alphanum_key(i):
+                                        name = self.ctx.get_item_by_id(i).get("name", "")
+                                        name = strip_articles(name)
+
+                                        return [convert(c) for c in re.split('([0-9]+)',self.ctx.get_item_by_id(i).get("sort-key", name))
+                                                                                ]
+                                    sorted_items_received = sorted(sorted_items_received, key=alphanum_key, reverse=item_sorting < 0)
+
+                                elif abs(item_sorting) == SortingOrderItem.received:
+                                    if item_sorting < 0:
+                                        sorted_items_received.reverse()
 
                                 for network_item in sorted_items_received:
                                     item_name = self.ctx.item_names.lookup_in_game(network_item)
@@ -709,6 +946,16 @@ class ManualContext(SuperContext):
                                         category_grid.add_widget(item_text)
                                         self.listed_items[category_name].append(network_item)
 
+                                        category_count += item_count
+                                        category_unique_name_count += 1
+
+                                for event in sorted(self.ctx.tracker_reachable_events):
+                                    if self.ctx.is_event_visible(event, category_name) and event not in self.listed_items[category_name]:
+                                        item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == event))
+                                        item_text = Label(text="%s (%s)" % (event, item_count),
+                                                    size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
+                                        category_grid.add_widget(item_text)
+                                        self.listed_items[category_name].append(event)
                                         category_count += item_count
                                         category_unique_name_count += 1
 
@@ -844,15 +1091,40 @@ class ManualContext(SuperContext):
                 if button.text not in self.ctx.location_names_to_id:
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
 
+                # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
+                if self.are_top_controls_at_mouse_pos():
+                    # if there's an obj in the top controls/tab at the current mouse position, click it instead
+                    if hovered_obj := self.get_top_obj_at_mouse_pos():
+                        if hasattr(hovered_obj, 'trigger_action'): # buttons, tabs, etc.
+                            hovered_obj.trigger_action(duration=0)
+                        elif hasattr(hovered_obj, 'focus'): # text inputs
+                            hovered_obj.focus = True
+
+                    return
+
                 if location_id:
-                    self.ctx.locations_checked.append(location_id)
-                    self.ctx.syncing = True
-                    button.parent.remove_widget(button)
+                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.text not in self.ctx.tracker_reachable_locations:
+                        logger.debug(f"button for location '{button.text}' was pressed while unreachable")
+                    else:
+                        self.ctx.locations_checked.append(location_id)
+                        self.ctx.syncing = True
+                        button.parent.remove_widget(button)
 
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
 
             def victory_button_callback(self, button):
+                # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
+                if self.are_top_controls_at_mouse_pos():
+                    # if there's an obj in the top controls/tab at the current mouse position, click it instead
+                    if hovered_obj := self.get_top_obj_at_mouse_pos():
+                        if hasattr(hovered_obj, 'trigger_action'): # buttons, tabs, etc.
+                            hovered_obj.trigger_action(duration=0)
+                        elif hasattr(hovered_obj, 'focus'): # text inputs
+                            hovered_obj.focus = True
+
+                    return
+
                 self.ctx.items_received.append("__Victory__")
                 self.ctx.syncing = True
 
@@ -878,19 +1150,26 @@ async def game_watcher_manual(ctx: ManualContext):
             ctx.deathlink_out = False
             await ctx.send_death()
 
-        sending = []
         victory = ("__Victory__" in ctx.items_received)
-        ctx.locations_checked = sending
-        message = [{"cmd": 'LocationChecks', "locations": sending}]
-        await ctx.send_msgs(message)
+        ctx.locations_checked = []
         if not ctx.finished_game and victory:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
             ctx.finished_game = True
         await asyncio.sleep(0.1)
 
 
-def read_apmanual_file(apmanual_file):
+def read_apmanual_file(apmanual_file) -> dict[str, Any]:
+    import zipfile
     from base64 import b64decode
+    from .container import APManualFile
+
+    if zipfile.is_zipfile(apmanual_file):
+        try:
+            container = APManualFile(apmanual_file)
+            container.read()
+            return container.as_dict()
+        except Exception as e:
+            print("Error reading APManual file:", e)
 
     with open(apmanual_file, 'r') as f:
         return json.loads(b64decode(f.read()))
