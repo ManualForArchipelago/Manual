@@ -72,6 +72,8 @@ class ManualWorld(World):
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
 
+    origin_region_name = "Manual"
+
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
@@ -404,7 +406,7 @@ class ManualWorld(World):
         # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
         if get_option_value(self.multiworld, self.player, "generate_region_diagram"):
             from Utils import visualize_regions
-            visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
+            visualize_regions(self.multiworld.get_region("Manual", self.player), f"{self.game}_{self.player}.puml")
 
     def pre_fill(self):
         # DataValidation after all the hooks are done but before fill
@@ -439,6 +441,10 @@ class ManualWorld(World):
 
         apmanual = APManualFile(zf_path, player=self.player, player_name=self.player_name)
         apmanual.write()
+
+        if get_option_value(self.multiworld, self.player, "generate_region_diagram"):
+            from Utils import visualize_regions
+            visualize_regions(self.multiworld.get_region("Manual", self.player), f"{self.game}_{self.player}_spoiler.puml")
 
 
     def write_spoiler(self, spoiler_handle):

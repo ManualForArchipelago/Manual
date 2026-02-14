@@ -42,11 +42,6 @@ def create_regions(world: World, multiworld: MultiWorld, player: int):
         new_region = create_region(world, multiworld, player, region, locations, exit_array)
         multiworld.regions += [new_region]
 
-    menu = create_region(world, multiworld, player, "Menu", None, ["Manual"])
-    multiworld.regions += [menu]
-    menuConn = multiworld.get_entrance("MenuToManual", player)
-    menuConn.connect(multiworld.get_region("Manual", player))
-
     # Link regions together
     for region in regionMap:
         if "connects_to" in regionMap[region] and regionMap[region]["connects_to"]:
