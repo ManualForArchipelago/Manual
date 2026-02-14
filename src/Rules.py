@@ -301,26 +301,22 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         requires_list = findAndRecursivelyExecuteFunctions(requires_list)
 
         # parse user written statement into list of each item
-        for item in re.findall(r'\|[^|]+\|', requires_list):
+        for match in ITEM_REGEX.finditer(requires_list):
+            item_base = match.group(0)
+            is_category = match.group(1)
+            item_name = match.group(2)
+            item_count = match.group(3)
             require_type = 'item'
-            if item not in requires_list:
+            if item_base not in requires_list:
                 # previous instance of this item was already processed
                 continue
 
-            if '|@' in item:
+            if is_category:
                 require_type = 'category'
 
-            item_base = item
-            item = item.lstrip('|@$').rstrip('|')
-
-            item_parts = item.split(":")  # type: list[str]
-            item_name = item
-            item_count = "1"
-
-
-            if len(item_parts) > 1:
-                item_name = item_parts[0].strip()
-                item_count = item_parts[1].strip()
+            if not item_count:
+                item_count = "1"
+            item_count = item_count.lstrip(':')
 
             total = 0
 
