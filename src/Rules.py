@@ -30,7 +30,7 @@ if TYPE_CHECKING and use_rulebuilder:
     import rule_builder.rules
 
 FUNCTION_REGEX = re.compile(r'\{(\w+)\((.*?)\)\}')
-ITEM_REGEX = re.compile(r'\|(@?)([^|]+?)(\:[^|]+)?\|')
+ITEM_REGEX = re.compile(r'\|(@?)([^|]+?)(\:[^:|]+)?\|')
 AND_REGEX = re.compile(r'\s?\bAND\b\s?', re.IGNORECASE)
 OR_REGEX = re.compile(r'\s?\bOR\b\s?', flags=re.IGNORECASE)
 
