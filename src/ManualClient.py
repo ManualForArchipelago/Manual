@@ -846,8 +846,8 @@ class ManualContext(SuperContext):
                 for _, child in enumerate(self.tracker_and_locations_panel.children):
                     #
                     # Structure of items:
-                    # TrackerLayoutScrollable -> TreeView -> TreeViewLabel, TreeViewScrollView -> GridLayout -> BoxLayout -> Label
-                    #        item tracker     -> category -> category label, category scroll   -> label col  -> loc&scout -> item
+                    # TrackerLayoutScrollable -> TreeView -> TreeViewLabel, TreeViewScrollView -> GridLayout -> Label
+                    #        item tracker     -> category -> category label, category scroll   -> label col  -> item
                     #
                     if type(child) is TrackerLayoutScrollable:
                         treeview = child.children[0] # TreeView
