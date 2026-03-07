@@ -1,5 +1,5 @@
 from BaseClasses import Entrance, MultiWorld, Region, ItemClassification
-from .Helpers import is_category_enabled, is_location_enabled
+from .Helpers import is_category_enabled, is_location_enabled, is_event_enabled
 from .Data import region_table
 from .Locations import ManualLocation, location_name_to_location
 from .Items import ManualItem
