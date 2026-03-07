@@ -74,6 +74,8 @@ def getConnectionName(entranceName: str, exitName: str):
 
 def create_events(world: World, multiworld: MultiWorld, player: int):
     for name, event in world.event_name_to_event.items():
+        if not is_event_enabled(multiworld, player, event):
+            continue
         region = multiworld.get_region(event.get("region", "Manual"), player)
         item = ManualItem(event["name"], ItemClassification.progression, None, player=player)
         location = ManualLocation(player, name, None, region)

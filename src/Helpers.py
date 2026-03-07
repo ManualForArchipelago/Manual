@@ -107,6 +107,14 @@ def is_location_enabled(multiworld: MultiWorld, player: int, location: dict[str,
 
     return _is_manualobject_enabled(multiworld, player, location)
 
+def is_event_enabled(multiworld: MultiWorld, player: int, event: dict[str, Any]) -> bool:
+    """Check if an event has been disabled by a yaml option."""
+    hook_result = before_is_event_enabled(multiworld, player, event)
+    if hook_result is not None:
+        return hook_result
+
+    return _is_manualobject_enabled(multiworld, player, event)
+
 def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[str, Any]) -> bool:
     """Internal method: Check if a Manual Object has any category disabled by a yaml option.
     \nPlease use the proper is_'item/location'_enabled or is_'item/location'_name_enabled methods instead.
