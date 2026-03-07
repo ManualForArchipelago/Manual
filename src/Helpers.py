@@ -8,6 +8,7 @@ from BaseClasses import MultiWorld, Item, ItemClassification
 from enum import IntEnum
 from typing import Optional, List, Union, get_args, get_origin, Any
 from types import GenericAlias
+from worlds.AutoWorld import World
 from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled, before_is_event_enabled
 
 
