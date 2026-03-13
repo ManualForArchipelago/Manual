@@ -14,10 +14,11 @@ class DataValidation():
     game_table: dict[str, Any] = {}
     item_table: list[dict[str, Any]] = []
     item_table_with_events: list[dict[str, Any]] = []
+    event_table: list[dict[str, Any]] = []
     location_table: list[dict[str, Any]] = []
     region_table: dict[str, Any] = {}
     location_table_with_events: list[dict[str, Any]] = []
-
+    location_name_to_location: dict[str, dict[str, Any]] = {}
 
     @staticmethod
     def checkItemNamesInLocationRequires():

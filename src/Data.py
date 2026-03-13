@@ -63,10 +63,21 @@ meta_table = after_load_meta_file(meta_table)
 # seed all of the tables for validation
 DataValidation.game_table = game_table
 DataValidation.item_table = item_table
-DataValidation.item_table_with_events = item_table + event_table
 DataValidation.location_table = location_table
-DataValidation.location_table_with_events = location_table + event_table
+DataValidation.event_table = event_table
 DataValidation.region_table = region_table
+
+# might as well save this for other uses in tests
+DataValidation.location_name_to_location = {l.get("name", f"unknown location {key}"): l for key, l in enumerate(DataValidation.location_table)}
+for key, _ in enumerate(DataValidation.event_table):
+    if "copy_location" in DataValidation.event_table[key]:
+        if not DataValidation.event_table[key]["copy_location"] in DataValidation.location_name_to_location.keys():
+            # this will die in the "real" "copy_location" code in Locations.py for now skip
+            continue
+        DataValidation.event_table[key] = DataValidation.location_name_to_location[DataValidation.event_table[key]["copy_location"]] | DataValidation.event_table[key]
+
+DataValidation.item_table_with_events = DataValidation.item_table + DataValidation.event_table
+DataValidation.location_table_with_events = DataValidation.location_table + DataValidation.event_table
 
 validation_errors = []
 
