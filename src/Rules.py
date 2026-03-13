@@ -408,11 +408,31 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
     used_location_names = []
     # Region access rules
+    extra_entrance_rules = {}
+    for region in regionMap.keys():
+        entrance_rules = regionMap[region].get("entrance_requires", {})
+        for e in entrance_rules:
+            entrance = world.get_entrance(f'{e}To{region}')
+            area = {"requires": entrance_rules[e]}
+            extra_entrance_rules[entrance.name] = area
+
+        exit_rules = regionMap[region].get("exit_requires", {})
+        for e in exit_rules:
+            exit = world.get_entrance(f'{region}To{e}')
+            area = {"requires": exit_rules[e]}
+            extra_entrance_rules[exit.name] = area
+
     for region in regionMap.keys():
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         for exitRegion in multiworld.get_region(region, player).entrances:
+            extra = extra_entrance_rules.get(exitRegion.name, {})
             rb_rule = construct_rule_from_string(regionMap[region])
             if rb_rule is not None:
+                if extra:
+                    rb_extra_rule = construct_rule_from_string(extra)
+                    if rb_extra_rule is None:
+                        raise ValueError(f'Unable to combine Rule and functions for {exitRegion.name}.')
+                    rb_rule = rb_rule & rb_extra_rule
                 world.set_rule(world.get_entrance(exitRegion.name), rb_rule)
             else:
                 def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
@@ -422,31 +442,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
-
-        def add_exit_rule(exit: Entrance, area: dict) -> None:
-            if use_rulebuilder:
-                from rule_builder.rules import Rule
-                rb_rule = construct_rule_from_string(area)
-                if (isinstance(exit.access_rule, Rule)):
-                    if rb_rule is None:
-                        raise ValueError(f'Unable to combine Rule and functions for {exit.name}.')
-                    world.set_rule(exit, exit.access_rule & rb_rule)
-                    return
-                elif exit.access_rule is Entrance.access_rule and rb_rule is not None:
-                    world.set_rule(exit, rb_rule)
-                    return
-            add_rule(exit, lambda state, rule=area: fullLocationOrRegionCheck(state, rule))
-        entrance_rules = regionMap[region].get("entrance_requires", {})
-        for e in entrance_rules:
-            entrance = world.get_entrance(f'{e}To{region}')
-            area = {"requires": entrance_rules[e]}
-            add_exit_rule(entrance, area)
-
-        exit_rules = regionMap[region].get("exit_requires", {})
-        for e in exit_rules:
-            exit = world.get_entrance(f'{region}To{e}')
-            area = {"requires": exit_rules[e]}
-            add_exit_rule(exit, area)
+                if extra:
+                    add_rule(world.get_entrance(exitRegion.name), lambda state, extra=extra: fullLocationOrRegionCheck(state, extra))
 
     # Location access rules
     for location in (world.location_table + world.event_table):
@@ -776,7 +773,7 @@ if use_rulebuilder:
                 return False_().resolve(world)
 
     @dataclasses.dataclass()
-    class YamlDisbledRule(Rule["ManualWorld"], game=game_name):
+    class YamlDisabledRule(Rule["ManualWorld"], game=game_name):
         yaml_option: str
         def _instantiate(self, world: "ManualWorld") -> Rule.Resolved:
             if getattr(world.options, self.yaml_option).value:
