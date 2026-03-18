@@ -308,10 +308,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     for location in (world.location_table + world.event_table):
         if "location_name" in location:
             name = location["location_name"]
-        elif location["name"] not in used_location_names:
-            continue
         else:
             name = location["name"]
+        if name not in used_location_names:
+            continue
 
         locFromWorld = multiworld.get_location(name, player)
 
