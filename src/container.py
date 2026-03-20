@@ -14,6 +14,11 @@ class APManualFile(Files.APPlayerContainer):
     game = game_name
     patch_file_ending = ".apmanual"
 
+    items: dict[str, Any] = None
+    locations: dict[str, Any] = None
+    regions: dict[str, Any] = None
+    categories: dict[str, Any] = None
+
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
