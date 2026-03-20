@@ -121,7 +121,8 @@ class ManualContext(SuperContext):
     region_table = {}
     category_table = {}
 
-    tracker_reachable_locations = []
+    tracker_reachable_locations: list[str] = []
+    tracker_glitched_locations: list[str] = []
     tracker_reachable_events = []
 
     set_deathlink = False
@@ -134,19 +135,31 @@ class ManualContext(SuperContext):
     items_sorting = SortingOrderItem.default.name
     locations_sorting = SortingOrderLoc.default.name
     block_unreachable_location_press = True
+    display_glitched_locations = True
+    allow_glitched_location_press = True
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
         'location_in_logic': [2/255, 242/255, 42/255, 1],
+        'location_in_glitched_logic': [247/255, 255/255, 119/255, 1],
         'category_even_default': [0.5, 0.5, 0.5, 0.1],
         'category_odd_default': [1.0, 1.0, 1.0, 0.0],
         'category_in_logic': [2/255, 82/255, 2/255, 1],
+        'category_in_glitched_logic': [172/255, 179/255, 81/255, 1],
         'deathlink_received': [1, 0, 0, 1],
         'deathlink_primed': [1, 1, 1, 1],
         'deathlink_sent': [0, 1, 0, 1],
         'game_select_button': [200/255, 200/255, 200/255, 1],
         'header_background': [15/255, 80/255, 112/255, 1]
     }
+    def get_colors_hex(self, color: str) -> str:
+        color_array = self.colors[color]
+        r = int(color_array[0] * 255)
+        g = int(color_array[1] * 255)
+        b = int(color_array[2] * 255)
+        a = int(color_array[3] * 255)
+
+        return f"{r:02x}{g:02x}{b:02x}{format(a, '02x') if a < 255 else ''}"
 
     def __init__(self, server_address, password, game, player_name) -> None:
         super(ManualContext, self).__init__(server_address, password)
@@ -155,6 +168,8 @@ class ManualContext(SuperContext):
             super().set_callback(self.on_tracker_updated) # Universal Tracker takes this func and calls it when updateTracker is called
             if hasattr(self, "set_events_callback"):
                 super().set_events_callback(self.on_tracker_events) # Universal Tracker takes this func and calls it when events are calculated
+            if hasattr(self, "set_glitches_callback"):
+                super().set_glitches_callback(self.on_glitches_call) # Universal Tracker takes this func and calls it when OOL glitched location are calculated
 
         self.send_index: int = 0
         self.syncing = False
@@ -281,6 +296,11 @@ class ManualContext(SuperContext):
     def on_tracker_events(self, events: list[str]):
         self.tracker_reachable_events = events
         if events:
+            self.ui.request_update_tracker_and_locations_table(update_highlights=True)
+
+    def on_glitches_call(self, glitched_locations: list[str]):
+        self.tracker_glitched_locations = glitched_locations
+        if glitched_locations:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
 
     def is_event_visible(self, event_name, category_name):
@@ -417,6 +437,8 @@ class ManualContext(SuperContext):
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
                 self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
+                self.ctx.display_glitched_locations = True if self.config.get('universal-tracker', 'display_glitched_locations') == "Yes" else False
+                self.ctx.allow_glitched_location_press = True if self.config.get('universal-tracker', 'allow_glitched_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -453,7 +475,9 @@ class ManualContext(SuperContext):
                     "locations_sorting_order": SortingOrderLoc.default.name
                 })
                 config.setdefaults("universal-tracker", {
-                    "block_unreachable_location_press": "Yes"
+                    "block_unreachable_location_press": "Yes",
+                    "display_glitched_locations": "Yes",
+                    "allow_glitched_location_press": "No"
                 })
 
             def build_settings(self, settings: Settings):
@@ -492,7 +516,23 @@ class ManualContext(SuperContext):
                             "title": "Stop accidental button press",
                             "section": "universal-tracker",
                             "key": "block_unreachable_location_press",
-                            "desc": "Should only green location be able to be pressed",
+                            "desc": "Should only reachable location be able to be pressed",
+                            "values": ["No", "Yes"]
+                        },
+                        {
+                            "type": "bool",
+                            "title": "See Glitched Logic",
+                            "section": "universal-tracker",
+                            "key": "display_glitched_locations",
+                            "desc": "Should locations marked as accessible OOL be shown in Yellow",
+                            "values": ["No", "Yes"]
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Count glitched location as reachable for the press protection",
+                            "section": "universal-tracker",
+                            "key": "allow_glitched_location_press",
+                            "desc": "Should locations marked as accessible OOL not be protected from being pressed",
                             "values": ["No", "Yes"]
                         },
                     ])
@@ -513,6 +553,12 @@ class ManualContext(SuperContext):
                 elif section == "universal-tracker":
                     if key == "block_unreachable_location_press":
                         self.ctx.block_unreachable_location_press = True if value == "Yes" else False
+                    elif key == "display_glitched_locations":
+                        self.ctx.display_glitched_locations = True if value == "Yes" else False
+                        self.build_tracker_and_locations_table()
+                        self.request_update_tracker_and_locations_table()
+                    elif key == "allow_glitched_location_press":
+                        self.ctx.allow_glitched_location_press = True if value == "Yes" else False
 
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
@@ -998,6 +1044,7 @@ class ManualContext(SuperContext):
                                 category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
                                 category_count = 0
                                 reachable_count = 0
+                                reachable_glitch_count = 0
 
                                 buttons_to_remove = []
 
@@ -1030,6 +1077,10 @@ class ManualContext(SuperContext):
                                                     location_button.background_color = self.ctx.colors['location_in_logic']
                                                     reachable_count += 1
 
+                                                elif self.ctx.display_glitched_locations and location_button.victory and "__Victory__" in self.ctx.tracker_glitched_locations:
+                                                    location_button.background_color = self.ctx.colors['location_in_glitched_logic']
+                                                    reachable_glitch_count += 1
+
                                                 continue
 
                                         if location_button.id and location_button.id not in self.ctx.missing_locations:
@@ -1040,10 +1091,14 @@ class ManualContext(SuperContext):
                                             continue
 
                                         was_reachable = False
+                                        was_reachable_glitched = False
 
                                         if location_button.text in self.ctx.tracker_reachable_locations:
                                             location_button.background_color = self.ctx.colors['location_in_logic']
                                             was_reachable = True
+                                        elif self.ctx.display_glitched_locations and location_button.text in self.ctx.tracker_glitched_locations:
+                                            location_button.background_color = self.ctx.colors['location_in_glitched_logic']
+                                            was_reachable_glitched = True
                                         else:
                                             location_button.background_color = self.ctx.colors['location_default']
 
@@ -1055,7 +1110,8 @@ class ManualContext(SuperContext):
 
                                             if was_reachable:
                                                 reachable_count += 1
-
+                                            elif was_reachable_glitched:
+                                                reachable_glitch_count += 1
                                             category_count += 1
 
                                 for location_button in buttons_to_remove:
@@ -1069,18 +1125,26 @@ class ManualContext(SuperContext):
                                 if scrollview_height < 10:
                                     scrollview_height = 50
 
-                                count_text = category_count
+                                count_text: str = str(category_count)
 
                                 if tracker_loaded:
-                                    count_text = "{}/{}".format(reachable_count, category_count)
+                                    if self.ctx.display_glitched_locations and reachable_glitch_count:
+                                        count_text = f"{reachable_count}/{category_count} ({reachable_glitch_count})"
+                                    else:
+                                        count_text = f"{reachable_count}/{category_count}"
 
-                                category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
+                                category_name = re.sub(r"\s\(\d+\/?([\d\s]+)?(\(\d+\))?\)$", "", category_label.text)
                                 category_label.text = "%s (%s)" % (category_name, count_text)
 
                                 if reachable_count > 0:
                                     # treeviewlabels don't have background color. because #justkivythings.
                                     category_label.even_color = self.ctx.colors['category_in_logic']
                                     category_label.odd_color = self.ctx.colors['category_in_logic']
+                                    category_label.odd_color[3] = 0.9
+                                elif self.ctx.display_glitched_locations and reachable_glitch_count > 0:
+                                    category_label.even_color = self.ctx.colors['category_in_glitched_logic']
+                                    category_label.odd_color = self.ctx.colors['category_in_glitched_logic']
+                                    category_label.odd_color[3] = 0.9
                                 else:
                                     category_label.even_color = self.ctx.colors['category_even_default']
                                     category_label.odd_color = self.ctx.colors['category_odd_default']
@@ -1103,12 +1167,18 @@ class ManualContext(SuperContext):
                     return
 
                 if location_id:
-                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.text not in self.ctx.tracker_reachable_locations:
-                        logger.debug(f"button for location '{button.text}' was pressed while unreachable")
-                    else:
-                        self.ctx.locations_checked.append(location_id)
-                        self.ctx.syncing = True
-                        button.parent.remove_widget(button)
+                    if tracker_loaded and self.ctx.block_unreachable_location_press:
+                        if button.text in self.ctx.tracker_reachable_locations:
+                            pass
+                        elif self.ctx.allow_glitched_location_press and button.text in self.ctx.tracker_glitched_locations:
+                            pass
+                        else:
+                            logger.debug(f"button for location '{button.text}' was pressed while unreachable")
+                            return
+
+                    self.ctx.locations_checked.append(location_id)
+                    self.ctx.syncing = True
+                    button.parent.remove_widget(button)
 
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)

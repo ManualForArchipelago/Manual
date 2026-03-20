@@ -29,7 +29,7 @@
         {
             "name": "Beat the Game - Shuma-Gorath",
             "category": ["Unlocked Teams", "Right Side"],
-            "requires": "|Shuma-Gorath|",
+            "requires": "|Shuma-Gorath| or |[UT Glitches]|",
             "hint_entrance": "Unlock Shuma-Gorath"
         },
         {
