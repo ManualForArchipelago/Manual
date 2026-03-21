@@ -21,7 +21,7 @@
             "type": "string"
         },
         "glitches_item_name": {
-            "description": "Name of the Special item UT uses for you to mark a location as accessible out of logic (with glitches). This system is disabled if left empty.",
+            "description": "(Optional) Name of the Special item UT uses for you to mark a location as accessible out of logic (with glitches). That system is disabled if this property is left empty.",
             "type": "string",
             "default": null
         },
