@@ -37,6 +37,11 @@
             "type": "integer",
             "default": 1
         },
+        "unused_goals_are_locations": {
+            "description": "(Optional) If true, goals that are not selected in the yaml will be treated as normal locations and can be placed with items.",
+            "type": "boolean",
+            "default": false
+        },
         "_comment": {"$ref": "#/definitions/comment"}
     },
     "required":["game", "creator", "filler_item_name"],

@@ -7,8 +7,8 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
 
-from .Data import item_table, location_table, event_table, region_table, category_table
-from .Game import game_name, filler_item_name, starting_items
+from .Data import item_table, location_table, event_table, category_table
+from .Game import game_name, filler_item_name, starting_items, unused_goals_are_locations
 from .Meta import world_description, world_webworld
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
@@ -106,8 +106,9 @@ class ManualWorld(World):
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
 
-        for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
-            unused_goal.parent_region.locations.remove(unused_goal)
+        if not unused_goals_are_locations:
+            for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
+                unused_goal.parent_region.locations.remove(unused_goal)
 
         location_game_complete.place_locked_item(
             ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
