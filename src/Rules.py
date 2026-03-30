@@ -116,10 +116,10 @@ def evaluate_postfix(expr: str, location: dict) -> bool:
     return stack.pop()
 
 def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
-    def evaluate_nonnumeric_count(item_name: str, item_count: str, is_category: bool, area: dict) -> int:
+    def evaluate_nonnumeric_count(item_base: str, item_name: str, item_count: str, is_category: bool, area: dict) -> tuple[str, int]:
         item_count = item_count.strip()
         if item_count.isnumeric():
-            return int(item_count)
+            return item_name, int(item_count)
 
         items_counts = world.get_item_counts(player, only_progression=True)
         if is_category:
@@ -128,16 +128,18 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             total_count = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
         else:
             total_count = items_counts.get(item_name, 0)
-
         if item_count == 'all':
-            return total_count
+            count = total_count
         elif item_count == 'half':
-            return int(total_count / 2)
+            count = int(total_count / 2)
         elif item_count.endswith('%') and len(item_count) > 1:
             percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-            return math.ceil(total_count * percent)
-
-        raise ValueError(f"Invalid item count `{item_name}` in {area}.")
+            count = math.ceil(total_count * percent)
+        # If invalid count assume its actually part of the item name
+        else:
+            item_name = item_base.strip("|")
+            count = 1
+        return item_name, count
 
     def construct_rule_from_string(area: dict) -> "rule_builder.rules.Rule | None":
         if not use_rulebuilder:
@@ -163,7 +165,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if item_count.isnumeric():
                     count = int(item_count)
                 else:
-                    count = evaluate_nonnumeric_count(item_name, item_count, is_category, area)
+                    item_name, count = evaluate_nonnumeric_count(match.group(0), item_name, item_count, is_category, area)
 
                 if is_category:
                     rule = rule_builder.rules.HasGroup(item_name, count)
@@ -303,7 +305,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         # parse user written statement into list of each item
         for match in ITEM_REGEX.finditer(requires_list):
             item_base = match.group(0)
-            is_category = match.group(1)
+            is_category = bool(match.group(1))
             item_name = match.group(2)
             item_count = match.group(3)
 
@@ -315,22 +317,15 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 item_count = "1"
             item_count = item_count.lstrip(':')
 
-            # TODO deal with this post merge
-            # # If invalid count assume its actually part of the item name
-            # if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
-            #     item_name = item
-            #     item_count = "1"
-
             total = 0
+            item_name, numeric_count = evaluate_nonnumeric_count(item_base, item_name, item_count, is_category, area)
             valid_items: list[str] = []
             if is_category:
                 # TODO replace loops with pre calculated categories list
                 valid_items.extend([item["name"] for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]])
                 valid_items.extend([event["name"] for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]])
-                numeric_count = evaluate_nonnumeric_count(item_name, item_count, True, area)
             else:
                 valid_items.append(item_name)
-                numeric_count = evaluate_nonnumeric_count(item_name, item_count, False, area)
 
             for valid_item in valid_items:
                 total += state.count(valid_item, player)
