@@ -1231,24 +1231,28 @@ async def game_watcher_manual(ctx: ManualContext):
 def read_apmanual_file(apmanual_file) -> dict[str, Any]:
     import zipfile
     from base64 import b64decode
+
     from .container import APManualFile
 
     if zipfile.is_zipfile(apmanual_file):
         try:
             container = APManualFile(apmanual_file)
             container.read()
-            return container.as_dict()
+            return container.get_manifest()
         except Exception as e:
-            print("Error reading APManual file:", e)
+            logger.exception("Error reading APManual file:", e)
 
-    with open(apmanual_file, 'r') as f:
+    with open(apmanual_file, "r") as f:
         return json.loads(b64decode(f.read()))
 
 
 async def main(args):
     config_file = {}
-    if args.apmanual_file:
+    if args.apmanual_file and os.path.exists(args.apmanual_file):
         config_file = read_apmanual_file(args.apmanual_file)
+    if config_file.get("server") and not args.connect:
+        args.connect = config_file["server"]
+
     ctx = ManualContext(args.connect, args.password, config_file.get("game"), config_file.get("player_name"))
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="server loop")
 
@@ -1272,17 +1276,14 @@ async def main(args):
 
     await ctx.shutdown()
 
-def launch() -> None:
+def launch(*launch_args) -> None:
     import colorama
 
     parser = get_base_parser(description="Manual Client, for operating a Manual game in Archipelago.")
     parser.add_argument('apmanual_file', default="", type=str, nargs="?",
                         help='Path to an APMANUAL file')
 
-    args = sys.argv[1:]
-    if "Manual Client" in args:
-        args.remove("Manual Client")
-    args, rest = parser.parse_known_args(args=args)
+    args, rest = parser.parse_known_args(launch_args)
     colorama.init()
     asyncio.run(main(args))
     colorama.deinit()
