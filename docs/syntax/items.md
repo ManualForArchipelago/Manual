@@ -121,6 +121,8 @@ Do you have a lot of items you don't want to flood the multiworld with? Use the 
     }
 ```
 
+I'm sure glad these are contained within our own world, and other people aren't complaining that they're picking up nothing but fragments of tiny keys.
+
 ---
 
 ### Custom sorting of items in the Manual client
@@ -138,8 +140,6 @@ Here's an example where the second item would be sorted above the first item in 
     "sort-key": "row-0-8"
 }
 ```
-
-I'm sure glad these are contained within our own world, and other people aren't complaining that they're picking up nothing but fragments of tiny keys.
 
 ---
 
