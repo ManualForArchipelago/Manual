@@ -123,9 +123,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
         items_counts = world.get_item_counts(player, only_progression=True)
         if is_category:
-            category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-            category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
-            total_count = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
+            items = world.item_name_groups[item_name]
+            total_count = sum([items_counts.get(item, 0) for item in items])
         else:
             total_count = items_counts.get(item_name, 0)
         if item_count == 'all':
