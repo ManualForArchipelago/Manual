@@ -69,6 +69,12 @@ class ManualWorld(World):
 
     event_name_to_event = event_name_to_event
     event_name_groups = event_name_groups
+    item_and_event_name_groups: dict[str, set[str]] = dict(item_name_groups)
+    for name, category in event_name_groups.items():
+        if name in item_and_event_name_groups.keys():
+            item_and_event_name_groups[name] = item_name_groups[name].union(category)
+        else:
+            item_and_event_name_groups[name] = category
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
