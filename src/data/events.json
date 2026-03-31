@@ -13,7 +13,15 @@
         {
             "name": "Stars_event",
             "copy_location": "Stars%"
+        },
+        {
+            "name": "X-Men Assemble",
+            "requires": "((|Wolverine|) OR |X-23|) AND |Storm| and |Magneto:1|"
+        },
+        {
+            "name": "Thunderbolts and Lightning",
+            "requires": "{CanReachLocation(Beat the Game - Storm)} and {CanReachLocation(Beat the Game - Thor)}",
+            "region": "Third Region"
         }
     ]
 }
-
