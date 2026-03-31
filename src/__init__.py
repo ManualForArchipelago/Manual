@@ -68,11 +68,7 @@ class ManualWorld(World):
     victory_names = victory_names
 
     event_name_to_event = event_name_to_event
-    for group, events in event_name_groups.items():
-        if group not in item_name_groups.keys():
-            item_name_groups[group] = events
-        else:
-            item_name_groups[group] |= events
+    event_name_groups = event_name_groups
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True

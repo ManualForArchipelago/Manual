@@ -123,7 +123,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
         items_counts = world.get_item_counts(player, only_progression=True)
         if is_category:
-            items = world.item_name_groups[item_name]
+            items = world.item_name_groups.get(item_name, set()).union(world.event_name_groups.get(item_name, set()))
             total_count = sum([items_counts.get(item, 0) for item in items])
         else:
             total_count = items_counts.get(item_name, 0)
@@ -153,7 +153,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         def recursively_tokenize_manual_rule(partial: str) -> "rule_builder.rules.Rule | None":
             if not partial:
                 return rule_builder.rules.True_()
-            rule = None
+            rule: Rule | None = None
             remaining = ''
             partial = partial.strip()
             if match := ITEM_REGEX.match(partial):
@@ -167,7 +167,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     item_name, count = evaluate_nonnumeric_count(match.group(0), item_name, item_count, is_category, area)
 
                 if is_category:
-                    rule = rule_builder.rules.HasGroup(item_name, count)
+                    items = world.item_name_groups.get(item_name, set()).union(world.event_name_groups.get(item_name, set()))
+                    rule = rule_builder.rules.HasFromList(*items, count=count)
                 else:
                     rule = rule_builder.rules.Has(item_name, count)
                 remaining = partial[len(match.group(0)):]
@@ -319,7 +320,8 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             item_name, numeric_count = evaluate_nonnumeric_count(item_base, item_name, item_count, is_category, area)
 
             if is_category:
-                found = state.has_group(item_name, player, numeric_count)
+                items = world.item_name_groups.get(item_name, set()).union(world.event_name_groups.get(item_name, set()))
+                found = state.has_from_list(items, player, numeric_count)
             else:
                 found = state.has(item_name, player, numeric_count)
 
