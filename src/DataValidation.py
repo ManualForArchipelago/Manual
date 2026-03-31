@@ -40,7 +40,7 @@ class DataValidation():
 
                     # if it's a category, validate that the category exists
                     if is_category:
-                        item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
+                        item_category_exists = len([item for item in DataValidation.item_table_with_events if item_name in item.get('category', [])]) > 0
 
                         if not item_category_exists:
                             raise ValidationError("Item category %s is required by location %s but is misspelled or does not exist." % (item_name, location.get("name")))
@@ -106,7 +106,7 @@ class DataValidation():
 
                     # if it's a category, validate that the category exists
                     if is_category:
-                        item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
+                        item_category_exists = len([item for item in DataValidation.item_table_with_events if item_name in item.get('category', [])]) > 0
 
                         if not item_category_exists:
                             raise ValidationError("Item category %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
