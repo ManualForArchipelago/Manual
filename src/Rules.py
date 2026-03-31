@@ -317,24 +317,16 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 item_count = "1"
             item_count = item_count.lstrip(':')
 
-            total = 0
             item_name, numeric_count = evaluate_nonnumeric_count(item_base, item_name, item_count, is_category, area)
-            valid_items: list[str] = []
+
             if is_category:
-                # TODO replace loops with pre calculated categories list
-                valid_items.extend([item["name"] for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]])
-                valid_items.extend([event["name"] for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]])
+                found = state.has_group(item_name, player, numeric_count)
             else:
-                valid_items.append(item_name)
+                found = state.has(item_name, player, numeric_count)
 
-            for valid_item in valid_items:
-                total += state.count(valid_item, player)
-
-                if total >= numeric_count:
-                    requires_list = requires_list.replace(item_base, "1")
-                    break
-
-            if total < numeric_count:
+            if found:
+                requires_list = requires_list.replace(item_base, "1")
+            else:
                 requires_list = requires_list.replace(item_base, "0")
 
         requires_list = AND_REGEX.sub('&', requires_list, count=0)
