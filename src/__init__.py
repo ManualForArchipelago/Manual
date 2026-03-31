@@ -10,7 +10,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 from .Data import item_table, location_table, event_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, event_name_groups
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
@@ -68,6 +68,11 @@ class ManualWorld(World):
     victory_names = victory_names
 
     event_name_to_event = event_name_to_event
+    for group, events in event_name_groups.items():
+        if group not in item_name_groups.keys():
+            item_name_groups[group] = events
+        else:
+            item_name_groups[group] |= events
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
@@ -259,8 +264,12 @@ class ManualWorld(World):
                 items_iter = iter([i for i in precollected_items if i.name == item])
                 for _ in range(count):
                     precollected_items.remove(next(items_iter))
+        # Placed items:
+        placed_pool: list[Item] = []
+        for location in self.multiworld.get_filled_locations(self.player):
+            placed_pool.append(location.item)
 
-        real_pool = pool + precollected_items
+        real_pool = pool + precollected_items + placed_pool
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
         self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 

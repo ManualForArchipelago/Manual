@@ -9,7 +9,7 @@ from .Game import filler_item_name, starting_index, game_name
 
 item_id_to_name: dict[int, str] = {}
 item_name_to_item: dict[str, dict] = {}
-item_name_groups: dict[str, str] = {}
+item_name_groups: dict[str, set[str]] = {}
 advancement_item_names: set[str] = set()
 lastItemId = -1
 
@@ -47,8 +47,8 @@ for item in item_table:
 
     for c in item.get("category", []):
         if c not in item_name_groups:
-            item_name_groups[c] = []
-        item_name_groups[c].append(item_name)
+            item_name_groups[c] = set()
+        item_name_groups[c].add(item_name)
 
     #Just lowercase the values here to remove all the .lower.strip down the line
     item['value'] = {k.lower().strip(): v
@@ -57,8 +57,8 @@ for item in item_table:
     for v in item.get("value", {}).keys():
         group_name = f"has_{v}_value"
         if group_name not in item_name_groups:
-            item_name_groups[group_name] = []
-        item_name_groups[group_name].append(item_name)
+            item_name_groups[group_name] = set()
+        item_name_groups[group_name].add(item_name)
 
 item_id_to_name[None] = "__Victory__"
 item_name_to_id = {name: id for id, name in item_id_to_name.items()}
