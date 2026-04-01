@@ -1093,7 +1093,13 @@ class ManualContext(SuperContext):
                                             category_count += 1
 
                                 for location_button in buttons_to_remove:
-                                    location_button.parent.remove_widget(location_button)
+                                    parent = location_button.parent
+                                    button_index = parent.children.index(location_button)
+                                    # Grid cols=2: pairs are at adjacent indices (even with odd, odd with even)
+                                    pair_index = button_index - 1 if button_index % 2 == 1 else button_index + 1
+                                    if 0 <= pair_index < len(parent.children):
+                                        parent.remove_widget(parent.children[pair_index])
+                                    parent.remove_widget(location_button)
 
                                 scrollview_height = 30 * category_count
 
@@ -1121,7 +1127,7 @@ class ManualContext(SuperContext):
 
                                 category_scrollview.size=(Window.width / 2, scrollview_height)
 
-            def location_button_callback(self, location_id, button):
+            def location_button_callback(self, location_id: int, button: TreeViewButton):
                 if button.text not in self.ctx.location_names_to_id:
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
 
@@ -1154,7 +1160,7 @@ class ManualContext(SuperContext):
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
 
-            def location_scout_callback(self, location_id, button):
+            def location_scout_callback(self, location_id: int, button: TreeViewButton) -> None:
                 # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
                 if self.are_top_controls_at_mouse_pos():
                     # if there's an obj in the top controls/tab at the current mouse position, click it instead
