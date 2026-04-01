@@ -13,11 +13,12 @@ class ValidationError(Exception):
 class DataValidation():
     game_table: dict[str, Any] = {}
     item_table: list[dict[str, Any]] = []
-    item_table_with_events = []
+    item_table_with_events: list[dict[str, Any]] = []
+    event_table: list[dict[str, Any]] = []
     location_table: list[dict[str, Any]] = []
     region_table: dict[str, Any] = {}
-    location_table_with_events = []
-
+    location_table_with_events: list[dict[str, Any]] = []
+    location_name_to_location: dict[str, dict[str, Any]] = {}
 
     @staticmethod
     def checkItemNamesInLocationRequires():
@@ -41,7 +42,7 @@ class DataValidation():
                                 item_name = item_parts[0]
 
                             item_name = item_name[1:]
-                            item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
+                            item_category_exists = len([item for item in DataValidation.item_table_with_events if item_name in item.get('category', [])]) > 0
 
                             if not item_category_exists:
                                 raise ValidationError("Item category %s is required by location %s but is misspelled or does not exist." % (item_name, location.get("name")))
@@ -117,7 +118,7 @@ class DataValidation():
                                 item_name = item_parts[0]
 
                             item_name = item_name[1:]
-                            item_category_exists = len([item for item in DataValidation.item_table if item_name in item.get('category', [])]) > 0
+                            item_category_exists = len([item for item in DataValidation.item_table_with_events if item_name in item.get('category', [])]) > 0
 
                             if not item_category_exists:
                                 raise ValidationError("Item category %s is required by region %s but is misspelled or does not exist." % (item_name, region_name))
@@ -509,7 +510,7 @@ class DataValidation():
 
 
 def runPreFillDataValidation(world: World, multiworld: MultiWorld):
-    validation_errors = []
+    validation_errors: list[ValidationError] = []
 
     # check if there is enough items with values
     try: DataValidation.preFillCheckIfEnoughItemsForValue(world, multiworld)
@@ -522,7 +523,7 @@ def runPreFillDataValidation(world: World, multiworld: MultiWorld):
 
 # Called during stage_assert_generate
 def runGenerationDataValidation(cls) -> None:
-    validation_errors = []
+    validation_errors: list[ValidationError] = []
 
     try: DataValidation.checkForMissingItemNames()
     except ValidationError as e: validation_errors.append(e)
