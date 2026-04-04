@@ -4,7 +4,7 @@ Randomising the starting location is one of the harder problems an open-world ma
 
 The way Archipelago handles regions and backtracking can be unintuitive, and often makes people feel like this is impossible.
 
-It's not impossible, and it doesn't even require hooks!  Let's dive in.
+It's not impossible, and it doesn't even require complicated hooks!  Let's dive in.
 
 ## Items.json
 Our example today is a hypothetical pokemon game.  It has towns, it has routes, it has HMs required to traverse the routes.  
@@ -38,6 +38,22 @@ Nothing too special here.  We just need to set up a starting town in starting it
   ]
 }
 ```
+
+## hooks/world.py
+We need one hook to make this work, and it's a very simple one.  We need to remove all the unused "Starting Town" items from the pool.
+
+```py
+def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    # This is called after starting items have been determined, and the chosen starting item has been moved to your starting inventory.
+    filtered_item_pool = []
+    for item in item_pool:
+        if item.name.startswith("Starting Town:")
+            continue
+        filtered_item_pool.append(item)
+
+    return filtered_item_pool
+```
+
 
 ## Regions.json
 This is the part where things get interesting.  We're going to use `"entrance_requires"` to make traversal from the "Manual" region require your starting town.
