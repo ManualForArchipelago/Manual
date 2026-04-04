@@ -1,4 +1,4 @@
-## Yaml Pick and Choose
+# Yaml Pick and Choose
 
 People often ask "Is it possible to make a yaml option where you choose a list of things to enable/disable".
 

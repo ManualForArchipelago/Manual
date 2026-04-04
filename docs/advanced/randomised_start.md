@@ -1,4 +1,4 @@
-## Randomised Starting location
+# Randomised Starting location
 
 Randomising the starting location is one of the harder problems an open-world manual can run into.  
 
