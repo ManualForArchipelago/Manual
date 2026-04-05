@@ -477,7 +477,7 @@ class ManualContext(SuperContext):
                 config.setdefaults("universal-tracker", {
                     "block_unreachable_location_press": "Yes",
                     "display_glitched_locations": "Yes",
-                    "allow_glitched_location_press": "No"
+                    "allow_glitched_location_press": "Yes"
                 })
 
             def build_settings(self, settings: Settings):
