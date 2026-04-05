@@ -410,7 +410,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         for exitRegion in multiworld.get_region(region, player).entrances:
             extra = extra_entrance_rules.get(exitRegion.name, {})
-            rb_rule = construct_rule_from_string(regionMap[region])
+            area = regionMap[region]
+            area["name"] = exitRegion.name
+            area['is_region'] = True
+            rb_rule = construct_rule_from_string(area)
             if rb_rule is not None:
                 if extra:
                     rb_extra_rule = construct_rule_from_string(extra)
@@ -419,10 +422,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     rb_rule = rb_rule & rb_extra_rule
                 world.set_rule(world.get_entrance(exitRegion.name), rb_rule)
             else:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
-                    region['name'] = region_name
-                    region['is_region'] = True
-
+                def fullRegionCheck(state: CollectionState, region=area):
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
