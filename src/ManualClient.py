@@ -1170,7 +1170,7 @@ class ManualContext(SuperContext):
                     if tracker_loaded and self.ctx.block_unreachable_location_press:
                         if button.text in self.ctx.tracker_reachable_locations:
                             pass
-                        elif self.ctx.allow_glitched_location_press and button.text in self.ctx.tracker_glitched_locations:
+                        elif self.ctx.display_glitched_locations and self.ctx.allow_glitched_location_press and button.text in self.ctx.tracker_glitched_locations:
                             pass
                         else:
                             logger.debug(f"button for location '{button.text}' was pressed while unreachable")
