@@ -65,6 +65,17 @@ SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of i
 SortingOrderItem.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
 
+class SortingOrderCategories(IntEnum):
+    alphabetical = 1
+    inverted_alphabetical = -1
+    natural = 2
+    inverted_natural = -2
+    default = 2
+
+SortingOrderLoc.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
+SortingOrderLoc.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+
+
 @cache
 def strip_articles(title: str) -> str:
     lower = title.lower()
@@ -75,6 +86,14 @@ def strip_articles(title: str) -> str:
     elif lower.startswith("an "):
         title = title[3:]
     return title
+
+def natural_sort_key(key: str):
+    # Modified from https://stackoverflow.com/a/11150413
+    def convert(text):
+        return int(text) if text.isdigit() else text.lower()
+    key = strip_articles(key)
+
+    return [convert(c) for c in re.split('([0-9]+)', key)]
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
     def _cmd_resync(self) -> bool:
@@ -121,18 +140,20 @@ class ManualContext(SuperContext):
     region_table = {}
     category_table = {}
 
-    tracker_reachable_locations = []
-    tracker_reachable_events = []
+    tracker_reachable_locations: list[str] = []
+    tracker_reachable_events: list[str] = []
 
     set_deathlink = False
     last_death_link = 0
     deathlink_out = False
 
-    visible_events = {}
+    visible_events: dict[str, dict[str, Any]]  = {}
 
     search_term = ""
     items_sorting = SortingOrderItem.default.name
+    items_categories_sorting = SortingOrderCategories.default.name
     locations_sorting = SortingOrderLoc.default.name
+    locations_categories_sorting = SortingOrderCategories.default.name
     block_unreachable_location_press = True
 
     colors = {
@@ -416,6 +437,8 @@ class ManualContext(SuperContext):
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
+                self.ctx.items_categories_sorting = self.config.get('manual', 'items_categories_sorting_order')
+                self.ctx.locations_categories_sorting = self.config.get('manual', 'locations_categories_sorting_order')
                 self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
@@ -450,7 +473,9 @@ class ManualContext(SuperContext):
                 super().build_config(config)
                 config.setdefaults("manual", {
                     "items_sorting_order": SortingOrderItem.default.name,
-                    "locations_sorting_order": SortingOrderLoc.default.name
+                    "locations_sorting_order": SortingOrderLoc.default.name,
+                    "items_categories_sorting_order": SortingOrderCategories.default.name,
+                    "locations_categories_sorting_order": SortingOrderCategories.default.name
                 })
                 config.setdefaults("universal-tracker", {
                     "block_unreachable_location_press": "Yes"
@@ -479,6 +504,22 @@ class ManualContext(SuperContext):
                             "key": "locations_sorting_order",
                             "options": list(SortingOrderLoc._member_names_),
                             "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
+                        },
+                        {
+                            "type": "options",
+                            "title": "Items Category Sorting Order",
+                            "section": "manual",
+                            "key": "items_categories_sorting_order",
+                            "options": list(SortingOrderCategories._member_names_),
+                            "desc": '\n'.join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderCategories if i.__doc__ is not None])
+                        },
+                        {
+                            "type": "options",
+                            "title": "Locations Sorting Order",
+                            "section": "manual",
+                            "key": "locations_categories_sorting_order",
+                            "options": list(SortingOrderCategories._member_names_),
+                            "desc": "Same Options as Items Category Sorting Order."
                         },
                     ]
                 if tracker_loaded:
@@ -722,15 +763,8 @@ class ManualContext(SuperContext):
                             reverse=loc_sorting < 0)
 
                 elif abs(loc_sorting) == SortingOrderLoc.natural:
-                    # Modified from https://stackoverflow.com/a/11150413
-                    def convert(text):
-                        return int(text) if text.isdigit() else text.lower()
-
-                    def alphanum_key(i):
-                        name = strip_articles(self.ctx.get_location_by_id(i).get("name", ""))
-
-                        return [convert(c) for c in re.split('([0-9]+)', self.ctx.get_location_by_id(i).get("sort-key", name))]
-
+                    def alphanum_key(key: int) -> list[str|int]:
+                        return natural_sort_key(self.ctx.get_location_by_id(key).get("sort-key",self.ctx.get_location_by_id(key).get("name", "")))
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
 
@@ -740,8 +774,15 @@ class ManualContext(SuperContext):
                 tracker_panel = TreeView(root_options=dict(text="Items Received (%d)" % (items_length)), size_hint_y=None)
                 tracker_panel.bind(minimum_height=tracker_panel.setter('height'))
 
+                # Sorting items categories
+                item_cat_sorting = SortingOrderCategories[self.ctx.items_categories_sorting]
+                if abs(item_cat_sorting) == SortingOrderCategories.natural:
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=natural_sort_key, reverse=item_cat_sorting < 0)}
+                else:
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=item_cat_sorting < 0)}
+
                 # Since items_received is not available on connect, don't bother building item labels here
-                for item_category in sorted(self.listed_items.keys()):
+                for item_category in self.listed_items.keys():
                     category_tree = tracker_panel.add_node(
                         TreeViewLabel(text = "%s (%s)" % (item_category, len(self.listed_items[item_category])))
                     )
@@ -760,7 +801,14 @@ class ManualContext(SuperContext):
                 if not self.ctx.location_table and not hasattr(AutoWorldRegister.world_types[self.ctx.game], 'location_name_to_location'):
                     raise Exception("The apworld for %s is too outdated for this client. Please update it." % (self.ctx.game))
 
-                for location_category in sorted(self.listed_locations.keys()):
+                # Sorting location categories
+                loc_cat_sorting = SortingOrderCategories[self.ctx.locations_categories_sorting]
+                if abs(loc_cat_sorting) == SortingOrderCategories.natural:
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=natural_sort_key, reverse=loc_sorting < 0)}
+                else:
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=loc_sorting < 0)}
+
+                for location_category in self.listed_locations.keys():
                     locations_in_category = len(self.listed_locations[location_category])
 
                     if (location_category in victory_categories) or \
@@ -910,14 +958,9 @@ class ManualContext(SuperContext):
                                     reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.natural:
-                                    def convert(text):
-                                        return int(text) if text.isdigit() else text.lower()
-                                    def alphanum_key(i):
-                                        name = self.ctx.get_item_by_id(i).get("name", "")
-                                        name = strip_articles(name)
+                                    def alphanum_key(key: int) -> list[str|int]:
+                                        return natural_sort_key(self.ctx.get_item_by_id(key).get("sort-key", self.ctx.get_item_by_id(key).get("name", "")))
 
-                                        return [convert(c) for c in re.split('([0-9]+)',self.ctx.get_item_by_id(i).get("sort-key", name))
-                                                                                ]
                                     sorted_items_received = sorted(sorted_items_received, key=alphanum_key, reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.received:
