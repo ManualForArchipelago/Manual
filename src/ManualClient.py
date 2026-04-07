@@ -1125,8 +1125,11 @@ class ManualContext(SuperContext):
 
                     return
 
-                self.ctx.items_received.append("__Victory__")
-                self.ctx.syncing = True
+                if tracker_loaded and self.ctx.block_unreachable_location_press and "__Victory__" not in self.ctx.tracker_reachable_events:
+                    logger.debug(f"button for location '{button.text}' was pressed while unreachable")
+                else:
+                    self.ctx.items_received.append("__Victory__")
+                    self.ctx.syncing = True
 
         return ManualManager
 
