@@ -72,8 +72,8 @@ class SortingOrderCategories(IntEnum):
     inverted_natural = -2
     default = 2
 
-SortingOrderLoc.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
-SortingOrderLoc.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+SortingOrderCategories.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
+SortingOrderCategories.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 
 
 @cache
@@ -552,6 +552,16 @@ class ManualContext(SuperContext):
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
+                    elif key == "locations_categories_sorting_order":
+                        if value in SortingOrderCategories._member_names_:
+                            self.ctx.locations_categories_sorting = value
+                            self.build_tracker_and_locations_table()
+                            self.request_update_tracker_and_locations_table()
+                    elif key == "items_categories_sorting_order":
+                        if value in SortingOrderCategories._member_names_:
+                            self.ctx.items_categories_sorting = value
+                            self.build_tracker_and_locations_table()
+                            self.request_update_tracker_and_locations_table()
                 elif section == "universal-tracker":
                     if key == "block_unreachable_location_press":
                         self.ctx.block_unreachable_location_press = True if value == "Yes" else False
@@ -778,9 +788,9 @@ class ManualContext(SuperContext):
                 # Sorting items categories
                 item_cat_sorting = SortingOrderCategories[self.ctx.items_categories_sorting]
                 if abs(item_cat_sorting) == SortingOrderCategories.natural:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=natural_sort_key, reverse=item_cat_sorting < 0)}
+                    self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), key=natural_sort_key, reverse=item_cat_sorting < 0)}
                 else:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=item_cat_sorting < 0)}
+                    self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), reverse=item_cat_sorting < 0)}
 
                 # Since items_received is not available on connect, don't bother building item labels here
                 for item_category in self.listed_items.keys():
@@ -805,9 +815,9 @@ class ManualContext(SuperContext):
                 # Sorting location categories
                 loc_cat_sorting = SortingOrderCategories[self.ctx.locations_categories_sorting]
                 if abs(loc_cat_sorting) == SortingOrderCategories.natural:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=natural_sort_key, reverse=loc_sorting < 0)}
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=natural_sort_key, reverse=loc_cat_sorting < 0)}
                 else:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=loc_sorting < 0)}
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=loc_cat_sorting < 0)}
 
                 for location_category in self.listed_locations.keys():
                     locations_in_category = len(self.listed_locations[location_category])
