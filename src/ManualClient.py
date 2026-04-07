@@ -836,7 +836,7 @@ class ManualContext(SuperContext):
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
-                        location_button = TreeViewButton(text=f"custom button text: {self.ctx.location_names.lookup_in_game(location_id)}", size_hint=(None, None), height=30, width=400)
+                        location_button = TreeViewButton(text=self.ctx.location_names.lookup_in_game(location_id), size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
                         location_button.location_name = self.ctx.location_names.lookup_in_game(location_id)
@@ -848,7 +848,7 @@ class ManualContext(SuperContext):
                     if location_category in victory_categories:
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
                         victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
-                        location_button = TreeViewButton(text=f"custom victory button text: {victory_text}", size_hint=(None, None), height=dp(30), width=dp(400))
+                        location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=dp(30), width=dp(400))
                         location_button.victory = True
                         location_button.location_name = victory_location["name"]
                         location_button.bind(on_release=self.victory_button_callback)
