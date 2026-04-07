@@ -384,7 +384,8 @@ class ManualContext(SuperContext):
 
         class TreeViewButton(Button, TreeViewNode):
             victory: bool = False
-            id: int = None
+            id: int|None = None
+            location_name: str = ""
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
@@ -825,9 +826,10 @@ class ManualContext(SuperContext):
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
-                        location_button = TreeViewButton(text=self.ctx.location_names.lookup_in_game(location_id), size_hint=(None, None), height=30, width=400)
+                        location_button = TreeViewButton(text=f"custom button text: {self.ctx.location_names.lookup_in_game(location_id)}", size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
+                        location_button.location_name = self.ctx.location_names.lookup_in_game(location_id)
                         category_layout.add_widget(location_button)
 
                     # if this is the category that Victory is in, display the Victory button
@@ -835,9 +837,10 @@ class ManualContext(SuperContext):
                     #     ("category" not in victory_location_data and location_category == "(No Category)"):
                     if location_category in victory_categories:
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
-                        victory_text = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
-                        location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=dp(30), width=dp(400))
+                        victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
+                        location_button = TreeViewButton(text=f"custom victory button text: {victory_text}", size_hint=(None, None), height=dp(30), width=dp(400))
                         location_button.victory = True
+                        location_button.location_name = victory_location["name"]
                         location_button.bind(on_release=self.victory_button_callback)
                         category_layout.add_widget(location_button)
 
@@ -1061,7 +1064,7 @@ class ManualContext(SuperContext):
                                 for location_button in category_grid.children:
                                     if type(location_button) is TreeViewButton:
                                         # should only be true for the victory location button, which has different text
-                                        if location_button.text not in (self.ctx.location_table or AutoWorldRegister.world_types[self.ctx.game].location_name_to_location):
+                                        if location_button.victory:
                                             # if the player is searching for text and the location name doesn't contain it, hide and disable it
                                             if self.ctx.search_term and not self.ctx.search_term.lower() in location_button.text.lower():
                                                 hide_button_during_search(location_button)
@@ -1076,15 +1079,13 @@ class ManualContext(SuperContext):
                                                 continue
 
                                         if location_button.id and location_button.id not in self.ctx.missing_locations:
-                                            import logging
-
-                                            logging.info("location button being removed: " + location_button.text)
+                                            logger.info("location button being removed: " + location_button.text)
                                             buttons_to_remove.append(location_button)
                                             continue
 
                                         was_reachable = False
 
-                                        if location_button.text in self.ctx.tracker_reachable_locations:
+                                        if location_button.location_name in self.ctx.tracker_reachable_locations:
                                             location_button.background_color = self.ctx.colors['location_in_logic']
                                             was_reachable = True
                                         else:
@@ -1130,8 +1131,8 @@ class ManualContext(SuperContext):
 
                                 category_scrollview.size=(Window.width / 2, scrollview_height)
 
-            def location_button_callback(self, location_id, button):
-                if button.text not in self.ctx.location_names_to_id:
+            def location_button_callback(self, location_id: int, button: TreeViewButton):
+                if button.location_name not in self.ctx.location_names_to_id:
                     raise Exception("Locations were not loaded correctly. Please reconnect your client.")
 
                 # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
@@ -1146,7 +1147,7 @@ class ManualContext(SuperContext):
                     return
 
                 if location_id:
-                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.text not in self.ctx.tracker_reachable_locations:
+                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.location_name not in self.ctx.tracker_reachable_locations:
                         logger.debug(f"button for location '{button.text}' was pressed while unreachable")
                     else:
                         self.ctx.locations_checked.append(location_id)
@@ -1156,7 +1157,7 @@ class ManualContext(SuperContext):
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
 
-            def victory_button_callback(self, button):
+            def victory_button_callback(self, button: TreeViewButton):
                 # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
                 if self.are_top_controls_at_mouse_pos():
                     # if there's an obj in the top controls/tab at the current mouse position, click it instead
