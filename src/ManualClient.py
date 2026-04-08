@@ -858,7 +858,8 @@ class ManualContext(SuperContext):
                     #     ("category" not in victory_location_data and location_category == "(No Category)"):
                     if location_category in victory_categories:
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
-                        victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
+                        extra = f' ({alias})' if (alias := self.ctx.get_location_UT_alias_by_id(victory_location["id"])) is not None else ''
+                        victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"] + extra
                         location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=dp(30), width=dp(400))
                         location_button.victory = True
                         location_button.location_name = victory_location["name"]
