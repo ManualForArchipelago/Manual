@@ -148,6 +148,7 @@ class ManualContext(SuperContext):
     deathlink_out = False
 
     visible_events: dict[str, dict[str, Any]]  = {}
+    location_id_to_alias: dict[str, str] = {}
 
     search_term = ""
     items_sorting = SortingOrderItem.default.name
@@ -220,9 +221,11 @@ class ManualContext(SuperContext):
         return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
 
     def get_location_UT_alias_by_id(self, id) -> str|None:
-        if hasattr(AutoWorldRegister.world_types[self.game], "location_id_to_alias"):
-            return AutoWorldRegister.world_types[self.game].location_id_to_alias.get(id, None)
-        return None
+        alias = self.location_id_to_alias.get(str(id), None)
+        # Kept a fallback if its not in slotdata
+        if alias is None and hasattr(AutoWorldRegister.world_types[self.game], "location_id_to_alias"):
+            alias = AutoWorldRegister.world_types[self.game].location_id_to_alias.get(id, None)
+        return alias
 
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
@@ -286,6 +289,7 @@ class ManualContext(SuperContext):
                         self.set_deathlink = True
                         self.last_death_link = 0
                     self.visible_events = args['slot_data'].get('visible_events', {})
+                    self.location_id_to_alias = args['slot_data'].get('location_id_to_alias', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()

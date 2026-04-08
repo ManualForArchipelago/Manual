@@ -418,10 +418,13 @@ class ManualWorld(World):
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
         common_options = set(PerGameCommonOptions.type_hints.keys())
+        common_options |= set(["generate_region_diagram", "start_inventory_from_pool"])
         for option_key, _ in self.options_dataclass.type_hints.items():
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
+
+        slot_data["location_id_to_alias"] = self.location_id_to_alias
 
         slot_data["visible_events"] = {}
         for _, event in self.event_name_to_event.items():
