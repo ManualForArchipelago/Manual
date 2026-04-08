@@ -809,10 +809,13 @@ class ManualContext(SuperContext):
                 tracker_panel = TreeView(root_options=dict(text="Items Received (%d)" % (items_length)), size_hint_y=None)
                 tracker_panel.bind(minimum_height=tracker_panel.setter('height'))
 
+                def category_sort_key(key: str):
+                    result = natural_sort_key(key)
+                    return [0 if key.lstrip().startswith("(") else 1] + result
                 # Sorting items categories
                 item_cat_sorting = SortingOrderCategories[self.ctx.items_categories_sorting]
                 if abs(item_cat_sorting) == SortingOrderCategories.natural:
-                    self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), key=natural_sort_key, reverse=item_cat_sorting < 0)}
+                    self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), key=category_sort_key, reverse=item_cat_sorting < 0)}
                 else:
                     self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), reverse=item_cat_sorting < 0)}
 
@@ -839,7 +842,7 @@ class ManualContext(SuperContext):
                 # Sorting location categories
                 loc_cat_sorting = SortingOrderCategories[self.ctx.locations_categories_sorting]
                 if abs(loc_cat_sorting) == SortingOrderCategories.natural:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=natural_sort_key, reverse=loc_cat_sorting < 0)}
+                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=category_sort_key, reverse=loc_cat_sorting < 0)}
                 else:
                     self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=loc_cat_sorting < 0)}
 
