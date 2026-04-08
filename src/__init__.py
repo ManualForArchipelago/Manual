@@ -71,6 +71,7 @@ class ManualWorld(World):
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
+    location_id_to_alias: dict[int, str] = {}
 
     origin_region_name = "Manual"
 

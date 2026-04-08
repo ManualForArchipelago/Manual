@@ -179,7 +179,7 @@ class ManualContext(SuperContext):
 
         self.send_index: int = 0
         self.syncing = False
-        self.game = game
+        self.game: str = game
         self.username = player_name
 
     async def server_auth(self, password_requested: bool = False):
@@ -218,6 +218,11 @@ class ManualContext(SuperContext):
             return self.game
         from .Game import game_name  # This will at least give us the name of a manual they've installed
         return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
+
+    def get_location_UT_alias_by_id(self, id) -> str|None:
+        if hasattr(AutoWorldRegister.world_types[self.game], "location_id_to_alias"):
+            return AutoWorldRegister.world_types[self.game].location_id_to_alias.get(id, None)
+        return None
 
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
@@ -836,7 +841,9 @@ class ManualContext(SuperContext):
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
-                        location_button = TreeViewButton(text=self.ctx.location_names.lookup_in_game(location_id), size_hint=(None, None), height=30, width=400)
+                        extra = f' ({alias})' if (alias := self.ctx.get_location_UT_alias_by_id(location_id)) is not None else ''
+                        text = f"{self.ctx.location_names.lookup_in_game(location_id)}{extra}"
+                        location_button = TreeViewButton(text=text, size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
                         location_button.location_name = self.ctx.location_names.lookup_in_game(location_id)
