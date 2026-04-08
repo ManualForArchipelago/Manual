@@ -72,7 +72,7 @@ class SortingOrderCategories(IntEnum):
     inverted_natural = -2
     default = 2
 
-SortingOrderCategories.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
+SortingOrderCategories.alphabetical.__doc__ = "Sort alphabetically using the name of the category."
 SortingOrderCategories.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 
 
