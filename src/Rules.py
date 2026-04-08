@@ -207,6 +207,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         return None
 
                     rule = rule_class(*func_args)
+                remaining = partial[len(match.group(0)):]
             elif partial[0] == "(":
                 inner = ''
                 queue = list(partial[1:])
