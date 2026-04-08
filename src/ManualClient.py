@@ -149,6 +149,7 @@ class ManualContext(SuperContext):
 
     visible_events: dict[str, dict[str, Any]]  = {}
     location_id_to_alias: dict[str, str] = {}
+    item_id_to_alias: dict[str, str] = {}
 
     search_term = ""
     items_sorting = SortingOrderItem.default.name
@@ -220,11 +221,18 @@ class ManualContext(SuperContext):
         from .Game import game_name  # This will at least give us the name of a manual they've installed
         return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
 
-    def get_location_UT_alias_by_id(self, id) -> str|None:
+    def get_location_alias_by_id(self, id) -> str|None:
         alias = self.location_id_to_alias.get(str(id), None)
         # Kept a fallback if its not in slotdata
         if alias is None and hasattr(AutoWorldRegister.world_types[self.game], "location_id_to_alias"):
             alias = AutoWorldRegister.world_types[self.game].location_id_to_alias.get(id, None)
+        return alias
+
+    def get_item_alias_by_id(self, id) -> str|None:
+        alias = self.item_id_to_alias.get(str(id), None)
+        # Kept a fallback if its not in slotdata
+        if alias is None and hasattr(AutoWorldRegister.world_types[self.game], "item_id_to_alias"):
+            alias = AutoWorldRegister.world_types[self.game].item_id_to_alias.get(id, None)
         return alias
 
     def get_location_by_name(self, name) -> dict[str, Any]:
@@ -290,6 +298,7 @@ class ManualContext(SuperContext):
                         self.last_death_link = 0
                     self.visible_events = args['slot_data'].get('visible_events', {})
                     self.location_id_to_alias = args['slot_data'].get('location_id_to_alias', {})
+                    self.item_id_to_alias = args['slot_data'].get('item_id_to_alias', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -395,6 +404,12 @@ class ManualContext(SuperContext):
             victory: bool = False
             id: int|None = None
             location_name: str = ""
+
+        class ItemLabel(Label):
+            item_id: int|None = None
+            item_count: int = 1
+            item_name: str = ""
+            item_alias: str = ""
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
@@ -845,7 +860,7 @@ class ManualContext(SuperContext):
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
-                        extra = f' ({alias})' if (alias := self.ctx.get_location_UT_alias_by_id(location_id)) is not None else ''
+                        extra = f' ({alias})' if (alias := self.ctx.get_location_alias_by_id(location_id)) is not None else ''
                         text = f"{self.ctx.location_names.lookup_in_game(location_id)}{extra}"
                         location_button = TreeViewButton(text=text, size_hint=(None, None), height=30, width=400)
                         location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
@@ -858,7 +873,7 @@ class ManualContext(SuperContext):
                     #     ("category" not in victory_location_data and location_category == "(No Category)"):
                     if location_category in victory_categories:
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
-                        extra = f' ({alias})' if (alias := self.ctx.get_location_UT_alias_by_id(victory_location["id"])) is not None else ''
+                        extra = f' ({alias})' if (alias := self.ctx.get_location_alias_by_id(victory_location["id"])) is not None else ''
                         victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"] + extra
                         location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=dp(30), width=dp(400))
                         location_button.victory = True
@@ -931,11 +946,11 @@ class ManualContext(SuperContext):
 
                                 # for items that were already listed, determine if the qty changed. if it did, add them to the list to be bolded
                                 for item in category_grid.children:
-                                    if type(item) is Label:
+                                    if type(item) is ItemLabel:
                                         # Get the item name from the item Label, minus quantity, then do a lookup for count
-                                        old_item_text = item.text
-                                        item_name = re.sub(r"\s\(\d+\)$", "", item.text)
-                                        item_id = self.ctx.item_names_to_id.get(item_name, False)
+                                        old_count = item.item_count
+                                        item_name = item.item_name
+                                        item_id = item.item_id
                                         if item_id:
                                             item_count = len(list(i for i in self.ctx.items_received if i.item == item_id))
                                         else:
@@ -956,10 +971,11 @@ class ManualContext(SuperContext):
                                                 category_unique_name_count += 1
 
                                         # Update the label quantity
-                                        item.text="%s (%s)" % (item_name, item_count)
-
-                                        if update_highlights and (old_item_text != item.text):
+                                        if update_highlights and (old_count != item_count):
                                             bold_item_labels.append(item_name)
+                                            item.item_count = item_count
+
+                                        item.text="%s %s(%s)" % (item_name, item.item_alias, item_count)
 
                                         existing_item_labels.append(item_name)
 
@@ -1005,8 +1021,13 @@ class ManualContext(SuperContext):
 
                                     if category_name in item_data["category"] and network_item not in self.listed_items[category_name]:
                                         item_count = len(list(i for i in self.ctx.items_received if i.item == network_item))
-                                        item_text = Label(text="%s (%s)" % (item_name, item_count),
+                                        alias = f'({alias}) ' if (alias := self.ctx.get_item_alias_by_id(network_item)) is not None else ''
+                                        item_text = ItemLabel(text="%s %s(%s)" % (item_name, alias, item_count),
                                                     size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
+                                        item_text.item_name = item_name
+                                        item_text.item_count = item_count
+                                        item_text.item_id = network_item
+                                        item_text.item_alias = alias
 
                                         # if the item was previously listed and was bold, or if it wasn't previously listed at all, make it bold
                                         item_text.bold = (update_highlights and (item_name in bold_item_labels or item_name not in existing_item_labels))
@@ -1020,8 +1041,10 @@ class ManualContext(SuperContext):
                                 for event in sorted(self.ctx.tracker_reachable_events):
                                     if self.ctx.is_event_visible(event, category_name) and event not in self.listed_items[category_name]:
                                         item_count = len(list(i for i in self.ctx.tracker_reachable_events if i == event))
-                                        item_text = Label(text="%s (%s)" % (event, item_count),
+                                        item_text = ItemLabel(text="%s (%s)" % (event, item_count),
                                                     size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
+                                        item_text.item_name = event
+                                        item_text.item_count = item_count
                                         category_grid.add_widget(item_text)
                                         self.listed_items[category_name].append(event)
                                         category_count += item_count

@@ -72,6 +72,7 @@ class ManualWorld(World):
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
     location_id_to_alias: dict[int, str] = {}
+    item_id_to_alias: dict[int, str] = {}
 
     origin_region_name = "Manual"
 
@@ -423,8 +424,6 @@ class ManualWorld(World):
             if option_key in common_options:
                 continue
             slot_data[option_key] = get_option_value(self.multiworld, self.player, option_key)
-
-        slot_data["location_id_to_alias"] = self.location_id_to_alias
 
         slot_data["visible_events"] = {}
         for _, event in self.event_name_to_event.items():
