@@ -228,7 +228,7 @@ class ManualWorld(World):
 
         # Handle specific item placements using place_locked_item
         for location in locations_with_placements:
-            manual_location = manual_locations_with_placements[location.name]
+            manual_location = self.location_name_to_location.get(location.name, {})
             eligible_items = []
             eligible_item_names: set[str] = set()
             forbidden_item_names: set[str] = set()
