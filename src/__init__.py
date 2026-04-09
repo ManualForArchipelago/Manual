@@ -220,13 +220,14 @@ class ManualWorld(World):
         # Handle specific item forbidding using forbid_items_for_player
         for location in locations_with_forbid:
             manual_location = manual_locations_with_forbid[location.name]
-            forbidden_item_names = []
+            forbidden_item_names: set[str] = set()
 
             if manual_location.get("dont_place_item"):
-                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
+                forbidden_item_names |= set(manual_location["dont_place_item"])
 
             if manual_location.get("dont_place_item_category"):
-                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
+                for cat in manual_location["dont_place_item_category"]:
+                    forbidden_item_names |= self.item_name_groups.get(cat, set())
 
             if forbidden_item_names:
                 forbid_items_for_player(location, set(forbidden_item_names), self.player)
@@ -235,32 +236,34 @@ class ManualWorld(World):
         for location in locations_with_placements:
             manual_location = manual_locations_with_placements[location.name]
             eligible_items = []
-            eligible_item_names = []
-            forbidden_item_names = []
+            eligible_item_names: set[str] = set()
+            forbidden_item_names: set[str] = set()
             place_messages = []
             forbid_messages = []
 
             #First we get possible items names
             if manual_location.get("place_item"):
-                eligible_item_names += manual_location["place_item"]
+                eligible_item_names |= set(manual_location["place_item"])
                 place_messages.append('", "'.join(manual_location["place_item"]))
 
             if manual_location.get("place_item_category"):
-                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
+                for cat in manual_location["place_item_category"]:
+                    eligible_item_names |= self.item_name_groups.get(cat, set())
                 place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
 
             # Second we check for forbidden items names
             if manual_location.get("dont_place_item"):
-                forbidden_item_names += manual_location["dont_place_item"]
+                forbidden_item_names |= set(manual_location["dont_place_item"])
                 forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
 
             if manual_location.get("dont_place_item_category"):
-                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
+                for cat in manual_location["dont_place_item_category"]:
+                    forbidden_item_names |= self.item_name_groups.get(cat, set())
                 forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
 
             # If we forbid some names, check for those in the possible names and remove them
             if forbidden_item_names:
-                eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
+                eligible_item_names = {name for name in eligible_item_names if name not in forbidden_item_names}
 
             if eligible_item_names:
                 eligible_items = [item for item in pool if item.name in eligible_item_names]
