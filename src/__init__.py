@@ -91,6 +91,11 @@ class ManualWorld(World):
 
     def generate_early(self) -> None:
         before_generate_early(self, self.multiworld, self.player)
+        for item in item_table:
+            if item.get("local"):
+                if item.get("name") not in self.options.local_items.value:
+                    self.options.local_items.value.add(item["name"])
+
         if hasattr(self.multiworld, "re_gen_passthrough"):
             slot_data = self.multiworld.re_gen_passthrough.get(self.game, {})
             if slot_data:
@@ -184,10 +189,6 @@ class ManualWorld(World):
 
                 else:
                     raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
-
-            if item.get("local"): # All local
-                if name not in self.options.local_items.value:
-                    self.options.local_items.value.add(name)
 
             if item.get("local_early"): # Some or all local and early
                 if isinstance(item["local_early"],int) or (isinstance(item["local_early"],str) and item["local_early"].isnumeric()):
