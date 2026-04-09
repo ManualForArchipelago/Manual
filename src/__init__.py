@@ -71,6 +71,8 @@ class ManualWorld(World):
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
+    location_id_to_alias: dict[int, str] = {}
+    item_id_to_alias: dict[int, str] = {}
 
     origin_region_name = "Manual"
 
@@ -417,6 +419,7 @@ class ManualWorld(World):
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
         common_options = set(PerGameCommonOptions.type_hints.keys())
+        common_options |= set(["generate_region_diagram", "start_inventory_from_pool"])
         for option_key, _ in self.options_dataclass.type_hints.items():
             if option_key in common_options:
                 continue
@@ -570,7 +573,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2026_04_04 # YYYYMMDD
+    version = 2026_04_07 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
