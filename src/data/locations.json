@@ -8,7 +8,8 @@
         {
             "name": "Beat the Game - Ryu",
             "category": ["Starter Team", "Left Side"],
-            "region": "ExampleRegion"
+            "region": "ExampleRegion",
+            "scoutable": true
         },
         {
             "name": "Beat the Game - Chun-Li",
