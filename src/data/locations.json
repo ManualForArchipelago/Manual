@@ -3,7 +3,8 @@
     "data": [
         {
             "name": "Example_Range decide the amount of items required for this location",
-            "requires": "{OptionCount(Item Name for OptionCount Example, Example_Range)}"
+            "requires": "{OptionCount(Item Name for OptionCount Example, Example_Range)}",
+            "category": ["For_Tests_And_Examples"]
         },
         {
             "name": "Beat the Game - Ryu",
@@ -282,6 +283,67 @@
             "victory": true,
             "category": ["All Characters Complete!"],
             "requires": "{ItemValue(star:10)} and {ItemValue(coins:10)}"
+        },
+
+        {
+            "name": "Test dont_place_item alone",
+            "id": 200,
+            "requires": "",
+            "dont_place_item": ["Test item A"],
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Test place_item alone",
+            "requires": "",
+            "place_item": ["Test item A"],
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Test dont_place_item_category alone",
+            "requires": "",
+            "dont_place_item_category": ["place_item_category_test"],
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Test place_item_category alone",
+            "requires": "",
+            "place_item_category": ["place_item_category_test"],
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Test place_item_category + dont_place_item",
+            "place_item_category": ["place_item_category_test"],
+            "dont_place_item": ["Test item B"],
+            "requires": "",
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Test place_item_category + dont_place_item_category",
+            "place_item_category": ["place_item_category_test"],
+            "dont_place_item_category": ["dont_place_item_category_test"],
+            "requires": "",
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Free location for tests items 1",
+            "_comment": "added those so we don't have more items than locations",
+            "requires": "",
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Free location for tests items 2",
+            "requires": "",
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Free location for tests items 3",
+            "requires": "",
+            "category": ["For_Tests_And_Examples"]
+        },
+        {
+            "name": "Free location for tests items 4",
+            "requires": "",
+            "category": ["For_Tests_And_Examples"]
         }
     ]
 }
