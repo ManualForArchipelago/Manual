@@ -21,16 +21,16 @@ from .Options import manual_options_data
 from .Helpers import is_item_enabled, get_option_value, remove_specific_item, resolve_yaml_option, format_state_prog_items_key, convert_string_to_itemclassification, ProgItemsCat
 from .container import APManualFile
 
-from BaseClasses import CollectionState, ItemClassification, Item
+from BaseClasses import CollectionState, ItemClassification, Item, Location
 from Options import PerGameCommonOptions
 from worlds.AutoWorld import World
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
-    before_create_items_all, before_create_items_starting, before_create_items_filler, after_create_items, \
+    before_create_items_all, before_create_items_starting, before_create_items_filler, before_create_items_place_items, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
-    before_generate_basic, after_generate_basic, \
+    before_generate_basic, \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
     before_extend_hint_information, after_extend_hint_information, \
     after_collect_item, after_remove_item, before_generate_early, hook_interpret_slot_data
@@ -243,6 +243,84 @@ class ManualWorld(World):
 
         pool = before_create_items_filler(pool, self, self.multiworld, self.player)
         pool = self.adjust_filler_items(pool, traps)
+
+        pool = before_create_items_place_items(pool, self, self.multiworld, self.player)
+        # Handle item forbidding/placement
+        manual_locations_with_placements: dict[str, dict[str, Any]] = {}
+        manual_locations_with_forbid: dict[str, dict[str, Any]] = {}
+        for name, l in location_name_to_location.items():
+            if l.get("place_item") or l.get("place_item_category"):
+                manual_locations_with_placements[name] = l
+            elif l.get("dont_place_item") or l.get("dont_place_item_category"):
+                manual_locations_with_forbid[name] = l
+        locations_with_forbid: list[Location] = []
+        locations_with_placements: list[Location] = []
+        for location in self.multiworld.get_unfilled_locations(player=self.player):
+            if location.name in manual_locations_with_placements.keys():
+                locations_with_placements.append(location)
+            elif location.name in manual_locations_with_forbid.keys():
+                locations_with_forbid.append(location)
+
+        # Handle specific item forbidding using forbid_items_for_player
+        for location in locations_with_forbid:
+            manual_location = manual_locations_with_forbid[location.name]
+            forbidden_item_names = []
+
+            if manual_location.get("dont_place_item"):
+                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
+
+            if manual_location.get("dont_place_item_category"):
+                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
+
+            if forbidden_item_names:
+                forbid_items_for_player(location, set(forbidden_item_names), self.player)
+
+        # Handle specific item placements using place_locked_item
+        for location in locations_with_placements:
+            manual_location = manual_locations_with_placements[location.name]
+            eligible_items = []
+            eligible_item_names = []
+            forbidden_item_names = []
+            place_messages = []
+            forbid_messages = []
+
+            #First we get possible items names
+            if manual_location.get("place_item"):
+                eligible_item_names += manual_location["place_item"]
+                place_messages.append('", "'.join(manual_location["place_item"]))
+
+            if manual_location.get("place_item_category"):
+                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
+                place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
+
+            # Second we check for forbidden items names
+            if manual_location.get("dont_place_item"):
+                forbidden_item_names += manual_location["dont_place_item"]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
+
+            if manual_location.get("dont_place_item_category"):
+                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
+
+            # If we forbid some names, check for those in the possible names and remove them
+            if forbidden_item_names:
+                eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
+
+            if eligible_item_names:
+                eligible_items = [item for item in pool if item.name in eligible_item_names]
+
+            if len(eligible_items) == 0:
+                nl = "\n"
+                if forbidden_item_names:
+                    raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}".\n    No items that match "{f"{nl}     or ".join(place_messages)}"\n    Maybe because of forbidden "{f"{nl}     or ".join(forbid_messages)}"')
+                raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}". \n    No items that match "{f"{nl}     or ".join(place_messages)}"')
+
+            item_to_place = self.random.choice(eligible_items)
+            location.place_locked_item(item_to_place)
+
+            # remove the item we're about to place from the pool so it isn't placed twice
+            remove_specific_item(pool, item_to_place)
+
         pool = after_create_items(pool, self, self.multiworld, self.player)
 
         # need to put all of the items in the pool so we can have a full state for placement
@@ -259,8 +337,12 @@ class ManualWorld(World):
                 items_iter = iter([i for i in precollected_items if i.name == item])
                 for _ in range(count):
                     precollected_items.remove(next(items_iter))
+        # Placed items:
+        placed_pool: list[Item] = []
+        for location in self.multiworld.get_filled_locations(self.player):
+            placed_pool.append(location.item)
 
-        real_pool = pool + precollected_items
+        real_pool = pool + precollected_items + placed_pool
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
         self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
@@ -335,73 +417,6 @@ class ManualWorld(World):
 
     def generate_basic(self):
         before_generate_basic(self, self.multiworld, self.player)
-
-        # Handle item forbidding
-        manual_locations_with_forbid = {location['name']: location for location in location_name_to_location.values() if "dont_place_item" in location or "dont_place_item_category" in location}
-        locations_with_forbid = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_forbid.keys()]
-        for location in locations_with_forbid:
-            manual_location = manual_locations_with_forbid[location.name]
-            forbidden_item_names = []
-
-            if manual_location.get("dont_place_item"):
-                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
-
-            if manual_location.get("dont_place_item_category"):
-                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
-
-            if forbidden_item_names:
-                forbid_items_for_player(location, set(forbidden_item_names), self.player)
-
-        # Handle specific item placements using fill_restrictive
-        manual_locations_with_placements = {location['name']: location for location in location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
-        locations_with_placements = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_placements.keys()]
-        for location in locations_with_placements:
-            manual_location = manual_locations_with_placements[location.name]
-            eligible_items = []
-            eligible_item_names = []
-            forbidden_item_names = []
-            place_messages = []
-            forbid_messages = []
-
-            #First we get possible items names
-            if manual_location.get("place_item"):
-                eligible_item_names += manual_location["place_item"]
-                place_messages.append('", "'.join(manual_location["place_item"]))
-
-            if manual_location.get("place_item_category"):
-                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
-                place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
-
-            # Second we check for forbidden items names
-            if manual_location.get("dont_place_item"):
-                forbidden_item_names += manual_location["dont_place_item"]
-                forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
-
-            if manual_location.get("dont_place_item_category"):
-                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
-                forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
-
-            # If we forbid some names, check for those in the possible names and remove them
-            if forbidden_item_names:
-                eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
-
-            if eligible_item_names:
-                eligible_items = [item for item in self.multiworld.itempool if item.player == self.player and item.name in eligible_item_names]
-
-            if len(eligible_items) == 0:
-                nl = "\n"
-                if forbidden_item_names:
-                    raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}".\n    No items that match "{f"{nl}     or ".join(place_messages)}"\n    Maybe because of forbidden "{f"{nl}     or ".join(forbid_messages)}"')
-                raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}". \n    No items that match "{f"{nl}     or ".join(place_messages)}"')
-
-            item_to_place = self.random.choice(eligible_items)
-            location.place_locked_item(item_to_place)
-
-            # remove the item we're about to place from the pool so it isn't placed twice
-            remove_specific_item(self.multiworld.itempool, item_to_place)
-
-
-        after_generate_basic(self, self.multiworld, self.player)
 
         # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
         if get_option_value(self.multiworld, self.player, "generate_region_diagram"):
