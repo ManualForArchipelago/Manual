@@ -27,7 +27,7 @@ from worlds.AutoWorld import World
 
 from .hooks.World import \
     hook_get_filler_item_name, before_create_regions, after_create_regions, \
-    before_create_items_all, before_create_items_starting, before_create_items_filler, before_create_items_place_items, after_create_items, \
+    before_create_items_all, before_create_items_place_items, before_create_items_starting, before_create_items_filler, after_create_items, \
     before_create_item, after_create_item, \
     before_set_rules, after_set_rules, \
     before_generate_basic, \
@@ -199,53 +199,8 @@ class ManualWorld(World):
                 else:
                     raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
 
-
-        pool = before_create_items_starting(pool, self, self.multiworld, self.player)
-
-        items_started: list[Item] = []
-
-        if starting_items:
-            for starting_item_block in starting_items:
-                if not resolve_yaml_option(self.multiworld, self.player, starting_item_block):
-                    continue
-                # if there's a condition on having a previous item, check for any of them
-                # if not found in items started, this starting item rule shouldn't execute, and check the next one
-                if "if_previous_item" in starting_item_block:
-                    matching_items = [item for item in items_started if item.name in starting_item_block["if_previous_item"]]
-
-                    if len(matching_items) == 0:
-                        continue
-
-                # start with the full pool of items
-                items = pool
-
-                # if the setting lists specific item names, limit the items to just those
-                if "items" in starting_item_block:
-                    items = [item for item in pool if item.name in starting_item_block["items"]]
-
-                # if the setting lists specific item categories, limit the items to ones that have any of those categories
-                if "item_categories" in starting_item_block:
-                    items_in_categories = [item["name"] for item in self.item_name_to_item.values() if "category" in item and len(set(starting_item_block["item_categories"]).intersection(item["category"])) > 0]
-                    items = [item for item in pool if item.name in items_in_categories]
-
-                self.random.shuffle(items)
-
-                # if the setting lists a specific number of random items that should be pulled, only use a subset equal to that number
-                if "random" in starting_item_block:
-                    items = items[0:starting_item_block["random"]]
-
-                for starting_item in items:
-                    items_started.append(starting_item)
-                    self.multiworld.push_precollected(starting_item)
-                    remove_specific_item(pool, starting_item)
-
-        self.start_inventory = {i.name: items_started.count(i) for i in items_started}
-
-        pool = before_create_items_filler(pool, self, self.multiworld, self.player)
-        pool = self.adjust_filler_items(pool, traps)
-
-        pool = before_create_items_place_items(pool, self, self.multiworld, self.player)
         # Handle item forbidding/placement
+        pool = before_create_items_place_items(pool, self, self.multiworld, self.player)
         manual_locations_with_placements: dict[str, dict[str, Any]] = {}
         manual_locations_with_forbid: dict[str, dict[str, Any]] = {}
         for name, l in location_name_to_location.items():
@@ -320,6 +275,51 @@ class ManualWorld(World):
 
             # remove the item we're about to place from the pool so it isn't placed twice
             remove_specific_item(pool, item_to_place)
+
+        # Handle game.json's starting_items
+        pool = before_create_items_starting(pool, self, self.multiworld, self.player)
+
+        items_started: list[Item] = []
+
+        if starting_items:
+            for starting_item_block in starting_items:
+                if not resolve_yaml_option(self.multiworld, self.player, starting_item_block):
+                    continue
+                # if there's a condition on having a previous item, check for any of them
+                # if not found in items started, this starting item rule shouldn't execute, and check the next one
+                if "if_previous_item" in starting_item_block:
+                    matching_items = [item for item in items_started if item.name in starting_item_block["if_previous_item"]]
+
+                    if len(matching_items) == 0:
+                        continue
+
+                # start with the full pool of items
+                items = pool
+
+                # if the setting lists specific item names, limit the items to just those
+                if "items" in starting_item_block:
+                    items = [item for item in pool if item.name in starting_item_block["items"]]
+
+                # if the setting lists specific item categories, limit the items to ones that have any of those categories
+                if "item_categories" in starting_item_block:
+                    items_in_categories = [item["name"] for item in self.item_name_to_item.values() if "category" in item and len(set(starting_item_block["item_categories"]).intersection(item["category"])) > 0]
+                    items = [item for item in pool if item.name in items_in_categories]
+
+                self.random.shuffle(items)
+
+                # if the setting lists a specific number of random items that should be pulled, only use a subset equal to that number
+                if "random" in starting_item_block:
+                    items = items[0:starting_item_block["random"]]
+
+                for starting_item in items:
+                    items_started.append(starting_item)
+                    self.multiworld.push_precollected(starting_item)
+                    remove_specific_item(pool, starting_item)
+
+        self.start_inventory = {i.name: items_started.count(i) for i in items_started}
+
+        pool = before_create_items_filler(pool, self, self.multiworld, self.player)
+        pool = self.adjust_filler_items(pool, traps)
 
         pool = after_create_items(pool, self, self.multiworld, self.player)
 

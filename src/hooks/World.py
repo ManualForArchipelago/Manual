@@ -72,6 +72,10 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
     return item_config
 
+# The item pool before place_item(_category) are processed, in case you want to see the raw item pool at that stage
+def before_create_items_place_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    return item_pool
+
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     return item_pool
@@ -99,10 +103,6 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
     # item_to_place = next(i for i in item_pool if i.name == "Item Name")
     # location.place_locked_item(item_to_place)
     # remove_specific_item(item_pool, item_to_place)
-
-# The item pool before place_item(_category) are processed, in case you want to see the raw item pool at that stage
-def before_create_items_place_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
-    return item_pool
 
 # The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
 def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:

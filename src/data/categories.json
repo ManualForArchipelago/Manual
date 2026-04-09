@@ -11,11 +11,9 @@
          "yaml_option": ["Tests_content"]
     },
     "place_item_category_test": {
-         "hidden": true,
-         "yaml_option": ["Tests_content"]
+         "hidden": true
     },
     "dont_place_item_category_test": {
-         "hidden": true,
-         "yaml_option": ["Tests_content"]
+         "hidden": true
     }
 }
