@@ -219,7 +219,7 @@ class ManualContext(SuperContext):
         if self.game:
             return self.game
         from .Game import game_name  # This will at least give us the name of a manual they've installed
-        return Utils.persistent_load().get("client", {}).get("last_manual_game", game_name)
+        return Utils.persistent_load().get("client", {}).get("last_manual_game", None) or game_name
 
     def get_location_alias_by_id(self, id) -> str|None:
         alias = self.location_id_to_alias.get(str(id), None)
