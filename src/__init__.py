@@ -202,24 +202,18 @@ class ManualWorld(World):
 
         # Handle item forbidding/placement
         pool = before_create_items_place_items(pool, self, self.multiworld, self.player)
-        manual_locations_with_placements: dict[str, dict[str, Any]] = {}
-        manual_locations_with_forbid: dict[str, dict[str, Any]] = {}
-        for name, l in location_name_to_location.items():
-            if l.get("place_item") or l.get("place_item_category"):
-                manual_locations_with_placements[name] = l
-            elif l.get("dont_place_item") or l.get("dont_place_item_category"):
-                manual_locations_with_forbid[name] = l
         locations_with_forbid: list[Location] = []
         locations_with_placements: list[Location] = []
         for location in self.multiworld.get_unfilled_locations(player=self.player):
-            if location.name in manual_locations_with_placements.keys():
+            manual_location = self.location_name_to_location.get(location.name, {})
+            if manual_location.get("place_item") or manual_location.get("place_item_category"):
                 locations_with_placements.append(location)
-            elif location.name in manual_locations_with_forbid.keys():
+            elif manual_location.get("dont_place_item") or manual_location.get("dont_place_item_category"):
                 locations_with_forbid.append(location)
 
         # Handle specific item forbidding using forbid_items_for_player
         for location in locations_with_forbid:
-            manual_location = manual_locations_with_forbid[location.name]
+            manual_location = self.location_name_to_location.get(location.name, {})
             forbidden_item_names: set[str] = set()
 
             if manual_location.get("dont_place_item"):
