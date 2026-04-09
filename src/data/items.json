@@ -4,7 +4,8 @@
         {
             "name": "Item Name for OptionCount Example",
             "count": 5,
-            "progression": true
+            "progression": true,
+            "category": ["For_Tests_And_Examples"]
         },
         {
             "name": "Jill",
@@ -460,6 +461,59 @@
             ],
             "progression": true,
             "sort-key": "row-6-8"
+        },
+        {
+            "name": "Test item A",
+            "id": 200,
+            "_comment": "This and the following items are there to make sure we tests everything against Archipelago's Unit tests",
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "dont_place_item_category_test"]
+        },
+        {
+            "name": "Test item B",
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test", "dont_place_item_category_test"]
+        },
+        {
+            "name": "Test item C",
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test"]
+        },
+        {
+            "name": "Test item D",
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test"]
+        },
+        {
+            "name": "Test Local item",
+            "local": true,
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test"]
+        },
+        {
+            "name": "Test early item A",
+            "early": true,
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test", "dont_place_item_category_test"]
+        },
+        {
+            "name": "Test early item B",
+            "early": 1,
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test", "dont_place_item_category_test"]
+        },
+        {
+            "name": "Test local-early item A",
+            "local_early": true,
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test", "dont_place_item_category_test"]
+        },
+        {
+            "name": "Test local-early item B",
+            "local_early": 1,
+            "progression": true,
+            "category": ["For_Tests_And_Examples", "place_item_category_test", "dont_place_item_category_test"]
         }
+
     ]
 }
