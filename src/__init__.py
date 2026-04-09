@@ -66,6 +66,7 @@ class ManualWorld(World):
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
     victory_names = victory_names
+    starting_items = starting_items
 
     event_name_to_event = event_name_to_event
 
