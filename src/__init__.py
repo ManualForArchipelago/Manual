@@ -321,24 +321,24 @@ class ManualWorld(World):
 
         pool = before_create_items_filler(pool, self, self.multiworld, self.player)
         pool = self.adjust_filler_items(pool, traps)
-
         pool = after_create_items(pool, self, self.multiworld, self.player)
 
         # need to put all of the items in the pool so we can have a full state for placement
-        # then will remove specific item placements below from the overall pool
         self.multiworld.itempool += pool
 
-        # Filter Precollected items for those not in logic aka created by start_inventory(_from_pool)
+        # Preparing to count the items:
         precollected_items = list(self.multiworld.precollected_items[self.player])
 
         # UT doesn't precollect the exceptions so this can be skipped
         if not hasattr(self.multiworld, "generation_is_fake"):
+            # Filter Precollected items for those not in logic aka created by start_inventory(_from_pool)
             precollected_exceptions = self.options.start_inventory.value + self.options.start_inventory_from_pool.value # type: ignore
             for item, count in precollected_exceptions.items():
                 items_iter = iter([i for i in precollected_items if i.name == item])
                 for _ in range(count):
                     precollected_items.remove(next(items_iter))
-        # Placed items:
+
+        # Placed items detections:
         placed_pool: list[Item] = []
         for location in self.multiworld.get_filled_locations(self.player):
             placed_pool.append(location.item)
