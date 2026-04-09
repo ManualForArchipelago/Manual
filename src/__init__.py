@@ -8,7 +8,7 @@ from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch, icon_paths
 
 from .Data import item_table, location_table, event_table, region_table, category_table
-from .Game import game_name, filler_item_name, starting_items
+from .Game import game_name, filler_item_name, starting_items, glitches_item_name
 from .Meta import world_description, world_webworld
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
@@ -71,6 +71,7 @@ class ManualWorld(World):
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
+    glitches_item_name: str | None = glitches_item_name
 
     origin_region_name = "Manual"
 
@@ -266,6 +267,9 @@ class ManualWorld(World):
 
     def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
         name = before_create_item(name, self, self.multiworld, self.player)
+
+        if name == self.glitches_item_name:
+            return ManualItem(name, class_override or ItemClassification.progression, None, self.player)
 
         item = self.item_name_to_item[name]
         classification: ItemClassification = ItemClassification.filler

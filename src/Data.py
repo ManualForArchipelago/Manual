@@ -68,6 +68,10 @@ DataValidation.location_table = location_table
 DataValidation.event_table = event_table
 DataValidation.region_table = region_table
 
+# Add UT's glitch item if required
+if game_table.get("glitches_item_name"):
+    DataValidation.event_table = DataValidation.event_table + [{"name": game_table["glitches_item_name"]}]
+
 # might as well save this for other uses in tests
 DataValidation.location_name_to_location = {l.get("name", f"unknown location {key}"): l for key, l in enumerate(DataValidation.location_table)}
 # since "copy_location" just changes data its handled here to simplify things

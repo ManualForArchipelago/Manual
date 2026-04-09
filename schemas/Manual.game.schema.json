@@ -20,6 +20,11 @@
             "description": "Name of the filler items that get placed when there's no more real items to place.",
             "type": "string"
         },
+        "glitches_item_name": {
+            "description": "(Optional) Name of the Special item UT uses for you to mark a location as accessible out of logic (with glitches). That system is disabled if this property is left empty.",
+            "type": "string",
+            "default": null
+        },
         "starting_items": {
             "description": "(Optional) Starting inventory",
             "type":"array",
