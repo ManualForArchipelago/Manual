@@ -644,6 +644,16 @@ class ManualContext(SuperContext):
                             if "(Hinted)" not in location["category"]:
                                 location["category"].append("(Hinted)")
                                 rebuild = True
+                                json_str = [
+                                    {"type": "player_id", "text": hint["receiving_player"]},
+                                    {"type": "text", "text": "'s "},
+                                    {"type": "item_id",
+                                     "text": hint["item"],
+                                     "flags": hint["item_flags"],
+                                     "player": hint["receiving_player"],
+                                    },
+                                ]
+                                location['hint_text'] = self.json_to_kivy_parser(json_str)
 
                 if rebuild:
                     self.build_tracker_and_locations_table()
@@ -751,6 +761,9 @@ class ManualContext(SuperContext):
                 if not self.ctx.location_table and not hasattr(AutoWorldRegister.world_types[self.ctx.game], 'location_name_to_location'):
                     raise Exception("The apworld for %s is too outdated for this client. Please update it." % (self.ctx.game))
 
+                scoutable_locations = set()
+                hinted_locations = {}
+
                 for location_id in self.ctx.missing_locations:
                     # holy nesting, wow
                     location_name = self.ctx.location_names.lookup_in_game(location_id)
@@ -758,6 +771,11 @@ class ManualContext(SuperContext):
 
                     if not location:
                         continue
+
+                    if location.get("scoutable", False):
+                        scoutable_locations.add(location_id)
+                    if location.get("hint_text", False):
+                        hinted_locations[location_id] = location.get("hint_text", "")
 
                     if "category" in location and len(location["category"]) > 0:
                         for category in location["category"]:
@@ -858,18 +876,31 @@ class ManualContext(SuperContext):
                     )
 
                     category_scroll = locations_panel.add_node(TreeViewScrollView(size_hint=(1, None), size=(Window.width / 2, 250)), category_tree)
-                    category_layout = GridLayout(cols=1, size_hint_y=None)
+                    category_layout = GridLayout(cols=2, size_hint_y=None)
                     category_layout.bind(minimum_height = category_layout.setter('height'))
                     category_scroll.add_widget(category_layout)
 
                     for location_id in self.listed_locations[location_category]:
+                        has_hint = location_id in hinted_locations or location_id in scoutable_locations
+
                         extra = f' ({alias})' if (alias := self.ctx.get_location_alias_by_id(location_id)) is not None else ''
                         text = f"{self.ctx.location_names.lookup_in_game(location_id)}{extra}"
-                        location_button = TreeViewButton(text=text, size_hint=(None, None), height=30, width=400)
+                        location_button = TreeViewButton(text=text, size_hint=(.75 if has_hint else 1, None), height=30)
                         location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
                         location_button.location_name = self.ctx.location_names.lookup_in_game(location_id)
                         category_layout.add_widget(location_button)
+
+                        if location_id in hinted_locations:
+                            category_layout.add_widget(Label(text=hinted_locations[location_id], size_hint=(.25, None), height=30, font_size=10, markup=True))
+                        elif location_id in scoutable_locations:
+                            location_scout = TreeViewButton(text="Scout", size_hint=(.25, None), height=30, font_size=10)
+                            location_scout.bind(on_release=lambda *args, loc_id=location_id: self.location_scout_callback(loc_id, *args))
+                            location_scout.id = location_id
+                            category_layout.add_widget(location_scout)
+                        else:
+                            # Add invisible spacer to maintain 2-column grid structure
+                            category_layout.add_widget(Label(text="", size_hint=(None, None), height=0, width=0, opacity=0))
 
                     # if this is the category that Victory is in, display the Victory button
                     # if ("category" in victory_location_data and location_category in victory_location_data["category"]) or \
@@ -878,7 +909,7 @@ class ManualContext(SuperContext):
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
                         extra = f' ({alias})' if (alias := self.ctx.get_location_alias_by_id(victory_location["id"])) is not None else ''
                         victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"] + extra
-                        location_button = TreeViewButton(text=victory_text, size_hint=(None, None), height=dp(30), width=dp(400))
+                        location_button = TreeViewButton(text=victory_text, size_hint=(1, None), height=dp(30), width=dp(400))
                         location_button.victory = True
                         location_button.location_name = victory_location["name"]
                         location_button.bind(on_release=self.victory_button_callback)
@@ -1111,6 +1142,9 @@ class ManualContext(SuperContext):
                                 # Label (for existing item listings)
                                 for location_button in category_grid.children:
                                     if type(location_button) is TreeViewButton:
+                                        # Skip scout buttons
+                                        if location_button.text == "Scout":
+                                            continue
                                         # should only be true for the victory location button, which has different text
                                         if location_button.victory:
                                             # if the player is searching for text and the location name doesn't contain it, hide and disable it
@@ -1151,7 +1185,13 @@ class ManualContext(SuperContext):
                                             category_count += 1
 
                                 for location_button in buttons_to_remove:
-                                    location_button.parent.remove_widget(location_button)
+                                    parent = location_button.parent
+                                    button_index = parent.children.index(location_button)
+                                    # Grid cols=2: pairs are at adjacent indices (even with odd, odd with even)
+                                    pair_index = button_index - 1 if button_index % 2 == 1 else button_index + 1
+                                    if 0 <= pair_index < len(parent.children):
+                                        parent.remove_widget(parent.children[pair_index])
+                                    parent.remove_widget(location_button)
 
                                 scrollview_height = 30 * category_count
 
@@ -1200,10 +1240,33 @@ class ManualContext(SuperContext):
                     else:
                         self.ctx.locations_checked.append(location_id)
                         self.ctx.syncing = True
-                        button.parent.remove_widget(button)
+                        # Remove both the location button and its adjacent scout button/spacer from 2-column grid
+                        parent = button.parent
+                        button_index = parent.children.index(button)
+                        # Grid cols=2: pairs are at adjacent indices (even with odd, odd with even)
+                        pair_index = button_index - 1 if button_index % 2 == 1 else button_index + 1
+                        if 0 <= pair_index < len(parent.children):
+                            parent.remove_widget(parent.children[pair_index])
+                        parent.remove_widget(button)
 
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
+
+            def location_scout_callback(self, location_id: int, button: TreeViewButton) -> None:
+                # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
+                if self.are_top_controls_at_mouse_pos():
+                    # if there's an obj in the top controls/tab at the current mouse position, click it instead
+                    if hovered_obj := self.get_top_obj_at_mouse_pos():
+                        if hasattr(hovered_obj, 'trigger_action'): # buttons, tabs, etc.
+                            hovered_obj.trigger_action(duration=0)
+                        elif hasattr(hovered_obj, 'focus'): # text inputs
+                            hovered_obj.focus = True
+
+                    return
+
+                if location_id:
+                    self.ctx.locations_scouted.append(location_id)
+                    self.ctx.syncing = True
 
             def victory_button_callback(self, button: TreeViewButton):
                 # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
@@ -1234,6 +1297,8 @@ async def game_watcher_manual(ctx: ManualContext):
             sync_msg = [{'cmd': 'Sync'}]
             if ctx.locations_checked:
                 sync_msg.append({"cmd": "LocationChecks", "locations": list(ctx.locations_checked)})
+            if ctx.locations_scouted:
+                sync_msg.append({"cmd": "LocationScouts", "locations": list(ctx.locations_scouted), "create_as_hint": 2})
             await ctx.send_msgs(sync_msg)
             ctx.syncing = False
 
@@ -1247,6 +1312,7 @@ async def game_watcher_manual(ctx: ManualContext):
 
         victory = ("__Victory__" in ctx.items_received)
         ctx.locations_checked = []
+        ctx.locations_scouted = []
         if not ctx.finished_game and victory:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
             ctx.finished_game = True
