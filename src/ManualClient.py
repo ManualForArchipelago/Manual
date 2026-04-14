@@ -1175,7 +1175,6 @@ class ManualContext(SuperContext):
                 if location_id:
                     self.ctx.locations_scouted.append(location_id)
                     self.ctx.syncing = True
-                    # TODO Replace the scout button with the placeholder spacer to maintain 2-column grid structure (did not manage to make it work)
 
             def victory_button_callback(self, button):
                 # if the mouse is currently hovering over any of the controls/tabs at the top of the client, ignore clicks for location buttons underneath
