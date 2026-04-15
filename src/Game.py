@@ -11,3 +11,5 @@ if "starting_index" in game_table:
         raise Exception("The value of data/game.json:'starting_index' should be an int")
 else:
     starting_index = 1
+
+unused_goals_are_locations = game_table.get("unused_goals_are_locations", False)
