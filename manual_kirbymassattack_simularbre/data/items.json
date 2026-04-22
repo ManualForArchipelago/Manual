@@ -1,0 +1,129 @@
+[
+  {
+    "count": 1,
+    "name": "Green Grounds unlock",
+    "category": ["Green Grounds", "Progression"],
+    "progression": true
+  },
+  {
+    "count": 1,
+    "name": "Sandy Canyon unlock",
+    "category": ["Sandy Canyon", "Progression"],
+    "progression": true
+  },
+  {
+    "count": 1,
+    "name": "Dedede Resort unlock",
+    "category": ["Progression", "Dedede Resort"],
+    "progression": true
+  },
+  {
+    "count": 1,
+    "name": "Volcano Valley unlock",
+    "category": ["Progression", "Volcano Valley"],
+    "progression": true
+  },
+  {
+    "count": "28",
+    "name": "Rainbow Medal",
+    "category": ["Progression"],
+    "progression": true
+  },
+  {
+    "count": "10",
+    "name": "Medal",
+    "category": ["Filler"],
+    "filler": true
+  },
+  {
+    "count": "4",
+    "name": "Rainbow Bubble Green Grounds",
+    "category": ["Green Grounds", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "3",
+    "name": "Rainbow Bubble Sandy Canyon",
+    "category": ["Sandy Canyon", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "3",
+    "name": "Rainbow Bubble Dedede Resort",
+    "category": ["Dedede Resort", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "3",
+    "name": "Rainbow Bubble Volcano Valley",
+    "category": ["Volcano Valley", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "0",
+    "name": "Cannon",
+    "category": ["Abilities"],
+    "progression": true
+  },
+  {
+    "count": "1",
+    "name": "Jumbo Candy",
+    "category": ["Abilities", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "1",
+    "name": "Keys",
+    "category": ["Abilities", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "1",
+    "name": "Skull Keys",
+    "category": ["Abilities", "Progression"],
+    "progression": true
+  },
+  {
+    "count": "0",
+    "name": "Melody Switch",
+    "category": ["Abilities"],
+    "progression": true
+  },
+  {
+    "count": "1",
+    "name": "Recovery Ring",
+    "category": ["Useful"],
+    "progression": true
+  },
+  {
+    "count": "15",
+    "name": "Kirby",
+    "category": ["Abilities", "Progression"],
+    "progression": true
+  },
+
+  {
+    "count": "0",
+    "name": "Bubble Ability",
+    "category": ["Abilities"],
+    "progression": true
+  },
+  {
+    "count": "0",
+    "name": "Destroyable Brown Block",
+    "category": ["Abilities"],
+    "progression": true
+  },
+  {
+    "count": "0",
+    "name": "Bomb Block",
+    "category": ["Abilities"],
+    "progression": true
+  },
+  {
+    "count": "0",
+    "name": "Normal Switch",
+    "category": ["Abilities"],
+    "progression": true
+  }
+]

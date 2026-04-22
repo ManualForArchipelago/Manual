@@ -1,0 +1,28 @@
+{
+    "Abilities": {
+        "yaml_option": ["Randomize abilities"]
+    },
+    "Green Grounds": {
+        "yaml_option": ["Include Green Grounds"],
+        "hidden": false
+    },
+    "Sandy Canyon": {
+        "yaml_option": ["Include Sandy Canyon"],
+        "hidden": false
+    },
+    "Dedede Resort": {
+        "yaml_option": ["Include Dedede Resort"],
+        "hidden": false
+    },
+    "Volcano Valley": {
+        "yaml_option": ["Include Volcano Valley"],
+        "hidden": false
+    },
+
+    "Stage Completion": {
+        "hidden": true
+    },
+    "Medal": {
+        "hidden": true
+    }
+}

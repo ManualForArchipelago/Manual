@@ -1,0 +1,2090 @@
+[
+    {
+        "name": "Stage 1 (GG) completed",
+        "region": "Green Grounds - Tutorial",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 1 (GG)",
+        "region": "Green Grounds - Tutorial",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 2 (GG)",
+        "region": "Green Grounds - Tutorial",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 3 (GG)",
+        "region": "Green Grounds - Tutorial",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:1| and |Kirby:5|"
+    },
+    {
+        "name": "Stage 1 - Medal 4 (GG)",
+        "region": "Green Grounds - Tutorial",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 5 (GG)",
+        "region": "Green Grounds - Tutorial",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 2 (GG) completed",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 2 - Medal 1 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 2 - Medal 2 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 2 - Medal 3 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:2| and |Keys:1|"
+    },
+    {
+        "name": "Stage 3 (GG) completed",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 3 - Medal 1 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 3 - Medal 2 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 3 - Medal 3 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 4 (GG) completed",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 4 - Medal 1 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:3| and |Keys:1|"
+    },
+    {
+        "name": "Stage 4 - Medal 2 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 4 - Medal 3 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 4 - Medal 4 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:3| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 4 - Medal 5 (GG)",
+        "region": "Green Grounds - Outer Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 5 (GG) completed",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 5 - Medal 1 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Kirby:5|"
+    },
+    {
+        "name": "Stage 5 - Medal 2 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 5 - Medal 3 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 5 - Medal 4 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 5 - Medal 5 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 6 (GG) completed",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 6 - Medal 1 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Kirby:5|"
+    },
+    {
+        "name": "Stage 6 - Medal 2 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 6 - Medal 3 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 6 - Medal 4 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 6 - Medal 5 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 (GG) completed",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 1 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Keys:1|"
+    },
+    {
+        "name": "Stage 7 - Medal 2 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 3 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 4 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 5 (GG)",
+        "region": "Green Grounds - Middle Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 8 (GG) completed",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 - Medal 1 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 - Medal 2 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 - Medal 3 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:7| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 8 - Medal 4 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:7| and |Kirby:5|"
+    },
+    {
+        "name": "Stage 8 - Medal 5 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 9 (GG) completed",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 9 - Medal 1 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 9 - Medal 2 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Keys:1|"
+    },
+    {
+        "name": "Stage 9 - Medal 3 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:5| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 10 (GG) completed",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 1 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:9| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 10 - Medal 2 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 3 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 4 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 5 (GG)",
+        "region": "Green Grounds - Inner Ring",
+        "category": [
+            "Medal",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:9| and |Keys:1|"
+    },
+    {
+        "name": "Stage 11 (GG) completed",
+        "region": "Green Grounds - Boss",
+        "category": [
+            "Stage Completion",
+            "Green Grounds"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 1 (SC) completed",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 (DR) completed",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 (VV) completed",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 1 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 2 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 1 - Medal 3 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1| and |Keys:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 1 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1| and |Keys:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 2 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 3 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 4 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 1 - Medal 5 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 2 (SC) completed",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 2 (DR) completed",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 2 (VV) completed",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 2 - Medal 1 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 2 - Medal 2 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 2 - Medal 3 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 2 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 2 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 2 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 2 - Medal 1 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 2 - Medal 2 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 2 - Medal 3 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 2 - Medal 4 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 2 - Medal 5 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:3|"
+    },
+    {
+        "name": "Stage 3 (SC) completed",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 3 (DR) completed",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 3 (VV) completed",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 3 - Medal 1 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 3 - Medal 2 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 3 - Medal 3 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 3 - Medal 4 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:2|"
+    },
+    {
+        "name": "Stage 3 - Medal 5 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:2| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 3 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 3 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 3 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 3 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 3 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 3 - Medal 1 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 3 - Medal 2 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 3 - Medal 3 (VV)",
+        "region": "Volcano Valley - Outer Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 4 (SC) completed",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 4 (DR) completed",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 4 (VV) completed",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 4 - Medal 1 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 4 - Medal 2 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 4 - Medal 3 (DR)",
+        "region": "Dedede Resort - Outer Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 4 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 4 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 4 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:4| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 4 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:4| and |Keys:1|"
+    },
+    {
+        "name": "Stage 4 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Outer Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 4 - Medal 1 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 4 - Medal 2 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:6| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 4 - Medal 3 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:6| and |Kirby:10| and |Keys:1| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 5 (SC) completed",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 5 (DR) completed",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 5 (VV) completed",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 5 - Medal 1 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 5 - Medal 2 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 5 - Medal 3 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 5 - Medal 4 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 5 - Medal 5 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 5 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Keys:1|"
+    },
+    {
+        "name": "Stage 5 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 5 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 5 - Medal 1 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 5 - Medal 2 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:7| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 5 - Medal 3 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 5 - Medal 4 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:7| and |Keys:1|"
+    },
+    {
+        "name": "Stage 5 - Medal 5 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 6 (SC) completed",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 6 (DR) completed",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 6 (VV) completed",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 6 - Medal 1 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 6 - Medal 2 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 6 - Medal 3 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 6 - Medal 4 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 6 - Medal 5 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 6 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 6 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 6 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 6 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 6 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 6 - Medal 1 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 6 - Medal 2 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 6 - Medal 3 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 6 - Medal 4 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 6 - Medal 5 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:4|"
+    },
+    {
+        "name": "Stage 7 (SC) completed",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 (DR) completed",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 7 (VV) completed",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 1 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 7 - Medal 2 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 7 - Medal 3 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8| and |Keys:1|"
+    },
+    {
+        "name": "Stage 7 - Medal 4 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 7 - Medal 5 (DR)",
+        "region": "Dedede Resort - Middle Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 7 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 7 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Jumbo Candy:1|"
+    },
+    {
+        "name": "Stage 7 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 7 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:5| and |Keys:1|"
+    },
+    {
+        "name": "Stage 7 - Medal 1 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 2 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 3 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 4 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 7 - Medal 5 (VV)",
+        "region": "Volcano Valley - Middle Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 8 (SC) completed",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 (DR) completed",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 8 (VV) completed",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 8 - Medal 1 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 8 - Medal 2 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Kirby:6|"
+    },
+    {
+        "name": "Stage 8 - Medal 3 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Kirby:6|"
+    },
+    {
+        "name": "Stage 8 - Medal 4 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Keys:1|"
+    },
+    {
+        "name": "Stage 8 - Medal 5 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 8 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 8 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 8 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Middle Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7| and |Kirby:6|"
+    },
+    {
+        "name": "Stage 8 - Medal 1 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 8 - Medal 2 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 8 - Medal 3 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 9 (SC) completed",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 9 (DR) completed",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 9 (VV) completed",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 9 - Medal 1 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 9 - Medal 2 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 9 - Medal 3 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 9 - Medal 4 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 9 - Medal 5 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 9 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 9 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7| and |Keys:1|"
+    },
+    {
+        "name": "Stage 9 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 9 - Medal 4 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 9 - Medal 5 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:7| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 9 - Medal 1 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 9 - Medal 2 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 9 - Medal 3 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10| and |Keys:1|"
+    },
+    {
+        "name": "Stage 10 (SC) completed",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 10 (DR) completed",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 10 (VV) completed",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 1 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Keys:1|"
+    },
+    {
+        "name": "Stage 10 - Medal 2 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 10 - Medal 3 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 10 - Medal 4 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5| and |Kirby:7|"
+    },
+    {
+        "name": "Stage 10 - Medal 5 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:5|"
+    },
+    {
+        "name": "Stage 10 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:8| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 10 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 10 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:8|"
+    },
+    {
+        "name": "Stage 10 - Medal 1 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 2 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9| and |Kirby:10|"
+    },
+    {
+        "name": "Stage 10 - Medal 3 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 4 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 10 - Medal 5 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:9|"
+    },
+    {
+        "name": "Stage 11 (SC) completed",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 11 (DR) completed",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 11 (VV) completed",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 11 - Medal 1 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 11 - Medal 2 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:7|"
+    },
+    {
+        "name": "Stage 11 - Medal 3 (DR)",
+        "region": "Dedede Resort - Inner Ring",
+        "category": [
+            "Medal",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:7| and |Keys:1|"
+    },
+    {
+        "name": "Stage 11 - Medal 1 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6| and |Keys:1|"
+    },
+    {
+        "name": "Stage 11 - Medal 2 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 11 - Medal 3 (SC)",
+        "region": "Sandy Canyon - Inner Ring",
+        "category": [
+            "Medal",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:6|"
+    },
+    {
+        "name": "Stage 11 - Medal 1 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 11 - Medal 2 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10| and |Skull Keys:1|"
+    },
+    {
+        "name": "Stage 11 - Medal 3 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 11 - Medal 4 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 11 - Medal 5 (VV)",
+        "region": "Volcano Valley - Inner Ring",
+        "category": [
+            "Medal",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10| and |Keys:1|"
+    },
+    {
+        "name": "Stage 12 (SC) completed",
+        "region": "Sandy Canyon - Boss",
+        "category": [
+            "Stage Completion",
+            "Sandy Canyon"
+        ],
+        "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 12 (DR) completed",
+        "region": "Dedede Resort - Boss",
+        "category": [
+            "Stage Completion",
+            "Dedede Resort"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 12 (VV) completed",
+        "region": "Volcano Valley - Boss",
+        "category": [
+            "Stage Completion",
+            "Volcano Valley"
+        ],
+        "requires": "|Kirby:10|"
+    }
+]

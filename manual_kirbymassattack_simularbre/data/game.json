@@ -1,0 +1,23 @@
+{
+  "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
+  "game": "KirbyMassAttack",
+  "creator": "Simularbre",
+  "filler_item_name": "Apples",
+  "filler_item_category": "Filler",
+
+  "starting_items": [
+        {
+        "items": ["Green Grounds unlock", "Sandy Canyon unlock", "Dedede Resort unlock", "Volcano Valley unlock"],
+        "random": 1
+    },
+    {
+        "if_previous_item": "Green Grounds unlock",
+        "items": ["Rainbow Bubble Green Grounds"],
+        "random": 1
+    },
+    {
+      "items": ["Kirby"],
+      "random": 3
+    }
+  ]
+}

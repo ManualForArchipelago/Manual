@@ -1,0 +1,100 @@
+{
+  "Warp Star": {
+    "starting": true,
+    "connects_to": ["Green Grounds - Tutorial", "Sandy Canyon - Outer Ring", "Dedede Resort - Outer Ring", "Volcano Valley - Outer Ring", "Necro Nebula"]
+  },
+
+  "Green Grounds - Tutorial": {
+    "starting": false,
+    "connects_to": ["Warp Star", "Green Grounds - Outer Ring"],
+    "requires": ""
+  },
+  "Green Grounds - Outer Ring": {
+    "starting": false,
+    "connects_to": ["Green Grounds - Tutorial", "Green Grounds - Middle Ring"],
+    "requires": "|Rainbow Bubble Green Grounds:1|"
+  },
+  "Green Grounds - Middle Ring": {
+    "starting": false,
+    "connects_to": ["Green Grounds - Outer Ring", "Green Grounds - Inner Ring"],
+    "requires": "|Rainbow Bubble Green Grounds:2|"
+  },
+  "Green Grounds - Inner Ring": {
+    "starting": false,
+    "connects_to": ["Green Grounds - Middle Ring", "Green Grounds - Boss"],
+    "requires": "|Rainbow Bubble Green Grounds:3|"
+  },
+  "Green Grounds - Boss": {
+    "starting": false,
+    "connects_to": ["Green Grounds - Inner Ring"],
+    "requires": "|Rainbow Bubble Green Grounds:4|"
+  },
+
+  "Sandy Canyon - Outer Ring": {
+    "starting": false,
+    "connects_to": ["Warp Star", "Sandy Canyon - Middle Ring"],
+    "requires": ""
+  },
+  "Sandy Canyon - Middle Ring": {
+    "starting": false,
+    "connects_to": ["Sandy Canyon - Outer Ring", "Sandy Canyon - Inner Ring"],
+    "requires": "|Rainbow Bubble Sandy Canyon:1|"
+  },
+  "Sandy Canyon - Inner Ring": {
+    "starting": false,
+    "connects_to": ["Sandy Canyon - Middle Ring", "Sandy Canyon - Boss"],
+    "requires": "|Rainbow Bubble Sandy Canyon:2|"
+  },
+  "Sandy Canyon - Boss": {
+    "starting": false,
+    "connects_to": ["Sandy Canyon - Inner Ring"],
+    "requires": "|Rainbow Bubble Sandy Canyon:3|"
+  },
+
+  "Dedede Resort - Outer Ring": {
+    "starting": false,
+    "connects_to": ["Warp Star", "Dedede Resort - Middle Ring"],
+    "requires": ""
+  },
+  "Dedede Resort - Middle Ring": {
+    "starting": false,
+    "connects_to": ["Dedede Resort - Outer Ring", "Dedede Resort - Inner Ring"],
+    "requires": "|Rainbow Bubble Dedede Resort:1|"
+  },
+  "Dedede Resort - Inner Ring": {
+    "starting": false,
+    "connects_to": ["Dedede Resort - Middle Ring", "Dedede Resort - Boss"],
+    "requires": "|Rainbow Bubble Dedede Resort:2|"
+  },
+  "Dedede Resort - Boss": {
+    "starting": false,
+    "connects_to": ["Dedede Resort - Inner Ring"],
+    "requires": "|Rainbow Bubble Dedede Resort:3|"
+  },
+
+  "Volcano Valley - Outer Ring": {
+    "starting": false,
+    "connects_to": ["Warp Star", "Volcano Valley - Middle Ring"],
+    "requires": ""
+  },
+  "Volcano Valley - Middle Ring": {
+    "starting": false,
+    "connects_to": ["Volcano Valley - Outer Ring", "Volcano Valley - Inner Ring"],
+    "requires": "|Rainbow Bubble Volcano Valley:1|"
+  },
+  "Volcano Valley - Inner Ring": {
+    "starting": false,
+    "connects_to": ["Volcano Valley - Middle Ring", "Volcano Valley - Boss"],
+    "requires": "|Rainbow Bubble Volcano Valley:2|"
+  },
+  "Volcano Valley - Boss": {
+    "starting": false,
+    "connects_to": ["Volcano Valley - Inner Ring"],
+    "requires": "|Rainbow Bubble Volcano Valley:3|"
+  },
+  "Necro Nebula": {
+    "starting": false,
+    "connects_to": ["Warp Star"],
+    "requires": "|Necro Nebula unlock|"
+  }
+}
