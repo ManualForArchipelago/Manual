@@ -53,7 +53,7 @@ category_table.pop('$schema', '')
 
 # hooks
 game_table = after_load_game_file(game_table)
-item_table = after_load_item_file(item_table)
+item_table = after_load_item_file(item_table, option_table)
 location_table = after_load_location_file(location_table)
 event_table = after_load_event_file(event_table)
 region_table = after_load_region_file(region_table)

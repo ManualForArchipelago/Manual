@@ -21,7 +21,11 @@ regionMap["Manual"] = {
 }
 
 
-def create_regions(world: World, multiworld: MultiWorld, player: int):
+def create_regions(world: World, multiworld: MultiWorld, player: int, requirement):
+    #regionMap["Necro Nebula - Outer Ring"]["requires"] = f"|Necro Nebula unlock| or {requirement}"
+    #regionMap["Necro Nebula - Boss"]["requires"] = f"|Necro Nebula unlock| or {requirement}"
+
+    #print(regionMap)
     # Create regions and assign locations to each region
     for region in regionMap:
         if "connects_to" not in regionMap[region]:

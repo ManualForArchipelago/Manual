@@ -88,6 +88,47 @@ class ManualWorld(World):
         runGenerationDataValidation(cls)
 
     def generate_early(self) -> None:
+        if self.options.Starting_World.value == 0:
+            self.options.Include_Green_Grounds.value = 1
+        if self.options.Starting_World.value == 1:
+            self.options.Include_Sandy_Canyon.value = 1
+        if self.options.Starting_World.value == 2:
+            self.options.Include_Dedede_Resort.value = 1
+        if self.options.Starting_World.value == 3:
+            self.options.Include_Volcano_Valley.value = 1
+
+        total_locations = 0
+        if self.options.Include_Green_Grounds.value == 1:
+            for location in location_table:
+                if "Green Grounds" in location["region"]:
+                    total_locations += 1
+
+        if self.options.Include_Sandy_Canyon.value == 1:
+            for location in location_table:
+                if "Sandy Canyon" in location["region"]:
+                    total_locations += 1
+
+        if self.options.Include_Dedede_Resort.value == 1:
+            for location in location_table:
+                if "Dedede Resort" in location["region"]:
+                    total_locations += 1
+
+        if self.options.Include_Volcano_Valley.value == 1:
+            for location in location_table:
+                if "Volcano Valley" in location["region"]:
+                    total_locations += 1
+
+        amount_progression = 0
+        id_Rainbow_Medal = -1
+        for i in range(len(self.item_table)):
+            if self.item_table[i]["name"] == "Rainbow Medal":
+                id_Rainbow_Medal = i
+            elif self.item_table[i]["progression"] == True:
+                amount_progression += int(self.item_table[i]["count"])
+        self.item_table[id_Rainbow_Medal]["count"] = min(total_locations - amount_progression, self.options.Amount_of_Rainbow_Medals.value)
+
+        #self.event_table[0]["requires"] = f"|Rainbow Medal:{int(self.item_table[id_Rainbow_Medal]["count"]*self.options.Rainbow_Medals_required/100)}|"
+
         before_generate_early(self, self.multiworld, self.player)
         if hasattr(self.multiworld, "re_gen_passthrough"):
             slot_data = self.multiworld.re_gen_passthrough.get(self.game, {})
@@ -98,9 +139,11 @@ class ManualWorld(World):
 
     def create_regions(self):
         before_create_regions(self, self.multiworld, self.player)
-
-        create_regions(self, self.multiworld, self.player)
-
+        id_Rainbow_Medal = -1
+        for i in range(len(self.item_table)):
+            if self.item_table[i]["name"] == "Rainbow Medal":
+                id_Rainbow_Medal = i
+        create_regions(self, self.multiworld, self.player, f"|Rainbow Medal:{int(self.item_table[id_Rainbow_Medal]["count"]*self.options.Rainbow_Medals_required/100)}|")
         create_events(self, self.multiworld, self.player)
 
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
@@ -201,7 +244,18 @@ class ManualWorld(World):
         pool = before_create_items_starting(pool, self, self.multiworld, self.player)
 
         items_started: list[Item] = []
-
+        starting_items = []
+        if self.options.Starting_World.value == 0:
+            starting_items.append({'items': ['Green Grounds unlock'],
+             'random': 1})
+        if self.options.Starting_World.value == 1:
+            starting_items.append({'items': ['Sandy Canyon unlock'],'random': 1})
+        if self.options.Starting_World.value == 2:
+            starting_items.append({'items': ['Dedede Resort unlock'], 'random': 1})
+        if self.options.Starting_World.value == 3:
+            starting_items.append({'items': ['Volcano Valley unlock'], 'random': 1})
+        starting_items.append({'if_previous_item': 'Green Grounds unlock', 'items': ['Rainbow Bubble Green Grounds'], 'random': 1})
+        starting_items.append({'items': ['Kirby'], 'random': 3})
         if starting_items:
             for starting_item_block in starting_items:
                 if not resolve_yaml_option(self.multiworld, self.player, starting_item_block):
@@ -231,7 +285,7 @@ class ManualWorld(World):
                 # if the setting lists a specific number of random items that should be pulled, only use a subset equal to that number
                 if "random" in starting_item_block:
                     items = items[0:starting_item_block["random"]]
-                #items += [item for item in pool if item.name == "Green Grounds unlock" or item.name == "Dedede Resort"]
+
                 for starting_item in items:
                     items_started.append(starting_item)
                     self.multiworld.push_precollected(starting_item)

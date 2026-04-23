@@ -77,12 +77,13 @@
             ],
             "default": true
         },
-        "_Starting World":{
+        "Starting World":{
             "type": "Choice",
             "description": [
                 "Choose the starting world",
                 "Picking Green Grounds will also give 1 rainbow bubble at the start to unlock the stages 2,3 and 4",
-                "Picking Dedede Resort will also give the Canon ability if ability randomizer is on"
+                "The starting world cannot be excluded",
+                "This will add at the start of the world a '<WORLD NAME> unlock' in the starting items"
             ],
             "values": {
                 "Green Grounds":0,
@@ -94,20 +95,30 @@
             "allow_custom_value": false,
             "group": "Starting Options"
         },
-        "Amount of Rainbow Medals required to unlock Necro Nebula":{
+        "Amount of Rainbow Medals":{
             "type": "Range",
             "description": [
-                "This is a Range",
-                "Allow the player to specify a value between 'start' and 'end'",
-                "if you include a \"values\" you can define the label for certain values",
-                "Currently the only use for Range in Manual outside of hooks is 'filler_trap'"
+                "The amount of Rainbow Medals placed in the world",
+                "Rainbow medal are items that must be collected to unlock the final area",
+                "All rainbow medals are marked as progression",
+                "If there is not enough locations, the amount will be automatically reduced"
             ],
-            "range_start": 20,
-            "default": 28,
-            "range_end": 47,
-            "values": {"default": 28},
+            "range_start": 0,
+            "default": 48,
+            "range_end": 50,
+            "values": {"default": 48},
+            "group": "Goal Options"
+        },
+        "Rainbow Medals required":{
+            "type": "Range",
+            "description": [
+                "The percentage amount of Rainbow Medals required to unlock the Necro Nebula world"
+            ],
+            "range_start": 0,
+            "default": 60,
+            "range_end": 100,
+            "values": {"default": 68},
             "group": "Goal Options"
         }
     }
-
 }

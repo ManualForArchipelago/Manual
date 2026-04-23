@@ -5,7 +5,7 @@
   "filler_item_name": "Apples",
   "filler_item_category": "Filler",
 
-  "starting_items": [
+  "_starting_items": [
         {
         "items": ["Green Grounds unlock", "Sandy Canyon unlock", "Dedede Resort unlock", "Volcano Valley unlock"],
         "random": 1

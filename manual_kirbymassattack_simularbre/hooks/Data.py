@@ -3,7 +3,11 @@ def after_load_game_file(game_table: dict) -> dict:
     return game_table
 # called after the items.json file has been loaded, before any item loading or processing has occurred
 # if you need access to the items after processing to add ids, etc., you should use the hooks in World.py
-def after_load_item_file(item_table: list) -> list:
+def after_load_item_file(item_table: list, option_table: list) -> list:
+    #for option in option_table:
+    #    print(option)
+    #for item in item_table:
+    #    print(item)
     return item_table
 
 # NOTE: Progressive items are not currently supported in Manual. Once they are,

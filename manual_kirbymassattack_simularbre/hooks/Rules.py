@@ -1,5 +1,6 @@
 from typing import Optional
 from worlds.AutoWorld import World
+from .. import location_table
 from ..Helpers import clamp, get_items_with_value
 from BaseClasses import MultiWorld, CollectionState
 
@@ -27,3 +28,37 @@ def anyClassLevel(state: CollectionState, player: int, level: str):
 def requiresMelee():
     """Returns a requires string that checks if the player has unlocked the tank."""
     return "|Figher Level:15| or |Black Belt Level:15| or |Thief Level:15|"
+
+def medalRequirement(world: World, state: CollectionState, player: int):
+    total_locations = 0
+    if world.options.Include_Green_Grounds.value == 1:
+        for location in location_table:
+            if "Green Grounds" in location["region"]:
+                total_locations += 1
+
+    if world.options.Include_Sandy_Canyon.value == 1:
+        for location in location_table:
+            if "Sandy Canyon" in location["region"]:
+                total_locations += 1
+
+    if world.options.Include_Dedede_Resort.value == 1:
+        for location in location_table:
+            if "Dedede Resort" in location["region"]:
+                total_locations += 1
+
+    if world.options.Include_Volcano_Valley.value == 1:
+        for location in location_table:
+            if "Volcano Valley" in location["region"]:
+                total_locations += 1
+
+    amount_progression = 0
+    id_Rainbow_Medal = -1
+    for i in range(len(world.item_table)):
+        if world.item_table[i]["name"] == "Rainbow Medal":
+            id_Rainbow_Medal = i
+        elif world.item_table[i]["progression"] == True:
+            amount_progression += int(world.item_table[i]["count"])
+    world.item_table[id_Rainbow_Medal]["count"] = min(total_locations - amount_progression,
+                                                     world.options.Amount_of_Rainbow_Medals.value)
+
+    return f"|Rainbow Medal:{int(world.item_table[id_Rainbow_Medal]["count"]*world.options.Rainbow_Medals_required/100)}|"

@@ -95,11 +95,11 @@
   "Necro Nebula - Outer Ring": {
     "starting": false,
     "connects_to": ["Warp Star"],
-    "requires": "|Necro Nebula unlock|"
+    "requires": "{medalRequirement()}"
   },
   "Necro Nebula - Boss": {
     "starting": false,
     "connects_to": ["Warp Star"],
-    "requires": "|Necro Nebula unlock|"
+    "requires": "{medalRequirement()}"
   }
 }
