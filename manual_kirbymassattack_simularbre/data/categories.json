@@ -18,7 +18,9 @@
         "yaml_option": ["Include Volcano Valley"],
         "hidden": false
     },
-
+     "Necro Nebula":{
+         "hidden": false
+     },
     "Stage Completion": {
         "hidden": true
     },

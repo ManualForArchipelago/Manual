@@ -1,7 +1,7 @@
 {
   "Warp Star": {
     "starting": true,
-    "connects_to": ["Green Grounds - Tutorial", "Sandy Canyon - Outer Ring", "Dedede Resort - Outer Ring", "Volcano Valley - Outer Ring", "Necro Nebula"]
+    "connects_to": ["Green Grounds - Tutorial", "Sandy Canyon - Outer Ring", "Dedede Resort - Outer Ring", "Volcano Valley - Outer Ring", "Necro Nebula - Outer Ring", "Necro Nebula - Boss"]
   },
 
   "Green Grounds - Tutorial": {
@@ -92,7 +92,12 @@
     "connects_to": ["Volcano Valley - Inner Ring"],
     "requires": "|Rainbow Bubble Volcano Valley:3|"
   },
-  "Necro Nebula": {
+  "Necro Nebula - Outer Ring": {
+    "starting": false,
+    "connects_to": ["Warp Star"],
+    "requires": "|Necro Nebula unlock|"
+  },
+  "Necro Nebula - Boss": {
     "starting": false,
     "connects_to": ["Warp Star"],
     "requires": "|Necro Nebula unlock|"

@@ -94,7 +94,7 @@
             "allow_custom_value": false,
             "group": "Starting Options"
         },
-        "_Amount of Rainbow Medals required to unlock Necro Nebula":{
+        "Amount of Rainbow Medals required to unlock Necro Nebula":{
             "type": "Range",
             "description": [
                 "This is a Range",

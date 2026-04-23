@@ -2086,5 +2086,50 @@
             "Volcano Valley"
         ],
         "requires": "|Kirby:10|"
+    },
+    {
+        "name": "Stage 1 (NN) completed",
+        "region": "Necro Nebula - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Necro Nebula"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 2 (NN) completed",
+        "region": "Necro Nebula - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Necro Nebula"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 3 (NN) completed",
+        "region": "Necro Nebula - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Necro Nebula"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 4 (NN) completed",
+        "region": "Necro Nebula - Outer Ring",
+        "category": [
+            "Stage Completion",
+            "Necro Nebula"
+        ],
+        "requires": "|Kirby:1|"
+    },
+    {
+        "name": "Stage 5 (NN) completed",
+        "region": "Necro Nebula - Boss",
+        "category": [
+            "Necro Nebula"
+        ],
+        "requires": "|Kirby:10|",
+        "victory": true
     }
 ]

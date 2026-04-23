@@ -32,7 +32,6 @@
   {
     "count": "10",
     "name": "Medal",
-    "category": ["Filler"],
     "filler": true
   },
   {
@@ -92,14 +91,26 @@
   {
     "count": "1",
     "name": "Recovery Ring",
-    "category": ["Useful"],
-    "progression": true
+    "category": ["Abilities"],
+    "progression": false
   },
   {
     "count": "15",
     "name": "Kirby",
     "category": ["Abilities", "Progression"],
     "progression": true
+  },
+  {
+    "count": "1",
+    "name": "Revive Kirby",
+    "category": ["Abilities"],
+    "progression": false
+  },
+  {
+    "count": "1",
+    "name": "Shortcut",
+    "category": ["Abilities"],
+    "progression": false
   },
 
   {
