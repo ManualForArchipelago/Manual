@@ -1,6 +1,6 @@
 import dataclasses
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional, Any
 from enum import IntEnum
 from operator import eq, ge, le
 
@@ -62,7 +62,7 @@ def construct_logic_error(location_or_region: dict, source: LogicErrorSource) ->
 def infix_to_postfix(expr: str, location: dict) -> str:
     prec: dict[str, int] = {"&": 2, "|": 2, "!": 3}
     stack: list[str] = []
-    postfix = ""
+    postfix: str = ""
 
     try:
         for c in expr:
@@ -87,8 +87,8 @@ def infix_to_postfix(expr: str, location: dict) -> str:
     return postfix
 
 
-def evaluate_postfix(expr: str, location: str) -> bool:
-    stack = []
+def evaluate_postfix(expr: str, location: dict) -> bool:
+    stack: list[bool] = []
 
     try:
         for c in expr:
@@ -116,28 +116,28 @@ def evaluate_postfix(expr: str, location: str) -> bool:
     return stack.pop()
 
 def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
-    def evaluate_nonnumeric_count(item_name: str, item_count: str, is_category: bool, area: dict) -> int:
+    def evaluate_nonnumeric_count(item_base: str, item_name: str, item_count: str, is_category: bool, area: dict) -> tuple[str, int]:
         item_count = item_count.strip()
         if item_count.isnumeric():
-            return int(item_count)
+            return item_name, int(item_count)
 
         items_counts = world.get_item_counts(player, only_progression=True)
         if is_category:
-            category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-            category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
-            total_count = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
+            total_count = sum([items_counts.get(item, 0) for item in world.item_and_event_name_groups.get(item_name, set())])
         else:
             total_count = items_counts.get(item_name, 0)
-
         if item_count == 'all':
-            return total_count
+            count = total_count
         elif item_count == 'half':
-            return int(total_count / 2)
+            count = int(total_count / 2)
         elif item_count.endswith('%') and len(item_count) > 1:
             percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-            return math.ceil(total_count * percent)
-
-        raise ValueError(f"Invalid item count `{item_name}` in {area}.")
+            count = math.ceil(total_count * percent)
+        # If invalid count assume its actually part of the item name
+        else:
+            item_name = item_base.strip("|")
+            count = 1
+        return item_name, count
 
     def construct_rule_from_string(area: dict) -> "rule_builder.rules.Rule | None":
         if not use_rulebuilder:
@@ -152,7 +152,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         def recursively_tokenize_manual_rule(partial: str) -> "rule_builder.rules.Rule | None":
             if not partial:
                 return rule_builder.rules.True_()
-            rule = None
+            rule: Rule | None = None
             remaining = ''
             partial = partial.strip()
             if match := ITEM_REGEX.match(partial):
@@ -163,10 +163,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if item_count.isnumeric():
                     count = int(item_count)
                 else:
-                    count = evaluate_nonnumeric_count(item_name, item_count, is_category, area)
+                    item_name, count = evaluate_nonnumeric_count(match.group(0), item_name, item_count, is_category, area)
 
                 if is_category:
-                    rule = rule_builder.rules.HasGroup(item_name, count)
+                    rule = rule_builder.rules.HasFromList(*world.item_and_event_name_groups.get(item_name, set()), count=count)
                 else:
                     rule = rule_builder.rules.Has(item_name, count)
                 remaining = partial[len(match.group(0)):]
@@ -202,12 +202,23 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
                 if rule is None:
                     if not rule_class:
-                        print(f'Warning: Could not find Rule implmenentation of {func_name}.')
+                        print(f'Warning: Could not find Rule implementation of {func_name}.')
                         # By returning None, we're saying "This entire requires string can't be done with a Rule.  Fall back to the pre-rb lambdas"
                         return None
 
                     rule = rule_class(*func_args)
+                remaining = partial[len(match.group(0)):]
             elif partial[0] == "(":
+                func_founds: dict[int, str] = {}
+                id: int = 0
+                for match in FUNCTION_REGEX.finditer(partial):
+                    if match.group(0) not in partial:
+                        # already done all of them
+                        continue
+                    func_founds[id] = match.group(0)
+                    # looks like : {{Function#0}}
+                    partial = partial.replace(match.group(0), f"{{{{Function#{id}}}}}")
+                    id += 1
                 inner = ''
                 queue = list(partial[1:])
                 stack = 1
@@ -219,8 +230,11 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                         stack -= 1
                     else:
                         inner += c
-                rule = recursively_tokenize_manual_rule(inner)
                 remaining = "".join(queue)
+                for id, func in func_founds.items():
+                    remaining = remaining.replace(f"{{{{Function#{id}}}}}", func)
+                    inner = inner.replace(f"{{{{Function#{id}}}}}", func)
+                rule = recursively_tokenize_manual_rule(inner)
             else:
                 print(f'Could not convert {partial} into a Rule')
                 return None
@@ -303,44 +317,28 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         # parse user written statement into list of each item
         for match in ITEM_REGEX.finditer(requires_list):
             item_base = match.group(0)
-            is_category = match.group(1)
+            is_category = bool(match.group(1))
             item_name = match.group(2)
             item_count = match.group(3)
-            require_type = 'item'
+
             if item_base not in requires_list:
                 # previous instance of this item was already processed
                 continue
-
-            if is_category:
-                require_type = 'category'
 
             if not item_count:
                 item_count = "1"
             item_count = item_count.lstrip(':')
 
-            total = 0
+            item_name, numeric_count = evaluate_nonnumeric_count(item_base, item_name, item_count, is_category, area)
 
-            if require_type == 'category':
-                category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-                category_items += [event for event in world.event_name_to_event.values() if "category" in event and item_name in event["category"]]
-                numeric_count = evaluate_nonnumeric_count(item_name, item_count, True, area)
-
-                for category_item in category_items:
-                    total += state.count(category_item["name"], player)
-
-                    if total >= numeric_count:
-                        requires_list = requires_list.replace(item_base, "1")
-            elif require_type == 'item':
-                numeric_count = evaluate_nonnumeric_count(item_name, item_count, False, area)
-
-                total = state.count(item_name, player)
-
-                if total >= numeric_count:
-                    requires_list = requires_list.replace(item_base, "1")
+            if is_category:
+                found = state.has_from_list(world.item_and_event_name_groups.get(item_name, set()), player, numeric_count)
             else:
-                raise ValueError(f'Unknown require_type {require_type}')
+                found = state.has(item_name, player, numeric_count)
 
-            if total < numeric_count:
+            if found:
+                requires_list = requires_list.replace(item_base, "1")
+            else:
                 requires_list = requires_list.replace(item_base, "0")
 
         requires_list = AND_REGEX.sub('&', requires_list, count=0)
@@ -426,7 +424,10 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         for exitRegion in multiworld.get_region(region, player).entrances:
             extra = extra_entrance_rules.get(exitRegion.name, {})
-            rb_rule = construct_rule_from_string(regionMap[region])
+            area = regionMap[region]
+            area["name"] = exitRegion.name
+            area['is_region'] = True
+            rb_rule = construct_rule_from_string(area)
             if rb_rule is not None:
                 if extra:
                     rb_extra_rule = construct_rule_from_string(extra)
@@ -435,10 +436,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     rb_rule = rb_rule & rb_extra_rule
                 world.set_rule(world.get_entrance(exitRegion.name), rb_rule)
             else:
-                def fullRegionCheck(state: CollectionState, region=regionMap[region], region_name=exitRegion.name):
-                    region['name'] = region_name
-                    region['is_region'] = True
-
+                def fullRegionCheck(state: CollectionState, region=area):
                     return fullLocationOrRegionCheck(state, region)
 
                 add_rule(world.get_entrance(exitRegion.name), fullRegionCheck)
