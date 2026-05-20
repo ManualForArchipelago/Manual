@@ -5,5 +5,15 @@
     },
     "Example Yaml-option category": {
         "yaml_option": ["DLC_enabled"]
+    },
+    "For_Tests_And_Examples": {
+         "hidden": true,
+         "yaml_option": ["Tests_content"]
+    },
+    "place_item_category_test": {
+         "hidden": true
+    },
+    "dont_place_item_category_test": {
+         "hidden": true
     }
 }
