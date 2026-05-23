@@ -208,6 +208,15 @@ for option_name, option in option_table.get('user', {}).items():
 
 for category in category_table:
     for option_name in category_table[category].get("yaml_option", []):
+        skip = False
+        for c in "><=": # Range and Choice options must be defined using Options.json
+            if c in option_name:
+                skip = True
+                option_base = option_name.split(c)[0].strip("!")
+                if option_base not in manual_options:
+                    raise Exception(f"Option {option_base} was referenced in Category.json, but Range and Choice type options must be defined in Options.json first")
+        if skip:
+            continue
         if option_name[0] == "!":
             option_name = option_name[1:]
         option_name = format_to_valid_identifier(option_name)
@@ -219,6 +228,15 @@ if starting_items:
     for starting_items in starting_items:
         if starting_items.get("yaml_option"):
             for option_name in starting_items["yaml_option"]:
+                skip = False
+                for c in "><=": # Range and Choice options must be defined using Options.json
+                    if c in option_name:
+                        skip = True
+                        option_base = option_name.split(c)[0].strip("!")
+                        if option_base not in manual_options:
+                            raise Exception(f"Option {option_base} was referenced in starting items, but Range and Choice type options must be defined in Options.json first")
+                if skip:
+                    continue
                 if option_name[0] == "!":
                     option_name = option_name[1:]
                 option_name = format_to_valid_identifier(option_name)
