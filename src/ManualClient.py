@@ -153,9 +153,9 @@ class ManualContext(SuperContext):
 
     search_term = ""
     items_sorting = SortingOrderItem.default.name
-    items_categories_sorting = SortingOrderCategories.default.name
+    item_categories_sorting = SortingOrderCategories.default.name
     locations_sorting = SortingOrderLoc.default.name
-    locations_categories_sorting = SortingOrderCategories.default.name
+    location_categories_sorting = SortingOrderCategories.default.name
     block_unreachable_location_press = True
 
     colors = {
@@ -462,8 +462,8 @@ class ManualContext(SuperContext):
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
-                self.ctx.items_categories_sorting = self.config.get('manual', 'items_categories_sorting_order')
-                self.ctx.locations_categories_sorting = self.config.get('manual', 'locations_categories_sorting_order')
+                self.ctx.item_categories_sorting = self.config.get('manual', 'item_categories_sorting_order')
+                self.ctx.location_categories_sorting = self.config.get('manual', 'location_categories_sorting_order')
                 self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
@@ -499,8 +499,8 @@ class ManualContext(SuperContext):
                 config.setdefaults("manual", {
                     "items_sorting_order": SortingOrderItem.default.name,
                     "locations_sorting_order": SortingOrderLoc.default.name,
-                    "items_categories_sorting_order": SortingOrderCategories.default.name,
-                    "locations_categories_sorting_order": SortingOrderCategories.default.name
+                    "item_categories_sorting_order": SortingOrderCategories.default.name,
+                    "location_categories_sorting_order": SortingOrderCategories.default.name
                 })
                 config.setdefaults("universal-tracker", {
                     "block_unreachable_location_press": "Yes"
@@ -532,17 +532,17 @@ class ManualContext(SuperContext):
                         },
                         {
                             "type": "options",
-                            "title": "Items Category Sorting Order",
+                            "title": "Item Categories Sorting Order",
                             "section": "manual",
-                            "key": "items_categories_sorting_order",
+                            "key": "item_categories_sorting_order",
                             "options": list(SortingOrderCategories._member_names_),
                             "desc": '\n'.join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderCategories if i.__doc__ is not None])
                         },
                         {
                             "type": "options",
-                            "title": "Locations Sorting Order",
+                            "title": "Location Categories Sorting Order",
                             "section": "manual",
-                            "key": "locations_categories_sorting_order",
+                            "key": "location_categories_sorting_order",
                             "options": list(SortingOrderCategories._member_names_),
                             "desc": "Same Options as Items Category Sorting Order."
                         },
@@ -576,14 +576,14 @@ class ManualContext(SuperContext):
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
-                    elif key == "locations_categories_sorting_order":
+                    elif key == "location_categories_sorting_order":
                         if value in SortingOrderCategories._member_names_:
-                            self.ctx.locations_categories_sorting = value
+                            self.ctx.location_categories_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
-                    elif key == "items_categories_sorting_order":
+                    elif key == "item_categories_sorting_order":
                         if value in SortingOrderCategories._member_names_:
-                            self.ctx.items_categories_sorting = value
+                            self.ctx.item_categories_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
                 elif section == "universal-tracker":
@@ -831,7 +831,7 @@ class ManualContext(SuperContext):
                     result = natural_sort_key(key)
                     return [0 if key.lstrip().startswith("(") else 1] + result
                 # Sorting items categories
-                item_cat_sorting = SortingOrderCategories[self.ctx.items_categories_sorting]
+                item_cat_sorting = SortingOrderCategories[self.ctx.item_categories_sorting]
                 if abs(item_cat_sorting) == SortingOrderCategories.natural:
                     self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), key=category_sort_key, reverse=item_cat_sorting < 0)}
                 else:
@@ -858,7 +858,7 @@ class ManualContext(SuperContext):
                     raise Exception("The apworld for %s is too outdated for this client. Please update it." % (self.ctx.game))
 
                 # Sorting location categories
-                loc_cat_sorting = SortingOrderCategories[self.ctx.locations_categories_sorting]
+                loc_cat_sorting = SortingOrderCategories[self.ctx.location_categories_sorting]
                 if abs(loc_cat_sorting) == SortingOrderCategories.natural:
                     self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=category_sort_key, reverse=loc_cat_sorting < 0)}
                 else:
