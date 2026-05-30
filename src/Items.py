@@ -8,6 +8,7 @@ from .Game import filler_item_name, starting_index, game_name
 ######################
 
 item_id_to_name: dict[int, str] = {}
+item_id_to_description: dict[int, str] = {}
 item_name_to_item: dict[str, dict] = {}
 item_name_groups: dict[str, str] = {}
 advancement_item_names: set[str] = set()
@@ -65,6 +66,9 @@ for item in item_table:
         if group_name not in item_name_groups:
             item_name_groups[group_name] = []
         item_name_groups[group_name].append(item_name)
+
+    if item.get("description"):
+        item_id_to_description[item["id"]] = item["description"]
 
 item_id_to_name[None] = "__Victory__"
 item_name_to_id = {name: id for id, name in item_id_to_name.items()}
