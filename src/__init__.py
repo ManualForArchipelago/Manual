@@ -51,10 +51,10 @@ class ManualWorld(World):
     category_table = category_table
 
     item_id_to_name = item_id_to_name
+    item_id_to_description = item_id_to_description
     item_name_to_id = item_name_to_id
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
-    item_id_to_alias = item_id_to_description # check location_id_to_alias for why its named this way
 
     filler_item_name = filler_item_name
 
@@ -63,16 +63,17 @@ class ManualWorld(World):
     start_inventory = {}
 
     location_id_to_name = location_id_to_name
+    location_id_to_description = location_id_to_description
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
-    location_id_to_alias = location_id_to_description # by naming it this way, the description will also display in the UT Tracker tab
     victory_names = victory_names
 
     event_name_to_event = event_name_to_event
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
+    location_id_to_alias = location_id_to_description
 
     origin_region_name = "Manual"
 

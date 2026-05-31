@@ -224,14 +224,14 @@ class ManualContext(SuperContext):
     def get_location_description_by_id(self, id) -> str|None:
         # First we try to get it from slotdata for dynamic descriptions
         description = self.location_id_to_description.get(str(id), None)
-        # Secondly we try to get it from the world itself for a more static alias
-        if description is None and hasattr(AutoWorldRegister.world_types[self.game], "location_id_to_alias"):
-            description = AutoWorldRegister.world_types[self.game].location_id_to_alias.get(id, None)
+        # Secondly we try to get it from the world itself for a more static description
+        if description is None and hasattr(AutoWorldRegister.world_types[self.game], "location_id_to_description"):
+            description = AutoWorldRegister.world_types[self.game].location_id_to_description.get(id, None)
         return description
 
     def get_item_description_by_id(self, id) -> str|None:
         description = self.item_id_to_description.get(str(id), None)
-        if description is None and hasattr(AutoWorldRegister.world_types[self.game], "item_id_to_alias"):
+        if description is None and hasattr(AutoWorldRegister.world_types[self.game], "item_id_to_description"):
             description = AutoWorldRegister.world_types[self.game].item_id_to_description.get(id, None)
         return description
 
@@ -297,8 +297,8 @@ class ManualContext(SuperContext):
                         self.set_deathlink = True
                         self.last_death_link = 0
                     self.visible_events = args['slot_data'].get('visible_events', {})
-                    self.location_id_to_description = args['slot_data'].get('location_id_to_alias', {})
-                    self.item_id_to_description = args['slot_data'].get('item_id_to_alias', {})
+                    self.location_id_to_description = args['slot_data'].get('location_id_to_description', {})
+                    self.item_id_to_description = args['slot_data'].get('item_id_to_description', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
