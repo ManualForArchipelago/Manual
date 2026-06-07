@@ -10,8 +10,8 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 from .Data import item_table, location_table, event_table, region_table, category_table
 from .Game import game_name, filler_item_name, starting_items
 from .Meta import world_description, world_webworld
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, location_id_to_description
-from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups, item_id_to_description
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, location_name_to_description
+from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
 from .Regions import create_regions, create_events
@@ -51,7 +51,6 @@ class ManualWorld(World):
     category_table = category_table
 
     item_id_to_name = item_id_to_name
-    item_id_to_description = item_id_to_description
     item_name_to_id = item_name_to_id
     item_name_to_item = item_name_to_item
     item_name_groups = item_name_groups
@@ -63,7 +62,6 @@ class ManualWorld(World):
     start_inventory = {}
 
     location_id_to_name = location_id_to_name
-    location_id_to_description = location_id_to_description
     location_name_to_id = location_name_to_id
     location_name_to_location = location_name_to_location
     location_name_groups = location_name_groups
@@ -73,7 +71,7 @@ class ManualWorld(World):
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
-    location_id_to_alias = location_id_to_description
+    location_id_to_alias: dict[int, str] = {location_name_to_id[name]: desc for name, desc in location_name_to_description.items()}
 
     origin_region_name = "Manual"
 

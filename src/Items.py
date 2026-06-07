@@ -8,8 +8,8 @@ from .Game import filler_item_name, starting_index, game_name
 ######################
 
 item_id_to_name: dict[int, str] = {}
-item_id_to_description: dict[int, str] = {}
 item_name_to_item: dict[str, dict] = {}
+item_name_to_description: dict[str, str] = {}
 item_name_groups: dict[str, str] = {}
 advancement_item_names: set[str] = set()
 lastItemId = -1
@@ -39,7 +39,7 @@ for key, val in enumerate(item_table):
     count += 1
 
 for item in item_table:
-    item_name = item.get("name", f"Unnamed Item {item['id']}")
+    item_name: str = item.get("name", f"Unnamed Item {item['id']}")
     item_id_to_name[item["id"]] = item_name
     item_name_to_item[item_name] = item
 
@@ -62,7 +62,7 @@ for item in item_table:
         item_name_groups[group_name].append(item_name)
 
     if item.get("description"):
-        item_id_to_description[item["id"]] = item["description"]
+        item_name_to_description[item_name] = item["description"]
 
 item_id_to_name[None] = "__Victory__"
 item_name_to_id = {name: id for id, name in item_id_to_name.items()}
