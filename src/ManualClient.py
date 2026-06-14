@@ -250,6 +250,8 @@ class ManualContext(SuperContext):
     def on_package(self, cmd: str, args: dict):
         super().on_package(cmd, args)
 
+        self.ui.current_package = args
+
         if cmd in {"Connected", "DataPackage"}:
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
@@ -463,6 +465,8 @@ class ManualContext(SuperContext):
             update_requested_time: Optional[float] = None
             update_requested_highlights: bool = False
 
+            current_package : Dict = {}
+
             mouse_pos: tuple
 
             ctx: ManualContext
@@ -529,11 +533,10 @@ class ManualContext(SuperContext):
                 if "label" in element.keys() :
                     label = element["label"]
                 elif "label_if" in element.keys():
-                    pass
-
-                    # for option in element["label_if"].keys():
-                    #     if option_table[option] :
-                    #         label = element["label_if"][option]
+                    for option_name in element["label_if"].keys():
+                        print(f"{option_name} : {self.current_package["slot_data"][option_name]}")
+                        if self.current_package["slot_data"][option_name]  :
+                            label = element["label_if"][option_name]
                 return label
                     
             def get_tab_element_texture(self,element, unlocked_name_list):
@@ -543,21 +546,15 @@ class ManualContext(SuperContext):
                 elif "image_locked" in element:
                     texture = self.load_image(filename = element["image_locked"], ext_ = "png")
                 elif "image" in element :
-                    print("has image but no unlocked / locked image")
                     texture = self.load_image(filename = element["image"], ext_ = "png")
                 else  :
                     return None
                 return texture
                 
             def add_graphic_element(self, element, layout, label, texture, is_button):
-                print("in add_graphic_element", element)
                 if not ("name" in element):
                     is_button = False
-                    print("is not button")
-                print(" before is_button if")
                 if is_button:
-                    print("WTF, it's not a button")
-                    print(f"making button for {element["name"]}")
                     btn = TextureButton(text=label, 
                                 texture=texture,
                                 size_hint=(None, None), 
@@ -566,35 +563,28 @@ class ManualContext(SuperContext):
                                 ) 
                     
                     location_id = self.loc_ids[self.loc_names.index(element["name"])]
-                    print(f"Button will be added for location id : {location_id}")
 
                     btn.button.bind(
                             on_release=lambda instance, loc_id=location_id, texture_btn=btn:
                                 self.location_tab_button_callback(loc_id, texture_btn)
                         )
                     layout.add_widget(btn)
-                    print("Button added")
 
-                print(texture is None)
                 if not (texture is None) : 
-                    print(f"making image ")
                     img = Image(texture = texture,
                                 size_hint = (None, None),
                                 size = (dp(element["width"]), dp(element["height"])),  
                                 pos = (element["x"], element["y"])
                                 )
                     layout.add_widget(img)
-                    print("added image")
 
                 if label != "" :
-                    print(f"making label for {element["name"]}")
                     lab = Label(text=label, 
                                 size_hint=(None, None), 
                                 size=(dp(element["width"]), dp(element["height"])),
                                 pos=(element["x"], element["y"])
                                 ) 
                     layout.add_widget(lab)
-                    print("added label")
 
             def load_image(self, filename: str, ext_: str = 'png'):
                     image_file_data = pkgutil.get_data("worlds.ManualMain.ManualClient", filename)
@@ -607,12 +597,9 @@ class ManualContext(SuperContext):
                 self.items_tab_layout.clear_widgets()
                 current_tab_items_table = tab_items_table 
                 received_names = [self.ctx.get_item_by_id(i.item)["name"] for i in self.ctx.items_received]
-
-                print("starting items loop")
                 for item in current_tab_items_table :
                     label = self.get_tab_element_label(item)
                     texture = self.get_tab_element_texture(item,received_names)
-                    print(f"(element = {item}, layout = {self.items_tab_layout}, label = {label},  texture = {texture}")
                     self.add_graphic_element(item, self.items_tab_layout, label, texture, False)
 
             
