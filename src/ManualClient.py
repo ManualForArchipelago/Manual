@@ -497,16 +497,18 @@ class ManualContext(SuperContext):
                 panel.content.add_widget(self.controls_panel)
                 panel.content.add_widget(self.tracker_and_locations_panel)
 
-                self.items_tab_layout = CoordLayout()
-                items_tab = self.add_client_tab("Items Received", self.items_tab_layout)
-
-                self.locations_tab_layout = CoordLayout()
-                locations_tab = self.add_client_tab("Send Locations", self.locations_tab_layout)
+                if tab_items_table != []:
+                    self.items_tab_layout = CoordLayout()
+                    items_tab = self.add_client_tab("Items Received", self.items_tab_layout)
                 
-                self.loc_names = [loc["name"] for loc in location_table]
-                self.loc_ids = [loc["id"] for loc in location_table]
+                if tab_locations_table != []:
+                    self.locations_tab_layout = CoordLayout()
+                    locations_tab = self.add_client_tab("Send Locations", self.locations_tab_layout)
+                    self.loc_names = [loc["name"] for loc in location_table]
+                    self.loc_ids = [loc["id"] for loc in location_table]
 
                 self.build_tracker_and_locations_table()
+                
                 self.build_items_tab()
 
                 return self.container
@@ -577,6 +579,9 @@ class ManualContext(SuperContext):
                     return CoreImage(data, ext=ext_).texture
             
             def build_items_tab(self):
+                if tab_items_table == []:
+                    return
+                
                 self.items_tab_layout.clear_widgets()
                 current_tab_items_table = tab_items_table 
                 received_names = [self.ctx.get_item_by_id(i.item)["name"] for i in self.ctx.items_received]
@@ -588,6 +593,9 @@ class ManualContext(SuperContext):
             
 
             def build_locations_tab(self):
+                if tab_locations_table == []:
+                    return
+                
                 self.locations_tab_layout.clear_widgets()
                 
                 if not self.ctx.server or not self.ctx.auth:
