@@ -250,12 +250,11 @@ class ManualContext(SuperContext):
     def on_package(self, cmd: str, args: dict):
         super().on_package(cmd, args)
 
-        self.ui.current_package = args
-
         if cmd in {"Connected", "DataPackage"}:
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
                 if args.get("slot_data"):
+                    self.ui.user_options = args.get("slot_data")
                     goal = args["slot_data"].get("goal")
                     if goal and goal < len(self.victory_names):
                         self.goal_location = self.get_location_by_name(self.victory_names[goal])
@@ -358,18 +357,15 @@ class ManualContext(SuperContext):
         import io
         import pkgutil
 
-        from kivy.uix.image import Image, CoreImage
         from .Options import option_table
-
         from .Data import tab_items_table, tab_locations_table, location_table
+
         from kivy.uix.floatlayout import FloatLayout
-        
+        from kivy.uix.image import Image, CoreImage
+
         class CoordLayout(FloatLayout):
             pass
         
-        from kivy.uix.floatlayout import FloatLayout
-
-
         class TextureButton(FloatLayout):
 
             def __init__(self,
@@ -465,7 +461,7 @@ class ManualContext(SuperContext):
             update_requested_time: Optional[float] = None
             update_requested_highlights: bool = False
 
-            current_package : Dict = {}
+            user_options : Dict = {}
 
             mouse_pos: tuple
 
@@ -501,18 +497,6 @@ class ManualContext(SuperContext):
                 panel.content.add_widget(self.controls_panel)
                 panel.content.add_widget(self.tracker_and_locations_panel)
 
-
-                
-
-
-
-
-
-
-
-                
-                
-                
                 self.items_tab_layout = CoordLayout()
                 items_tab = self.add_client_tab("Items Received", self.items_tab_layout)
 
@@ -523,7 +507,6 @@ class ManualContext(SuperContext):
                 self.loc_ids = [loc["id"] for loc in location_table]
 
                 self.build_tracker_and_locations_table()
-
                 self.build_items_tab()
 
                 return self.container
@@ -534,8 +517,7 @@ class ManualContext(SuperContext):
                     label = element["label"]
                 elif "label_if" in element.keys():
                     for option_name in element["label_if"].keys():
-                        print(f"{option_name} : {self.current_package["slot_data"][option_name]}")
-                        if self.current_package["slot_data"][option_name]  :
+                        if self.user_options[option_name]  :
                             label = element["label_if"][option_name]
                 return label
                     
@@ -569,7 +551,8 @@ class ManualContext(SuperContext):
                                 self.location_tab_button_callback(loc_id, texture_btn)
                         )
                     layout.add_widget(btn)
-
+                    return
+                
                 if not (texture is None) : 
                     img = Image(texture = texture,
                                 size_hint = (None, None),
@@ -611,7 +594,6 @@ class ManualContext(SuperContext):
                     self.locations_tab_layout.add_widget(
                                 Label(text="Waiting for connection...", size_hint_y=None, height=50, outline_width=1))
                     return
-                
                 missing_names = [self.ctx.get_location_by_id(id)["name"] for id in self.ctx.missing_locations]
                 unlocked_locations = [loc["name"] for loc in location_table if loc["name"] not in missing_names]
                 current_tab_locations_table = tab_locations_table
@@ -638,22 +620,10 @@ class ManualContext(SuperContext):
 
                 location_name = loc_names[loc_ids.index(location_id)]
 
-                tab_location_index = [loc["name"] for loc in tab_locations_table].index(location_name)
+                tab_location_index = [loc.get("name", "") for loc in tab_locations_table].index(location_name)
 
                 button.image.texture = self.load_image(tab_locations_table[tab_location_index]["image_unlocked"], ext_="png")
-
-                
-
-            
-
-
-
-
-
-
-
-
-
+                button.image.canvas.ask_update()
 
             def get_application_config(self, defaultpath: str = "") -> str:
                 return Utils.user_path("manual_client.ini")
