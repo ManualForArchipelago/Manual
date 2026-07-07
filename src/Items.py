@@ -15,7 +15,7 @@ lastItemId = -1
 
 count = starting_index
 
-filler_found = []
+filler_found: set[str] = set()
 
 # add sequential generated ids to the lists
 for key, val in enumerate(item_table):
@@ -31,7 +31,7 @@ for key, val in enumerate(item_table):
     if isinstance(val.get("category", []), str):
         item_table[key]["category"] = [val["category"]]
     if item_table[key].get("name") in filler_item_name:
-        filler_found.append(item_table[key].get("name"))
+        filler_found.add(item_table[key].get("name"))
 
     count += 1
 
