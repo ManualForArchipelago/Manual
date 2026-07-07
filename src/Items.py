@@ -30,8 +30,12 @@ for key, val in enumerate(item_table):
     item_table[key]["progression"] = val["progression"] if "progression" in val else False
     if isinstance(val.get("category", []), str):
         item_table[key]["category"] = [val["category"]]
-    if item_table[key].get("name") in filler_item_name:
-        filler_found.add(item_table[key].get("name"))
+    if isinstance(filler_item_name, list):
+        if item_table[key].get("name") in filler_item_name:
+            filler_found.add(item_table[key].get("name"))
+    elif isinstance(filler_item_name, str):
+        if item_table[key].get("name") == filler_item_name:
+            filler_found.add(item_table[key].get("name"))
 
     count += 1
 
