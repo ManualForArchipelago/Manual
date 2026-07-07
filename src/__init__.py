@@ -75,11 +75,11 @@ class ManualWorld(World):
     origin_region_name = "Manual"
 
     def get_filler_item_name(self) -> str:
-        if isinstance(hook_get_filler_item_name(self, self.multiworld, self.player), str):
-            return hook_get_filler_item_name(self, self.multiworld, self.player)
-        elif isinstance(hook_get_filler_item_name(self, self.multiworld, self.player), list):
-            hook_random_filler_name = self.random.choice(hook_get_filler_item_name(self, self.multiworld, self.player))
-            return hook_random_filler_name
+        hook_result = hook_get_filler_item_name(self, self.multiworld, self.player)
+        if hook_result and isinstance(hook_result, str):
+            return hook_result
+        elif hook_result and isinstance(hook_result, list):
+            return self.random.choice(hook_result)
         elif isinstance(filler_item_name, str):
             return self.filler_item_name
         else:
