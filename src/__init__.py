@@ -135,7 +135,11 @@ class ManualWorld(World):
         items_config: dict[str, int|dict[ItemClassification | str | int, int]] = {}
         for name in configured_item_names.values():
             if name == "__Victory__": continue
-            if name in filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
+            # intentionally using the Game.py filler_item_name here because it can be a non-Items item
+            if isinstance(filler_item_name, str):
+                if name == filler_item_name: continue
+            elif isinstance(filler_item_name, list):
+                if name in filler_item_name: continue
 
             item = self.item_name_to_item[name]
             item_count = int(item.get("count", 1))
