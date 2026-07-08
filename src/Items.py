@@ -15,7 +15,7 @@ lastItemId = -1
 
 count = starting_index
 
-filler_found = False
+filler_found: set[str] = set()
 
 # add sequential generated ids to the lists
 for key, val in enumerate(item_table):
@@ -30,13 +30,25 @@ for key, val in enumerate(item_table):
     item_table[key]["progression"] = val["progression"] if "progression" in val else False
     if isinstance(val.get("category", []), str):
         item_table[key]["category"] = [val["category"]]
-    if item_table[key].get("name") == filler_item_name:
-        filler_found = True
+    if isinstance(filler_item_name, list):
+        if item_table[key].get("name") in filler_item_name:
+            filler_found.add(item_table[key].get("name"))
+    elif isinstance(filler_item_name, str):
+        if item_table[key].get("name") == filler_item_name:
+            filler_found.add(item_table[key].get("name"))
 
     count += 1
 
 # add the filler item to the list of items for lookup
-if filler_item_name and not filler_found:
+if isinstance(filler_item_name, list):
+    for generic_filler in filler_item_name:
+        if generic_filler not in filler_found:
+            item_table.append({
+                "name": generic_filler,
+                "id": count,
+            })
+            count += 1
+elif isinstance(filler_item_name, str) and not filler_found:
     item_table.append({
         "name": filler_item_name,
         "id": count,
