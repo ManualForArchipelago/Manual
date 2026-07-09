@@ -10,7 +10,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 from .Data import item_table, location_table, event_table, category_table
 from .Game import game_name, filler_item_name, starting_items, unused_goals_are_locations
 from .Meta import world_description, world_webworld
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, location_name_to_description
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
@@ -71,6 +71,7 @@ class ManualWorld(World):
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
+    location_id_to_alias: dict[int, str] = {location_name_to_id[name]: desc for name, desc in location_name_to_description.items()}
 
     origin_region_name = "Manual"
 
@@ -418,6 +419,7 @@ class ManualWorld(World):
 
         # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
         common_options = set(PerGameCommonOptions.type_hints.keys())
+        common_options |= set(["generate_region_diagram", "start_inventory_from_pool"])
         for option_key, _ in self.options_dataclass.type_hints.items():
             if option_key in common_options:
                 continue
@@ -571,7 +573,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2026_04_04 # YYYYMMDD
+    version = 2026_04_07 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

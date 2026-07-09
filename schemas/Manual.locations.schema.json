@@ -104,6 +104,10 @@
                     "description": "(Optional) A string to sort the locations by. If not provided, locations will always be sorted by name.",
                     "type": "string"
                 },
+                "description": {
+                    "description": "(Optional) A short description of the location to be displayed in the client in the Manual and Tracker tabs",
+                    "type": "string"
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "required": ["name"]

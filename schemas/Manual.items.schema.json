@@ -116,6 +116,10 @@
                     "description": "(Optional) A string to sort the items by. If not provided, items will always be sorted by name.",
                     "type": "string"
                 },
+                "description": {
+                    "description": "(Optional) A short description of the item to be displayed in the client",
+                    "type": "string"
+                },
                 "_comment": {"$ref": "#/definitions/comment"}
             },
             "required": ["name"]

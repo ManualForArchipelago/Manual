@@ -28,8 +28,14 @@ def set_world_description(base_doc: str) -> str:
     return base_doc
 
 
-def set_world_webworld(web: WebWorld) -> WebWorld:
+def set_world_webworld(web: ManualWeb) -> ManualWeb:
     from .Options import make_options_group
+    from .Locations import  location_name_to_description
+    from .Items import  item_name_to_description
+
+    web.location_descriptions = location_name_to_description
+    web.item_descriptions = item_name_to_description
+
     if meta_table.get("docs", {}).get("web", {}):
         Web_Config = meta_table["docs"]["web"]
 
