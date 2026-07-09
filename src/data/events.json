@@ -16,6 +16,7 @@
         },
         {
             "name": "X-Men Assemble",
+            "category": ["Right Side"],
             "requires": "((|Wolverine|) OR |X-23|) AND |Storm| and |Magneto:1|"
         },
         {
