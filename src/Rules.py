@@ -1,6 +1,6 @@
 import dataclasses
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Optional, Any
+from typing import TYPE_CHECKING, Any
 from enum import IntEnum
 from operator import eq, ge, le
 
@@ -15,6 +15,7 @@ from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule, add_rule
 from Options import Choice, Toggle, Range, NamedRange, NumericOption
 from Utils import version_tuple, deprecate
+
 import re
 import math
 import logging
