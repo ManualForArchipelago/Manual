@@ -8,7 +8,8 @@
         {
             "name": "Beat the Game - Ryu",
             "category": ["Starter Team", "Left Side"],
-            "region": "ExampleRegion"
+            "region": "ExampleRegion",
+            "scoutable": true
         },
         {
             "name": "Beat the Game - Chun-Li",
@@ -130,7 +131,7 @@
         {
             "name": "Beat the Game - Deadpool",
             "category": ["Unlocked Teams", "Right Side"],
-            "requires": "|Deadpool| or {YamlEnabled(free_deadpool)}"
+            "requires": "|Deadpool| or {YamlEnabled(start_with_deadpool)}"
         },
         {
             "name": "Beat the Game - Wolverine",

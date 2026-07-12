@@ -57,6 +57,11 @@ _How does that work?!_ Well, you'll just have to read more below!
     - [Okay... how would I use hooks?](syntax/hooks.md#okay-how-would-i-use-hooks)
     - [BONUS: How to find objects to use in hooks](syntax/hooks.md#bonus-how-to-find-objects-to-use-in-hooks)
 
+## Advanced Examples
+  - [Pick and choose yaml options](advanced/pick_and_choose.md)
+  - [Randomised starting regions](advanced/randomised_start.md)
+  - [Progressive choice yaml options](advanced/progressive_choices.md)
+
 ## Resources
 
 - [Manual Builder](resources/manual-builder.md)

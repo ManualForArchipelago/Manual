@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from .DataValidation import DataValidation, ValidationError
 from .Helpers import load_data_file as helpers_load_data_file
@@ -37,14 +38,14 @@ class ManualFile:
         return contents
 
 
-game_table = ManualFile('game.json', dict).load() #dict
-item_table = convert_to_list(ManualFile('items.json', list).load(), 'data') #list
-location_table = convert_to_list(ManualFile('locations.json', list).load(), 'data') #list
-event_table = convert_to_list(ManualFile('events.json', list).load(), 'data') #list
-region_table = ManualFile('regions.json', dict).load() #dict
-category_table = ManualFile('categories.json', dict).load() #dict
-option_table = ManualFile('options.json', dict).load() #dict
-meta_table = ManualFile('meta.json', dict).load() #dict
+game_table: dict[str, Any] = ManualFile('game.json', dict).load() #dict
+item_table: list[dict[str, Any]] = convert_to_list(ManualFile('items.json', list).load(), 'data') #list
+location_table: list[dict[str, Any]] = convert_to_list(ManualFile('locations.json', list).load(), 'data') #list
+event_table: list[dict[str, Any]] = convert_to_list(ManualFile('events.json', list).load(), 'data') #list
+region_table: dict[str, Any] = ManualFile('regions.json', dict).load() #dict
+category_table: dict[str, Any] = ManualFile('categories.json', dict).load() #dict
+option_table: dict[str, Any] = ManualFile('options.json', dict).load() #dict
+meta_table: dict[str, Any] = ManualFile('meta.json', dict).load() #dict
 
 # Removal of schemas in root of tables
 region_table.pop('$schema', '')
@@ -63,10 +64,23 @@ meta_table = after_load_meta_file(meta_table)
 # seed all of the tables for validation
 DataValidation.game_table = game_table
 DataValidation.item_table = item_table
-DataValidation.item_table_with_events = item_table + event_table
 DataValidation.location_table = location_table
-DataValidation.location_table_with_events = location_table + event_table
+DataValidation.event_table = event_table
 DataValidation.region_table = region_table
+
+# might as well save this for other uses in tests
+DataValidation.location_name_to_location = {l.get("name", f"unknown location {key}"): l for key, l in enumerate(DataValidation.location_table)}
+# since "copy_location" just changes data its handled here to simplify things
+for key, event in enumerate(event_table):
+    if "copy_location" in event:
+        if event["copy_location"] not in DataValidation.location_name_to_location.keys():
+            raise KeyError(f"Event {event.get('name', f'unnamed event #{key}')} tried to copy a location named {event['copy_location']} but its misspelled or does not exist.")
+
+        event_table[key] = DataValidation.location_name_to_location[event["copy_location"]] | event
+        DataValidation.event_table[key] = event_table[key]
+
+DataValidation.item_table_with_events = DataValidation.item_table + DataValidation.event_table
+DataValidation.location_table_with_events = DataValidation.location_table + DataValidation.event_table
 
 validation_errors = []
 

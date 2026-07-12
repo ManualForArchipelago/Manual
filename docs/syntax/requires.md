@@ -206,7 +206,7 @@ The value can be of any type that your option supports
   - True: "true", "on", 1
   - False: "false", "off", 0
 
-The folowing example would check that the player.yaml value of the range option Example_Range is bigger than 5 or that the `Item A` item is present:
+The following example would check that the player.yaml value of the range option Example_Range is bigger than 5 or that the `Item A` item is present:
 
 ```json
 {

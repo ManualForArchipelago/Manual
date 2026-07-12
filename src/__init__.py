@@ -5,10 +5,10 @@ import webbrowser
 
 import Utils
 from worlds.generic.Rules import forbid_items_for_player
-from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch_subprocess, icon_paths
+from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch, icon_paths
 
-from .Data import item_table, location_table, event_table, region_table, category_table
-from .Game import game_name, filler_item_name, starting_items
+from .Data import item_table, location_table, event_table, category_table
+from .Game import game_name, filler_item_name, starting_items, unused_goals_are_locations
 from .Meta import world_description, world_webworld
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
@@ -72,6 +72,8 @@ class ManualWorld(World):
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
 
+    origin_region_name = "Manual"
+
     def get_filler_item_name(self) -> str:
         return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
 
@@ -106,8 +108,9 @@ class ManualWorld(World):
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
 
-        for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
-            unused_goal.parent_region.locations.remove(unused_goal)
+        if not unused_goals_are_locations:
+            for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
+                unused_goal.parent_region.locations.remove(unused_goal)
 
         location_game_complete.place_locked_item(
             ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
@@ -251,7 +254,7 @@ class ManualWorld(World):
         precollected_items = list(self.multiworld.precollected_items[self.player])
 
         # UT doesn't precollect the exceptions so this can be skipped
-        if not hasattr(self.multiworld, "generation_is_fake"):
+        if not getattr(self.multiworld, "generation_is_fake", False):
             precollected_exceptions = self.options.start_inventory.value + self.options.start_inventory_from_pool.value # type: ignore
             for item, count in precollected_exceptions.items():
                 items_iter = iter([i for i in precollected_items if i.name == item])
@@ -404,7 +407,7 @@ class ManualWorld(World):
         # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
         if get_option_value(self.multiworld, self.player, "generate_region_diagram"):
             from Utils import visualize_regions
-            visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
+            visualize_regions(self.multiworld.get_region("Manual", self.player), f"{self.game}_{self.player}.puml")
 
     def pre_fill(self):
         # DataValidation after all the hooks are done but before fill
@@ -439,6 +442,10 @@ class ManualWorld(World):
 
         apmanual = APManualFile(zf_path, player=self.player, player_name=self.player_name)
         apmanual.write()
+
+        if get_option_value(self.multiworld, self.player, "generate_region_diagram"):
+            from Utils import visualize_regions
+            visualize_regions(self.multiworld.get_region("Manual", self.player), f"{self.game}_{self.player}_spoiler.puml")
 
 
     def write_spoiler(self, spoiler_handle):
@@ -554,9 +561,9 @@ def launch_client(*args):
     from .ManualClient import launch as Main
 
     if CommonClient.gui_enabled:
-        launch_subprocess(Main, name="Manual client")
+        launch(Main, name="Manual client", args=args)
     else:
-        Main()
+        Main(*args)
 
 class VersionedComponent(Component):
     def __init__(self, display_name: str, script_name: Optional[str] = None, func: Optional[Callable] = None, version: int = 0, file_identifier: Optional[Callable[[str], bool]] = None, icon: Optional[str] = None):
@@ -564,7 +571,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2026_01_02 # YYYYMMDD
+    version = 2026_04_04 # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:

@@ -1,6 +1,7 @@
 from BaseClasses import Location
 from .Data import location_table, event_table
 from .Game import starting_index, game_name
+from typing import Any
 
 
 ######################
@@ -44,9 +45,9 @@ if not victory_names:
     victory_names.append("__Manual Game Complete__")
 
 location_id_to_name: dict[int, str] = {}
-location_name_to_location: dict[str, dict] = {}
+location_name_to_location: dict[str, dict[str, Any]] = {}
 location_name_groups: dict[str, list[str]] = {}
-event_name_to_event: dict[str, list[str]] = {}
+event_name_to_event: dict[str, dict[str, Any]] = {}
 
 for loc in location_table:
     loc_name = loc.get("name", f"Unnamed Location {loc['id']}")
@@ -62,21 +63,17 @@ for loc in location_table:
 # location_id_to_name[None] = "__Manual Game Complete__"
 location_name_to_id = {name: id for id, name in location_id_to_name.items()}
 
-for key, _ in enumerate(event_table):
-    if "copy_location" in event_table[key]:
-        event_table[key] = location_name_to_location[event_table[key]["copy_location"]] | event_table[key]
-
 id = 0
 for key, event in enumerate(event_table):
+    event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
+    while event_name in location_name_to_location:
+        id += 1
+        event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
     if "location_name" in event:
         if event["location_name"] in location_name_to_location:
             raise Exception(f"Cannot define event {event['location_name']} with the same name as a location.")
-        event_name_to_event[event_name] = event
+        event_name_to_event[event["location_name"]] = event
     else:
-        event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
-        while event_name in location_name_to_location:
-            id += 1
-            event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
         event_name_to_event[event_name] = event
         event_name_to_event[event_name]["location_name"] = event_name
         event_table[key]["location_name"] = event_name

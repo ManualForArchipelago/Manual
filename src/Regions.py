@@ -1,5 +1,5 @@
 from BaseClasses import Entrance, MultiWorld, Region, ItemClassification
-from .Helpers import is_category_enabled, is_location_enabled
+from .Helpers import is_category_enabled, is_location_enabled, is_event_enabled
 from .Data import region_table
 from .Locations import ManualLocation, location_name_to_location
 from .Items import ManualItem
@@ -42,11 +42,6 @@ def create_regions(world: World, multiworld: MultiWorld, player: int):
         new_region = create_region(world, multiworld, player, region, locations, exit_array)
         multiworld.regions += [new_region]
 
-    menu = create_region(world, multiworld, player, "Menu", None, ["Manual"])
-    multiworld.regions += [menu]
-    menuConn = multiworld.get_entrance("MenuToManual", player)
-    menuConn.connect(multiworld.get_region("Manual", player))
-
     # Link regions together
     for region in regionMap:
         if "connects_to" in regionMap[region] and regionMap[region]["connects_to"]:
@@ -74,6 +69,8 @@ def getConnectionName(entranceName: str, exitName: str):
 
 def create_events(world: World, multiworld: MultiWorld, player: int):
     for name, event in world.event_name_to_event.items():
+        if not is_event_enabled(multiworld, player, event):
+            continue
         region = multiworld.get_region(event.get("region", "Manual"), player)
         item = ManualItem(event["name"], ItemClassification.progression, None, player=player)
         location = ManualLocation(player, name, None, region)

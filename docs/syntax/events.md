@@ -1,10 +1,10 @@
 # Events - events.json
-Your events.json contains the details about any events that you have in your world. 
+Your events.json contains the details about any events that you have in your world.
 
 This file contains multiple objects, so you'll want to have a `[]` surrounding the `{}` objects to be valid JSON. If your events.json has a "$schema" property at the top, use the `[]` in the "data" property instead.
 
 ## Wait, what are events and why are they useful?
-Events are essentially "fake" items that you configure like you would a location, which can then be referenced in logical requirements. Events are often used to simplify complicated logic chains, or to reduce redundant locations using placed items. As a "fake" item, it doesn't need to be placed on a location to be "received", as it's automatically received when its requirements are met. 
+Events are essentially "fake" items that you configure like you would a location, which can then be referenced in logical requirements. Events are often used to simplify complicated logic chains, or to reduce redundant locations using placed items. As a "fake" item, it doesn't need to be placed on a location to be "received", as it's automatically received when its requirements are met.
 
 Basically, using an event, you can track a set of requirements without having to have an extra location or extra "gating" items, then use that event as a logical requirement (as if it was an item) for your other locations/regions. It's pretty handy!
 
@@ -15,6 +15,7 @@ If you'd like to see all the available properties and their allowed values, view
 
 ## The events.json structure
 The properties for this file are broken down into these headings below:
+
 - [Naming and categorizing](#naming-and-categorizing)
   - `name`
   - `category`
@@ -24,7 +25,7 @@ The properties for this file are broken down into these headings below:
   - `requires`
 - [Using an accessible location as an event](#using-an-accessible-location-as-an-event)
   - `copy_location`
-- [Hiding the event in the Manual client](#hiding-the-event-in-the-manual-client)
+- [Showing the event in the Manual client](#showing-the-event-in-the-manual-client)
   - `visible`
 
 ---
@@ -49,7 +50,7 @@ Regions can be helpful to either establish a world layout for your world, or to 
 
 Here's an example that assigns the "Last Dungeon" region to the "All Purple Buttons Found" event:
 
-```
+```json
 { 
     "name": "All Purple Buttons Found", 
     "region": "Last Dungeon"
@@ -74,7 +75,7 @@ When you use this property to copy a location, it copies all applicable properti
 
 Here's an example that creates an event that copies the "Player Level Up - Level 10" location:
 
-```
+```json
 { 
     "name": "Player Level 10", 
     "copy_location": "Player Level Up - Level 10"
@@ -85,14 +86,14 @@ That way, you can have a randomized item on the "Player Level Up - Level 10" loc
 
 ---
 
-### Hiding the event in the Manual client
-By default, events are shown in the items half of the Manual client. If you'd like to hide them instead, set the `visible` property to false.
+### Showing the event in the Manual client
+By default, events are hidden in the Manual client. If you'd like to show them instead, set the `visible` property to `true`.
 
-Here's an example of hiding the "Player Level 10" event from showing in the client:
+Here's an example of making the "Player Level 10" event show in the client:
 
-```
+```json
 { 
     "name": "Player Level 10", 
-    "visible": false
+    "visible": true
 }
 ```
