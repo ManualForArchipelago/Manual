@@ -21,6 +21,9 @@ class GenerateRegionDiagram(Toggle):
     """Generate a region diagram."""
     visibility = Visibility.none  # Hidden option
 
+class ManualDeathLink(DeathLink):
+    pass
+
 def createChoiceOptions(values: dict, aliases: dict) -> dict:
     values = {'option_' + i: v for i, v in values.items()}
     aliases = {'alias_' + i: v for i, v in aliases.items()}
@@ -82,7 +85,7 @@ if any(item.get('trap') for item in item_table):
     manual_options["filler_traps"] = FillerTrapPercent
 
 if game_table.get("death_link"):
-    manual_options["death_link"] = DeathLink
+    manual_options["death_link"] = ManualDeathLink
 
 
 ######################
