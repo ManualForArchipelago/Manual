@@ -17,8 +17,11 @@
             "type": "string"
         },
         "filler_item_name": {
-            "description": "Name of the filler items that get placed when there's no more real items to place.",
-            "type": "string"
+            "description": "Names of the filler items that get placed when there's no more real items to place.",
+            "type": ["string", "array"],
+            "items": {
+                "type":"string"
+            }
         },
         "starting_items": {
             "description": "(Optional) Starting inventory",

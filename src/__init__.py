@@ -75,7 +75,16 @@ class ManualWorld(World):
     origin_region_name = "Manual"
 
     def get_filler_item_name(self) -> str:
-        return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
+        hook_result = hook_get_filler_item_name(self, self.multiworld, self.player)
+        if hook_result and isinstance(hook_result, str):
+            return hook_result
+        elif hook_result and isinstance(hook_result, list):
+            return self.random.choice(hook_result)
+        elif isinstance(filler_item_name, str):
+            return self.filler_item_name
+        else:
+            random_filler_name = self.random.choice(filler_item_name)
+            return random_filler_name
 
     def interpret_slot_data(self, slot_data: dict[str, Any]) -> dict[str, Any]:
         #this is called by tools like UT
@@ -126,7 +135,11 @@ class ManualWorld(World):
         items_config: dict[str, int|dict[ItemClassification | str | int, int]] = {}
         for name in configured_item_names.values():
             if name == "__Victory__": continue
-            if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
+            # intentionally using the Game.py filler_item_name here because it can be a non-Items item
+            if isinstance(filler_item_name, str):
+                if name == filler_item_name: continue
+            elif isinstance(filler_item_name, list):
+                if name in filler_item_name: continue
 
             item = self.item_name_to_item[name]
             item_count = int(item.get("count", 1))
