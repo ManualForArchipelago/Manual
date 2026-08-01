@@ -35,6 +35,8 @@ except ModuleNotFoundError:
 if typing.TYPE_CHECKING:
     import kvui
 
+
+
 class SortingOrderLoc(IntEnum):
     custom = 1
     inverted_custom = -1
@@ -252,6 +254,7 @@ class ManualContext(SuperContext):
             if cmd == "Connected":
                 Utils.persistent_store("client", "last_manual_game", self.game)
                 if args.get("slot_data"):
+                    self.ui.user_options = args.get("slot_data")
                     goal = args["slot_data"].get("goal")
                     if goal and goal < len(self.victory_names):
                         self.goal_location = self.get_location_by_name(self.victory_names[goal])
@@ -322,6 +325,7 @@ class ManualContext(SuperContext):
         self.ui = ui_class(self)
         self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
 
+
     def make_gui(self) -> typing.Type["kvui.GameManager"]:
         if hasattr(SuperContext, "make_gui"):
             ui = super().make_gui()  # before the kivy imports so kvui gets loaded first
@@ -329,6 +333,7 @@ class ManualContext(SuperContext):
             from kvui import GameManager
             ui = GameManager
 
+        
         from kivy.core.window import Window
         from kivy.lang import Builder
         from kivy.metrics import dp
@@ -345,6 +350,58 @@ class ManualContext(SuperContext):
         from kivy.uix.textinput import TextInput
         from kivy.uix.treeview import TreeView, TreeViewLabel, TreeViewNode
         from kivy.config import ConfigParser
+
+
+
+
+        import io
+        import pkgutil
+
+        from .Options import option_table
+        from .Data import tab_items_table, tab_locations_table, location_table
+
+        from kivy.uix.floatlayout import FloatLayout
+        from kivy.uix.image import Image, CoreImage
+
+        class CoordLayout(FloatLayout):
+            pass
+        
+        class TextureButton(FloatLayout):
+
+            def __init__(self,
+                        texture=None,
+                        text="",
+                        **kwargs):
+                super().__init__(**kwargs)
+
+                self.image = Image(
+                    texture=texture,
+                    allow_stretch=True,
+                    keep_ratio=False,
+                    size_hint=(1, 1),
+                    pos_hint={"x": 0, "y": 0}
+                )
+
+                self.label = Label(
+                    text=text,
+                    size_hint=(1, 1),
+                    pos_hint={"x": 0, "y": 0}
+                )
+
+                self.button = Button(
+                    background_color=(1, 1, 1, 0),  # transparent
+                    background_normal="",
+                    background_down="",
+                    border=(0, 0, 0, 0),
+                    size_hint=(1, 1),
+                    pos_hint={"x": 0, "y": 0}
+                )
+
+                self.add_widget(self.image)
+                self.add_widget(self.label)
+                self.add_widget(self.button)
+            
+
 
         class ManualTabLayout(BoxLayout):
             pass
@@ -404,6 +461,8 @@ class ManualContext(SuperContext):
             update_requested_time: Optional[float] = None
             update_requested_highlights: bool = False
 
+            user_options : Dict = {}
+
             mouse_pos: tuple
 
             ctx: ManualContext
@@ -438,9 +497,141 @@ class ManualContext(SuperContext):
                 panel.content.add_widget(self.controls_panel)
                 panel.content.add_widget(self.tracker_and_locations_panel)
 
+                if tab_items_table != []:
+                    self.items_tab_layout = CoordLayout()
+                    items_tab = self.add_client_tab("Items Received", self.items_tab_layout)
+                
+                if tab_locations_table != []:
+                    self.locations_tab_layout = CoordLayout()
+                    locations_tab = self.add_client_tab("Send Locations", self.locations_tab_layout)
+                    self.loc_names = [loc["name"] for loc in location_table]
+                    self.loc_ids = [loc["id"] for loc in location_table]
+
                 self.build_tracker_and_locations_table()
+                
+                self.build_items_tab()
 
                 return self.container
+            
+            def get_tab_element_label(self,element):
+                label = ""
+                if "label" in element.keys() :
+                    label = element["label"]
+                elif "label_if" in element.keys():
+                    for option_name in element["label_if"].keys():
+                        if self.user_options[option_name]  :
+                            label = element["label_if"][option_name]
+                return label
+                    
+            def get_tab_element_texture(self,element, unlocked_name_list):
+                texture = None
+                if "name" in element and element["name"] in unlocked_name_list and "image_unlocked" in element:
+                    texture = self.load_image(filename = element["image_unlocked"], ext_ = "png")
+                elif "image_locked" in element:
+                    texture = self.load_image(filename = element["image_locked"], ext_ = "png")
+                elif "image" in element :
+                    texture = self.load_image(filename = element["image"], ext_ = "png")
+                else  :
+                    return None
+                return texture
+                
+            def add_graphic_element(self, element, layout, label, texture, is_button):
+                if not ("name" in element):
+                    is_button = False
+                if is_button:
+                    btn = TextureButton(text=label, 
+                                texture=texture,
+                                size_hint=(None, None), 
+                                size=(dp(element["width"]), dp(element["height"])),
+                                pos=(element["x"], element["y"])
+                                ) 
+                    
+                    location_id = self.loc_ids[self.loc_names.index(element["name"])]
+
+                    btn.button.bind(
+                            on_release=lambda instance, loc_id=location_id, texture_btn=btn:
+                                self.location_tab_button_callback(loc_id, texture_btn)
+                        )
+                    layout.add_widget(btn)
+                    return
+                
+                if not (texture is None) : 
+                    img = Image(texture = texture,
+                                size_hint = (None, None),
+                                size = (dp(element["width"]), dp(element["height"])),  
+                                pos = (element["x"], element["y"])
+                                )
+                    layout.add_widget(img)
+
+                if label != "" :
+                    lab = Label(text=label, 
+                                size_hint=(None, None), 
+                                size=(dp(element["width"]), dp(element["height"])),
+                                pos=(element["x"], element["y"])
+                                ) 
+                    layout.add_widget(lab)
+
+            def load_image(self, filename: str, ext_: str = 'png'):
+                    image_file_data = pkgutil.get_data("worlds.ManualMain.ManualClient", filename)
+                    if not image_file_data:
+                        raise FileNotFoundError(f"worlds.ManualMain.ManualClient {filename=}")
+                    data = io.BytesIO(image_file_data)
+                    return CoreImage(data, ext=ext_).texture
+            
+            def build_items_tab(self):
+                if tab_items_table == []:
+                    return
+                
+                self.items_tab_layout.clear_widgets()
+                current_tab_items_table = tab_items_table 
+                received_names = [self.ctx.get_item_by_id(i.item)["name"] for i in self.ctx.items_received]
+                for item in current_tab_items_table :
+                    label = self.get_tab_element_label(item)
+                    texture = self.get_tab_element_texture(item,received_names)
+                    self.add_graphic_element(item, self.items_tab_layout, label, texture, False)
+
+            
+
+            def build_locations_tab(self):
+                if tab_locations_table == []:
+                    return
+                
+                self.locations_tab_layout.clear_widgets()
+                
+                if not self.ctx.server or not self.ctx.auth:
+                    self.locations_tab_layout.add_widget(
+                                Label(text="Waiting for connection...", size_hint_y=None, height=50, outline_width=1))
+                    return
+                missing_names = [self.ctx.get_location_by_id(id)["name"] for id in self.ctx.missing_locations]
+                unlocked_locations = [loc["name"] for loc in location_table if loc["name"] not in missing_names]
+                current_tab_locations_table = tab_locations_table
+
+                for loc in current_tab_locations_table :
+                    
+                    label = self.get_tab_element_label(loc)
+                    texture = self.get_tab_element_texture(loc, unlocked_locations)
+                  
+                    self.add_graphic_element(loc, self.locations_tab_layout, label, texture, True)
+
+
+            def location_tab_button_callback(self, location_id: int, button: TextureButton):
+                if not location_id:
+                    return
+                if location_id in self.ctx.locations_checked:
+                    return
+                
+                self.ctx.locations_checked.append(location_id)
+                self.ctx.syncing = True
+
+                loc_ids = [loc["id"] for loc in location_table]
+                loc_names = [loc["name"] for loc in location_table]
+
+                location_name = loc_names[loc_ids.index(location_id)]
+
+                tab_location_index = [loc.get("name", "") for loc in tab_locations_table].index(location_name)
+
+                button.image.texture = self.load_image(tab_locations_table[tab_location_index]["image_unlocked"], ext_="png")
+                button.image.canvas.ask_update()
 
             def get_application_config(self, defaultpath: str = "") -> str:
                 return Utils.user_path("manual_client.ini")
@@ -629,6 +820,8 @@ class ManualContext(SuperContext):
                 return None
 
             def build_tracker_and_locations_table(self):
+                self.build_locations_tab()
+
                 Window.bind(mouse_pos=self.window_mouseover)
 
                 self.controls_panel.clear_widgets()
@@ -843,6 +1036,8 @@ class ManualContext(SuperContext):
                 self.update_requested_highlights = update_highlights or self.update_requested_highlights # if any of the requests wanted highlights, do highlight
 
             def update_tracker_and_locations_table(self, update_highlights=False):
+                self.build_items_tab()
+
                 items_length = len(self.ctx.items_received)
                 locations_length = len(self.ctx.missing_locations)
 
@@ -1192,6 +1387,11 @@ class ManualContext(SuperContext):
                 self.ctx.syncing = True
 
         return ManualManager
+    
+
+
+
+
 
 async def game_watcher_manual(ctx: ManualContext):
     while not ctx.exit_event.is_set():
@@ -1292,3 +1492,7 @@ def launch(*launch_args) -> None:
 
 if __name__ == '__main__':
     launch()
+
+
+
+
