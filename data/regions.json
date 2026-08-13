@@ -1,0 +1,102 @@
+{
+  "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.regions.schema.json",
+  "World Map": {
+    "starting": true,
+    "connects_to": [
+      "Level 1",
+      "Level 2",
+      "Level 3",
+      "Level 4",
+      "Level 5",
+      "Level 6",
+      "Level 7A",
+      "Level 7M",
+      "Level 8A",
+      "Level 8M",
+      "Level 9A",
+      "Level 9M",
+      "Level 10A",
+      "Level 10M",
+      "Level 11",
+      "Level 12",
+      "Level 13",
+      "Level 14",
+      "Level 15",
+      "Level 16",
+      "Level 17",
+      "Level 18A",
+      "Level 19A",
+      "Level 20A",
+      "Level 21A",
+      "Level 18M",
+      "Level 19M",
+      "Level 20M",
+      "Level 21M",
+      "Level 18S",
+      "Level 19S",
+      "Level 20S",
+      "Level 21S",
+      "Level 22",
+      "Level 23",
+      "Level 24",
+      "Level 25"
+    ],
+    "requires": ""
+  },
+  "Level 1": {
+    "connects_to": [],
+    "requires": "|Key1| and |Nell|"
+  },
+  "Level 2": {
+    "connects_to": [],
+    "requires": "|Key2| and |Nell|"
+  },
+  "Level 3": {
+    "connects_to": [],
+    "requires": "|Key3| and |Nell|"
+  },
+  "Level 4": {
+    "connects_to": [],
+    "requires": "|Key4| and |Nell|"
+  },
+  "Level 5": {
+    "connects_to": [],
+    "requires": "|Key5| and |Nell|"
+  },
+  "Level 6": {
+    "connects_to": [],
+    "requires": "|Key6| and |Nell|"
+  },
+  "Level 7A": {
+    "connects_to": [],
+    "requires": "|Key7A| and |Nell|"
+  },
+  "Level 7M": {
+    "connects_to": [],
+    "requires": "|Key7M| and |Nell|"
+  },
+  "Level 8A": {
+    "connects_to": [],
+    "requires": "|Key8A| and |Nell|"
+  },
+  "Level 8M": {
+    "connects_to": [],
+    "requires": "|Key8M| and |Nell|"
+  },
+  "Level 9A": {
+    "connects_to": [],
+    "requires": "|Key9A| and |Nell|"
+  },
+  "Level 9M": {
+    "connects_to": [],
+    "requires": "|Key9M| and |Nell|"
+  },
+  "Level 10A": {
+    "connects_to": [],
+    "requires": "|Key10A| and |Nell|"
+  },
+  "Level 10M": {
+    "connects_to": [],
+    "requires": "|Key10M| and |Nell|"
+  }
+}

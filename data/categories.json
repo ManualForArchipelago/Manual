@@ -1,0 +1,41 @@
+{
+    "Keys" : {
+
+    },
+    "Units" : {
+
+    },
+    "CO's": {
+
+    },
+    "Factory_Direct" : {
+        "hidden":true
+    },
+    "Factory_Indirect" : {
+        "hidden":true
+    },
+    "Factory_Detector" : {
+        "hidden":true
+    },
+    "Factory_Anti_Md_Tank" : {
+        "hidden":true
+    },
+    "Factory_Anti_Tank" : {
+        "hidden":true
+    },
+    "Factory_Capture" : {
+        "hidden":true
+    },
+    "Factory_AA" : {
+        "hidden":true
+    },
+    "Capture" : {
+        "hidden":true
+    },
+    "Airport_Anti_Tank" : {
+        "hidden":true
+    },
+    "Airport_AA" : {
+        "hidden":true
+    }
+}

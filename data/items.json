@@ -1,0 +1,517 @@
+{
+  "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.items.schema.json",
+  "data": [
+    {
+      "count": 1,
+      "name": "Key1",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key2",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key3",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key4",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key5",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key6",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key7A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key7M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key8A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key8M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key9A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key9M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key10A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key10M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key11",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key12",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key13",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key14",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key15",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key16",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key17",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key18A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key19A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key20A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key21A",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key18M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key19m",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key20M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key21M",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key18S",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key19S",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key20S",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key21S",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key22",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key23",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key24",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Key25",
+      "category": [
+        "Keys"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Infantry",
+      "category": [
+        "Units", "Capture"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Mech",
+      "category": [
+        "Units", "Capture", "Factory_Direct"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Recon",
+      "category": [
+        "Units", "Factory_Direct", "Factory_Detector"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Tank",
+      "category": [
+        "Units", "Factory_Anti_Tank", "Factory_Direct"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Medium Tank",
+      "category": [
+        "Units", "Factory_Anti_Tank", "Factory_Anti_Md_Tank", "Factory_Direct"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Anti-Air",
+      "category": [
+        "Units", "Factory_Direct", "Factory_AA"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "APC",
+      "category": [
+        "Units"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Artillery",
+      "category": [
+        "Units", "Factory_Indirect", "Factory_Anti_Tank", "Factory_Anti_Md_Tank"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Rockets",
+      "category": [
+        "Units", "Factory_Indirect", "Factory_Anti_Tank", "Factory_Anti_Md_Tank"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Missiles",
+      "category": [
+        "Units", "Factory_AA", "Factory_Detector"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Fighter",
+      "category": [
+        "Units", "Airport_AA"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Bomber",
+      "category": [
+        "Units", "Airport_Anti_Tank"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "B-Copter",
+      "category": [
+        "Units", "Airport_Anti_Tank"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "T-Copter",
+      "category": [
+        "Units"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Battleship",
+      "category": [
+        "Units"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Cruiser",
+      "category": [
+        "Units"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Submarine",
+      "category": [
+        "Units"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Lander",
+      "category": [
+        "Units"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Nell",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Andy",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Max",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Sami",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Olaf",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Grit",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Eagle",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Drake",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    },
+    {
+      "count": 1,
+      "name": "Kanbei",
+      "category": [
+        "CO's"
+      ],
+      "progression": true
+    }
+  ]
+}
