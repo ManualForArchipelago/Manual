@@ -7,10 +7,10 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch, icon_paths
 
-from .Data import item_table, location_table, event_table, region_table, category_table
-from .Game import game_name, filler_item_name, starting_items
+from .Data import item_table, location_table, event_table, category_table
+from .Game import game_name, filler_item_name, starting_items, unused_goals_are_locations
 from .Meta import world_description, world_webworld
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, location_name_to_description
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, event_name_groups, location_name_to_description
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
@@ -68,6 +68,13 @@ class ManualWorld(World):
     victory_names = victory_names
 
     event_name_to_event = event_name_to_event
+    event_name_groups = event_name_groups
+    item_and_event_name_groups: dict[str, set[str]] = dict(item_name_groups)
+    for name, category in event_name_groups.items():
+        if name in item_and_event_name_groups.keys():
+            item_and_event_name_groups[name] = item_name_groups[name].union(category)
+        else:
+            item_and_event_name_groups[name] = category
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
@@ -109,8 +116,9 @@ class ManualWorld(World):
         location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
         location_game_complete.address = None
 
-        for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
-            unused_goal.parent_region.locations.remove(unused_goal)
+        if not unused_goals_are_locations:
+            for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
+                unused_goal.parent_region.locations.remove(unused_goal)
 
         location_game_complete.place_locked_item(
             ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
@@ -254,14 +262,18 @@ class ManualWorld(World):
         precollected_items = list(self.multiworld.precollected_items[self.player])
 
         # UT doesn't precollect the exceptions so this can be skipped
-        if not hasattr(self.multiworld, "generation_is_fake"):
+        if not getattr(self.multiworld, "generation_is_fake", False):
             precollected_exceptions = self.options.start_inventory.value + self.options.start_inventory_from_pool.value # type: ignore
             for item, count in precollected_exceptions.items():
                 items_iter = iter([i for i in precollected_items if i.name == item])
                 for _ in range(count):
                     precollected_items.remove(next(items_iter))
+        # Placed items:
+        placed_pool: list[Item] = []
+        for location in self.multiworld.get_filled_locations(self.player):
+            placed_pool.append(location.item)
 
-        real_pool = pool + precollected_items
+        real_pool = pool + precollected_items + placed_pool
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
         self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
 
