@@ -215,7 +215,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
                 if rule is None:
                     if not rule_class:
-                        print(f'Warning: Could not find Rule implementation of {func_name}.')
+                        logging.warning(f'Warning: Could not find Rule implementation of {func_name}.')
                         # By returning None, we're saying "This entire requires string can't be done with a Rule.  Fall back to the pre-rb lambdas"
                         return None
 
@@ -252,7 +252,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     inner = inner.replace(f"{{{{Function#{id}}}}}", func)
                 rule = recursively_tokenize_manual_rule(inner)
             else:
-                print(f'Could not convert {partial} into a Rule')
+                logging.warning(f'Warning: Could not convert {partial} into a Rule')
                 return None
 
             if rule is None:
