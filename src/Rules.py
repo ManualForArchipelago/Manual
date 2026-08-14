@@ -236,6 +236,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 queue = list(partial[1:])
                 stack = 1
                 while stack > 0:
+                    if not queue:
+                        raise construct_logic_error(area, LogicErrorSource.INFIX_TO_POSTFIX)
+
                     c = queue.pop(0)
                     if c == "(":
                         stack += 1
