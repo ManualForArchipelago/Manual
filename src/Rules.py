@@ -35,9 +35,12 @@ AND_REGEX = re.compile(r'\s?\bAND\b\s?', re.IGNORECASE)
 OR_REGEX = re.compile(r'\s?\bOR\b\s?', flags=re.IGNORECASE)
 
 class LogicErrorSource(IntEnum):
-    INFIX_TO_POSTFIX = 1 # includes more closing parentheses than opening (but not the opposite)
-    EVALUATE_POSTFIX = 2 # includes missing pipes and missing value on either side of AND/OR
-    EVALUATE_STACK_SIZE = 3 # includes missing curly brackets
+    INFIX_TO_POSTFIX = 1
+    """includes more closing parentheses than opening (but not the opposite)"""
+    EVALUATE_POSTFIX = 2
+    """ includes missing pipes and missing value on either side of AND/OR"""
+    EVALUATE_STACK_SIZE = 3
+    """includes missing curly brackets"""
 
 def construct_logic_error(location_or_region: dict, source: LogicErrorSource) -> KeyError:
     object_type = "location/region"
@@ -78,9 +81,19 @@ def infix_to_postfix(expr: str, location: dict) -> str:
                 while stack and stack[-1] != "(":
                     postfix += stack.pop()
                 stack.pop()
+            else:
+                # added this here since '|Chun-Li| or {YamlCompare(Example_Choice == 1)' is valid because of the 1 at the end
+                raise ValueError(f"Invalid Character '{c}' in expression '{expr}', it should be either a number or a parentheses")
 
         while stack:
             postfix += stack.pop()
+    except ValueError as ex:
+        text = str(ex)
+        if "'{'" in text or ")}" in text:
+            raise construct_logic_error(location, LogicErrorSource.EVALUATE_STACK_SIZE)
+
+        raise construct_logic_error(location, LogicErrorSource.EVALUATE_POSTFIX)
+
     except Exception:
         raise construct_logic_error(location, LogicErrorSource.INFIX_TO_POSTFIX)
 
