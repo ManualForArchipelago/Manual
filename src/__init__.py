@@ -10,7 +10,7 @@ from worlds.LauncherComponents import Component, SuffixIdentifier, components, T
 from .Data import item_table, location_table, event_table, category_table
 from .Game import game_name, filler_item_name, starting_items, unused_goals_are_locations
 from .Meta import world_description, world_webworld
-from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, event_name_groups
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, event_name_groups, location_name_to_description
 from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
 from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
 
@@ -78,6 +78,8 @@ class ManualWorld(World):
 
     # UT (the universal-est of trackers) can now generate without a YAML
     ut_can_gen_without_yaml = True
+    location_id_to_alias: dict[int, str] = {location_name_to_id[name]: desc for name, desc in location_name_to_description.items()}
+
     origin_region_name = "Manual"
 
     def get_filler_item_name(self) -> str:

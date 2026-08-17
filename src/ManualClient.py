@@ -148,6 +148,8 @@ class ManualContext(SuperContext):
     deathlink_out = False
 
     visible_events: dict[str, dict[str, Any]]  = {}
+    location_name_to_description: dict[str, str] = {}
+    item_name_to_description: dict[str, str] = {}
 
     search_term = ""
     items_sorting = SortingOrderItem.default.name
@@ -219,6 +221,20 @@ class ManualContext(SuperContext):
         from .Game import game_name  # This will at least give us the name of a manual they've installed
         return Utils.persistent_load().get("client", {}).get("last_manual_game", None) or game_name
 
+    def get_location_description_by_name(self, name: str) -> str|None:
+        # First we try to get it from slotdata for dynamic descriptions
+        description = self.location_name_to_description.get(name, None)
+        # Secondly we try to get it from the world itself for a more static description
+        if description is None:
+            description = AutoWorldRegister.world_types[self.game].web.location_descriptions.get(name, None)
+        return description
+
+    def get_item_description_by_name(self, name: str) -> str|None:
+        description = self.item_name_to_description.get(name, None)
+        if description is None:
+            description = AutoWorldRegister.world_types[self.game].web.item_descriptions.get(name, None)
+        return description
+
     def get_location_by_name(self, name) -> dict[str, Any]:
         location = self.location_table.get(name)
         if not location:
@@ -281,6 +297,8 @@ class ManualContext(SuperContext):
                         self.set_deathlink = True
                         self.last_death_link = 0
                     self.visible_events = args['slot_data'].get('visible_events', {})
+                    self.location_name_to_description = args['slot_data'].get('location_name_to_description', {})
+                    self.item_name_to_description = args['slot_data'].get('item_name_to_description', {})
                     logger.info(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
@@ -391,6 +409,7 @@ class ManualContext(SuperContext):
             item_id: int|None = None
             item_count: int = 1
             item_name: str = ""
+            item_description: str = ""
 
         class TreeViewScrollView(ScrollView, TreeViewNode):
             pass
@@ -863,12 +882,13 @@ class ManualContext(SuperContext):
 
                     for location_id in self.listed_locations[location_category]:
                         has_hint = location_id in hinted_locations or location_id in scoutable_locations
-
-                        text = f"{self.ctx.location_names.lookup_in_game(location_id)}"
+                        location_name = self.ctx.location_names.lookup_in_game(location_id)
+                        extra = f' ({description})' if (description := self.ctx.get_location_description_by_name(location_name)) is not None else ''
+                        text = f"{location_name}{extra}"
                         location_button = TreeViewButton(text=text, size_hint=(.75 if has_hint else 1, None), height=30)
                         location_button.bind(on_release=lambda *args, loc_id=location_id: self.location_button_callback(loc_id, *args))
                         location_button.id = location_id
-                        location_button.location_name = self.ctx.location_names.lookup_in_game(location_id)
+                        location_button.location_name = location_name
                         category_layout.add_widget(location_button)
 
                         if location_id in hinted_locations:
@@ -887,10 +907,12 @@ class ManualContext(SuperContext):
                     #     ("category" not in victory_location_data and location_category == "(No Category)"):
                     if location_category in victory_categories:
                         # Add the Victory location to be marked at any point, which is why locations length has 1 added to it above
-                        victory_text: str = "VICTORY! (seed finished)" if victory_location["name"] == "__Manual Game Complete__" else "GOAL: " + victory_location["name"]
+                        location_name = victory_location["name"]
+                        extra = f' ({description})' if (description := self.ctx.get_location_description_by_name(location_name)) is not None else ''
+                        victory_text: str = "VICTORY! (seed finished)" if location_name == "__Manual Game Complete__" else "GOAL: " + location_name + extra
                         location_button = TreeViewButton(text=victory_text, size_hint=(1, None), height=dp(30), width=dp(400))
                         location_button.victory = True
-                        location_button.location_name = victory_location["name"]
+                        location_button.location_name = location_name
                         location_button.bind(on_release=self.victory_button_callback)
                         category_layout.add_widget(location_button)
 
@@ -988,7 +1010,7 @@ class ManualContext(SuperContext):
                                             bold_item_labels.append(item_name)
                                             item.item_count = item_count
 
-                                        item.text="%s (%s)" % (item_name, item_count)
+                                        item.text="%s %s(%s)" % (item_name, item.item_description, item_count)
 
                                         existing_item_labels.append(item_name)
 
@@ -1034,11 +1056,13 @@ class ManualContext(SuperContext):
 
                                     if category_name in item_data["category"] and network_item not in self.listed_items[category_name]:
                                         item_count = len(list(i for i in self.ctx.items_received if i.item == network_item))
-                                        item_text = ItemLabel(text="%s (%s)" % (item_name, item_count),
+                                        description = f'({description}) ' if (description := self.ctx.get_item_description_by_name(item_name)) is not None else ''
+                                        item_text = ItemLabel(text="%s %s(%s)" % (item_name, description, item_count),
                                                     size_hint=(None, None), height=dp(30), width=dp(400), bold=True)
                                         item_text.item_name = item_name
                                         item_text.item_count = item_count
                                         item_text.item_id = network_item
+                                        item_text.item_description = description
 
                                         # if the item was previously listed and was bold, or if it wasn't previously listed at all, make it bold
                                         item_text.bold = (update_highlights and (item_name in bold_item_labels or item_name not in existing_item_labels))
