@@ -35,9 +35,12 @@ AND_REGEX = re.compile(r'\s?\bAND\b\s?', re.IGNORECASE)
 OR_REGEX = re.compile(r'\s?\bOR\b\s?', flags=re.IGNORECASE)
 
 class LogicErrorSource(IntEnum):
-    INFIX_TO_POSTFIX = 1 # includes more closing parentheses than opening (but not the opposite)
-    EVALUATE_POSTFIX = 2 # includes missing pipes and missing value on either side of AND/OR
-    EVALUATE_STACK_SIZE = 3 # includes missing curly brackets
+    INFIX_TO_POSTFIX = 1
+    """includes more closing parentheses than opening (but not the opposite)"""
+    EVALUATE_POSTFIX = 2
+    """ includes missing pipes and missing value on either side of AND/OR"""
+    EVALUATE_STACK_SIZE = 3
+    """includes missing curly brackets"""
 
 def construct_logic_error(location_or_region: dict, source: LogicErrorSource) -> KeyError:
     object_type = "location/region"
@@ -78,9 +81,19 @@ def infix_to_postfix(expr: str, location: dict) -> str:
                 while stack and stack[-1] != "(":
                     postfix += stack.pop()
                 stack.pop()
+            else:
+                # added this here since '|Chun-Li| or {YamlCompare(Example_Choice == 1)' is valid because of the 1 at the end
+                raise ValueError(f"Invalid Character '{c}' in expression '{expr}', it should be either a number or a parentheses")
 
         while stack:
             postfix += stack.pop()
+    except ValueError as ex:
+        text = str(ex)
+        if "'{'" in text or ")}" in text:
+            raise construct_logic_error(location, LogicErrorSource.EVALUATE_STACK_SIZE)
+
+        raise construct_logic_error(location, LogicErrorSource.EVALUATE_POSTFIX)
+
     except Exception:
         raise construct_logic_error(location, LogicErrorSource.INFIX_TO_POSTFIX)
 
@@ -202,27 +215,31 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
 
                 if rule is None:
                     if not rule_class:
-                        print(f'Warning: Could not find Rule implementation of {func_name}.')
+                        logging.warning(f'Warning: Could not find Rule implementation of {func_name}.')
                         # By returning None, we're saying "This entire requires string can't be done with a Rule.  Fall back to the pre-rb lambdas"
                         return None
 
                     rule = rule_class(*func_args)
                 remaining = partial[len(match.group(0)):]
             elif partial[0] == "(":
-                func_founds: dict[int, str] = {}
-                id: int = 0
+                func_founds: list[str] = []
                 for match in FUNCTION_REGEX.finditer(partial):
                     if match.group(0) not in partial:
                         # already done all of them
                         continue
-                    func_founds[id] = match.group(0)
+
+                    func_founds.append(match.group(0))
                     # looks like : {{Function#0}}
+                    id = len(func_founds) - 1
                     partial = partial.replace(match.group(0), f"{{{{Function#{id}}}}}")
-                    id += 1
+
                 inner = ''
                 queue = list(partial[1:])
                 stack = 1
                 while stack > 0:
+                    if not queue:
+                        raise construct_logic_error(area, LogicErrorSource.INFIX_TO_POSTFIX)
+
                     c = queue.pop(0)
                     if c == "(":
                         stack += 1
@@ -231,12 +248,14 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                     else:
                         inner += c
                 remaining = "".join(queue)
-                for id, func in func_founds.items():
+
+                for id, func in enumerate(func_founds):
                     remaining = remaining.replace(f"{{{{Function#{id}}}}}", func)
                     inner = inner.replace(f"{{{{Function#{id}}}}}", func)
+
                 rule = recursively_tokenize_manual_rule(inner)
             else:
-                print(f'Could not convert {partial} into a Rule')
+                logging.warning(f'Warning: Could not convert {partial} into a Rule')
                 return None
 
             if rule is None:
