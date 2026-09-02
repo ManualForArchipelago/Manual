@@ -1275,7 +1275,7 @@ async def game_watcher_manual(ctx: ManualContext):
         if ctx.syncing == True:
             sync_msg = []
             if ctx.locations_checked:
-                ctx.check_locations(ctx.locations_checked)
+                await ctx.check_locations(ctx.locations_checked)
             if ctx.locations_scouted:
                 sync_msg.append({"cmd": "LocationScouts", "locations": list(ctx.locations_scouted), "create_as_hint": 2})
             if sync_msg:
