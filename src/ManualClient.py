@@ -36,31 +36,25 @@ if typing.TYPE_CHECKING:
     import kvui
 
 class SortingOrderLoc(IntEnum):
-    # custom = 1
-    # inverted_custom = -1
-    alphabetical = 2
-    inverted_alphabetical = -2
-    natural = 3
-    inverted_natural = -3
-    default = 3
+    alphabetical = 1
+    inverted_alphabetical = -1
+    natural = 2
+    inverted_natural = -2
+    default = 2
 
 # Docs must be done after because otherwise __doc__ return none
-# SortingOrderLoc.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in locations.json if present, and the name otherwise."
 SortingOrderLoc.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
 SortingOrderLoc.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 
 class SortingOrderItem(IntEnum):
-    # custom = 1
-    # inverted_custom = -1
-    alphabetical = 2
-    inverted_alphabetical = -2
-    natural = 3
-    inverted_natural = -3
-    received = 4
-    inverted_received = -4
-    default = 4
+    alphabetical = 1
+    inverted_alphabetical = -1
+    natural = 2
+    inverted_natural = -2
+    received = 3
+    inverted_received = -3
+    default = 3
 
-# SortingOrderItem.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in items.json if present, and the name otherwise."
 SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in items.json."
 SortingOrderItem.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
@@ -96,6 +90,7 @@ def natural_sort_key(key: str):
     return [convert(c) for c in re.split('([0-9]+)', key)]
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
+    ctx: ManualContext
     def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
         self.output("Syncing items.")
