@@ -62,7 +62,7 @@ Here's an example that connects from the "Overworld" starting region to the "Net
 ```json
 {
     "Overworld": {
-        "starting": true
+        "starting": true,
         "connects_to": ["Nether"]
     },
     "Nether": {
