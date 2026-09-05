@@ -6,7 +6,7 @@ PopTracker is a well-loved tracker used when playing a variety of AP worlds, and
 
 CodeGorilla has created an awesome tool to automatically* create a PopTracker pack from a Manual world! Learn more in the [AP Manual to PopTracker thread](https://discord.com/channels/1097532591650910289/1401709372945731664) in our Discord. (You must have joined the Manual Discord server to view this.)
 
-* This tool does a lot of the heavy-lifting to make the PopTracker pack, but you may need to customize some parts by hand to finish it up.
+\* This tool does a lot of the heavy-lifting to make the PopTracker pack, but you may need to customize some parts by hand to finish it up.
 
 ## PopTracker as a Manual client
 
