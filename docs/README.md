@@ -66,6 +66,7 @@ _How does that work?!_ Well, you'll just have to read more below!
 
 - [Manual Builder](resources/manual-builder.md)
 - [JSON Schemas for World Developers](resources/json-schemas-for-world-devs.md)
+- [PopTracker](resources/poptracker.md)
 - [Visualizing Your World Logic](resources/visualizing-your-world-logic.md)
 - [User-Created Tools](resources/user-created-tools.md)
 
