@@ -47,7 +47,7 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
     # This is called after starting items have been determined, and the chosen starting item has been moved to your starting inventory.
     filtered_item_pool = []
     for item in item_pool:
-        if item.name.startswith("Starting Town:")
+        if item.name.startswith("Starting Town:"):
             continue
         filtered_item_pool.append(item)
 
