@@ -3,17 +3,19 @@ import asyncio
 from functools import cache
 import os
 import re
+import json
 import sys
 import time
 import typing
+import urllib
 from typing import Any, Dict, List, Optional
 from enum import IntEnum
 
 import requests
-from worlds import AutoWorldRegister, network_data_package
 from worlds.LauncherComponents import icon_paths
-import json
 import traceback
+
+from worlds import AutoWorldRegister, network_data_package
 
 import ModuleUpdate
 ModuleUpdate.update()
@@ -1429,7 +1431,18 @@ def read_apmanual_file(apmanual_file) -> dict[str, Any]:
 
 async def main(args):
     config_file = {}
-    if args.apmanual_file and os.path.exists(args.apmanual_file):
+    if args.apmanual_file and args.apmanual_file.startswith("archipelago://"):
+        url = urllib.parse.urlparse(args.apmanual_file)
+        args.connect = url.netloc
+        if url.username:
+            args.name = urllib.parse.unquote(url.username)
+        if url.password:
+            args.password = urllib.parse.unquote(url.password)
+        queries = urllib.parse.parse_qs(url.query)
+        if "game" in queries:
+            config_file['game'] = queries["game"][0]
+
+    elif args.apmanual_file and os.path.exists(args.apmanual_file):
         config_file = read_apmanual_file(args.apmanual_file)
     if config_file.get("server") and not args.connect:
         args.connect = config_file["server"]
