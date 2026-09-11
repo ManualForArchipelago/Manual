@@ -66,7 +66,6 @@ So, we have our items, we have our locations.  We even have a yaml option.  All 
 
 Thankfully, this is also very easy.  We're going to use two hooks here:
 ```py
-from ..Items import item_name_groups
 def before_is_item_enabled(multiworld: MultiWorld, player: int, item:  dict[str, Any]) -> Optional[bool]:
     # Remove unwanted champions from the item pool
     if "Champion" in item["category"]:
@@ -76,6 +75,7 @@ def before_is_item_enabled(multiworld: MultiWorld, player: int, item:  dict[str,
     return None
 
 def before_is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> Optional[bool]:
+    from ..Items import item_name_groups
     if category_name in item_name_groups["Champion"]:
         # This category is the name of a champion
         from ..Helpers import get_option_value
@@ -88,7 +88,7 @@ Our first hook toggles the champions themselves.  You could technically skip thi
 
 Our second hook toggles any other items/locations that have the champion's category.  This is to remove anything that needs them in the pool to be relevant.
 
-#### A note about the `from ..Helpers import get_option_value` import
+#### A note about the `from ..Helpers import get_option_value` and `from ..Items import item_name_groups` import
 
 I'm sure some of you are wondering why we're importing it within the function body, rather than doing it once at the top of the file.
 

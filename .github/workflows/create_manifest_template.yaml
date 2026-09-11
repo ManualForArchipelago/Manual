@@ -54,13 +54,14 @@ jobs:
           mv ap/build/apworlds/${{ env.AP_WORLD_DIR }}.apworld ap/build/apworlds/${{ env.AP_WORLD_DIR }}.zip
           unzip ap/build/apworlds/${{ env.AP_WORLD_DIR}}.zip
           cp manual/archipelago.json templates
-      - name: Commit template manifest change back to repo
-        uses: EndBug/add-and-commit@v9
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
         with:
-          add: 'templates'
-          message: 'Update manifest template'
-          author_name: 'GitHub Actions'
-          author_email: 'actionrunner@veryrealandnotmadeupdomain.com'
-          committer_name: 'GitHub Actions'
-          committer_email: 'actionrunner@veryrealandnotmadeupdomain.com'
+            branch: template
+            title: Update manifest template
+            add-paths: 'templates'
+            author_name: 'GitHub Actions'
+            author_email: 'actionrunner@veryrealandnotmadeupdomain.com'
+            committer: 'GitHub Actions <actionrunner@veryrealandnotmadeupdomain.com>'
+            reviewers: '${{ github.actor }}'
 

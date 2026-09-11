@@ -15,5 +15,11 @@
     },
     "dont_place_item_category_test": {
          "hidden": true
+    },
+    "Left Side":{
+        "sort-key": "Side2"
+    },
+    "Right Side":{
+        "sort-key": "Side1"
     }
 }
