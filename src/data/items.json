@@ -53,6 +53,7 @@
                 "Left Side"
             ],
             "progression": true,
+            "yaml_option": ["!Example_Toggle"],
             "sort-key": "row-1-3"
         },
         {
@@ -62,6 +63,7 @@
                 "Left Side"
             ],
             "progression": true,
+            "yaml_option": ["Example_Choice=start"],
             "sort-key": "row-1-4"
         },
         {
@@ -71,6 +73,7 @@
                 "Right Side"
             ],
             "progression": true,
+            "yaml_option": ["Example_Range<5"],
             "sort-key": "row-1-5"
         },
         {
