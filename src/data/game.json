@@ -29,5 +29,6 @@
         }
     ],
     "death_link": false,
-    "starting_index": 1
+    "starting_index": 1,
+    "unused_goals_are_locations": false
 }

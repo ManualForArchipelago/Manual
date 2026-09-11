@@ -1,15 +1,16 @@
 import ast
 import csv
-import os
 import pkgutil
 import json
+import re
 
-from BaseClasses import MultiWorld, Item
+from BaseClasses import MultiWorld, Item, ItemClassification
 from enum import IntEnum
 from typing import Optional, List, Union, get_args, get_origin, Any
 from types import GenericAlias
 from worlds.AutoWorld import World
-from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled
+from .hooks.Helpers import before_is_category_enabled, before_is_item_enabled, before_is_location_enabled, before_is_event_enabled
+
 
 # blatantly copied from the minecraft ap world because why not
 def load_data_file(*args) -> dict:
@@ -106,6 +107,14 @@ def is_location_enabled(multiworld: MultiWorld, player: int, location: dict[str,
         return hook_result
 
     return _is_manualobject_enabled(multiworld, player, location)
+
+def is_event_enabled(multiworld: MultiWorld, player: int, event: dict[str, Any]) -> bool:
+    """Check if an event has been disabled by a yaml option."""
+    hook_result = before_is_event_enabled(multiworld, player, event)
+    if hook_result is not None:
+        return hook_result
+
+    return _is_manualobject_enabled(multiworld, player, event)
 
 def _is_manualobject_enabled(multiworld: MultiWorld, player: int, object: dict[str, Any]) -> bool:
     """Internal method: Check if a Manual Object has any category disabled by a yaml option.
@@ -206,10 +215,22 @@ def convert_to_long_string(input: str | list[str]) -> str:
 
 def format_to_valid_identifier(input: str) -> str:
     """Make sure the input is a valid python identifier"""
+    from keyword import iskeyword
     input = input.strip()
-    if input[:1].isdigit():
+    if input.isidentifier() and not iskeyword(input):
+        return input
+
+    if iskeyword(input):
         input = "_" + input
-    return input.replace(" ", "_")
+        # if its already a valid keyword no need to check all its characters
+        return input
+
+    if input[:1].isdecimal():
+        input = "_" + input
+
+    input = "".join([c if f"_{c}".isidentifier() else "_" for c in input])
+
+    return input
 
 def remove_specific_item(source: list[Item], item: Item) -> Item:
     """Remove and return an item from a list in a more precise way, base AP only check for name and player id before removing.
@@ -239,6 +260,25 @@ def format_state_prog_items_key(category: str|ProgItemsCat ,key: str) -> str:
         cat_key = category.name
 
     return f"MANUAL_{cat_key}_{format_to_valid_identifier(key.lower())}"
+
+def convert_string_to_itemclassification(string: str) ->  ItemClassification:
+    def stringCheck(string):
+        if string.isdigit():
+            true_class = ItemClassification(int(string))
+        elif string.startswith('0b'):
+            true_class = ItemClassification(int(string, base=0))
+        else:
+            true_class = ItemClassification[string]
+        return true_class
+
+    if "+" in string or "," in string:
+        true_class = ItemClassification.filler
+        for substring in re.split(r'[+,]', string):
+            true_class |= stringCheck(substring.strip())
+
+    else:
+        true_class = stringCheck(string)
+    return true_class
 
 def convert_string_to_type(input: str, target_type: type) -> Any:
     """Take a string and attempt to convert it to {target_type}

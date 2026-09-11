@@ -21,10 +21,7 @@ Hooks are organized into the files that they would affect in the Manual apworld,
 - **World.py** - <ins>This is where the majority of your hooks code will likely go</ins>. Includes functions for the main AP generation steps leading up to the actual fill step. These hook functions are called from the Manual apworld's top level \_\_init\_\_.py file.
 - **Data.py** - Includes functions that can be used to customize the raw data coming in from your Manual template JSON files. These hook functions are called from the Manual apworld's top level Data.py file.
 - **Helpers.py** - Includes functions that can be used to add custom logic for helper methods used by Manual, which is currently limited to checking if items/locations/categories should be enabled or not. These hook functions are called from the Manual apworld's top level Helpers.py file.
-- **Items.py** - Includes functions that can be used to modify the raw item table before the Manual apworld uses it. In a lot of cases, using this and using the item table functionality in Data.py will be the same. These hook functions are called from the Manual apworld's top level Items.py file.
-- **Locations.py** - Includes functions that can be used to modify the raw location table before the Manual apworld uses it. In a lot of cases, using this and using the location table functionality in Data.py will be the same. These hook functions are called from the Manual apworld's top level Locations.py file.
 - **Options.py** - Includes functions that can be used to create or customize options for your apworld, including the default options that Manual provides. These hook functions are called from the Manual apworld's top level Options.py file.
-- **Regions.py** - Includes functions that can be used to modify the raw region table before the Manual apworld uses it. In a lot of cases, using this and using the region table functionality in Data.py will be the same. These hook functions are called from the Manual apworld's top level Regions.py file.
 - **Rules.py** - This hook file operates differently from the others. It is here for you to define your own custom requirement functions, which you'll find a few examples of at the top of the file. Once you define those custom requirement functions, they can be used in the requires syntax of locations and regions.
 
 I know that was a lot of info. For simplicity's sake, you will want to focus on the hook files **World.py**, **Options.py**, and maybe **Rules.py** to start. The others are for more niche usage.
@@ -52,6 +49,8 @@ Sounds like you want to change items in the item pool during generation, so you 
 If you want to just customize your filler entirely, use the `before_create_items_filler` hook in World.py. 
 
 If you want Manual to place filler as it normally would, and then you want to customize that somewhat, use the `after_create_items` in World.py.
+
+If you just want to rename your default filler item name from your game.json, use the `hook_get_filler_item_name` hook in World.py.
 
 ### "I want to reduce duplication with my location/region requires, or I want to dynamically handle those requires."
 Sounds like you want to use requirement functions to either simplify your requirements or apply some custom code to them, so you want Rules.py. Unlike with the other suggestions, there is no specific function to look for. You'll be writing your own function in the hook file Rules.py, and you'll likely want to reference the few functions at the top of that hook file as examples.

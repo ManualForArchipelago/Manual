@@ -13,5 +13,5 @@ This system understandably doesn't work for very linear games, since you have to
 - Board or card games, or other physical games
 - Even things that aren't even games!
 
-Check out the FAQ section in these docs for more answers to questions that you might have!
+Check out the [FAQ section](../faq/general.md) in these docs for more answers to questions that you might have!
 

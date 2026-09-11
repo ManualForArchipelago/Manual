@@ -1,6 +1,6 @@
 from BaseClasses import Item
 from .Data import item_table
-from .Game import filler_item_name, starting_index
+from .Game import filler_item_name, starting_index, game_name
 
 
 ######################
@@ -9,17 +9,13 @@ from .Game import filler_item_name, starting_index
 
 item_id_to_name: dict[int, str] = {}
 item_name_to_item: dict[str, dict] = {}
-item_name_groups: dict[str, str] = {}
+item_name_groups: dict[str, set[str]] = {}
 advancement_item_names: set[str] = set()
 lastItemId = -1
 
 count = starting_index
 
-# add the filler item to the list of items for lookup
-if filler_item_name:
-    item_table.append({
-        "name": filler_item_name
-    })
+filler_found: set[str] = set()
 
 # add sequential generated ids to the lists
 for key, val in enumerate(item_table):
@@ -34,11 +30,33 @@ for key, val in enumerate(item_table):
     item_table[key]["progression"] = val["progression"] if "progression" in val else False
     if isinstance(val.get("category", []), str):
         item_table[key]["category"] = [val["category"]]
-        
+    if isinstance(filler_item_name, list):
+        if item_table[key].get("name") in filler_item_name:
+            filler_found.add(item_table[key].get("name"))
+    elif isinstance(filler_item_name, str):
+        if item_table[key].get("name") == filler_item_name:
+            filler_found.add(item_table[key].get("name"))
+
+    count += 1
+
+# add the filler item to the list of items for lookup
+if isinstance(filler_item_name, list):
+    for generic_filler in filler_item_name:
+        if generic_filler not in filler_found:
+            item_table.append({
+                "name": generic_filler,
+                "id": count,
+            })
+            count += 1
+elif isinstance(filler_item_name, str) and not filler_found:
+    item_table.append({
+        "name": filler_item_name,
+        "id": count,
+    })
     count += 1
 
 for item in item_table:
-    item_name = item["name"]
+    item_name = item.get("name", f"Unnamed Item {item['id']}")
     item_id_to_name[item["id"]] = item_name
     item_name_to_item[item_name] = item
 
@@ -47,8 +65,8 @@ for item in item_table:
 
     for c in item.get("category", []):
         if c not in item_name_groups:
-            item_name_groups[c] = []
-        item_name_groups[c].append(item_name)
+            item_name_groups[c] = set()
+        item_name_groups[c].add(item_name)
 
     #Just lowercase the values here to remove all the .lower.strip down the line
     item['value'] = {k.lower().strip(): v
@@ -57,8 +75,8 @@ for item in item_table:
     for v in item.get("value", {}).keys():
         group_name = f"has_{v}_value"
         if group_name not in item_name_groups:
-            item_name_groups[group_name] = []
-        item_name_groups[group_name].append(item_name)
+            item_name_groups[group_name] = set()
+        item_name_groups[group_name].add(item_name)
 
 item_id_to_name[None] = "__Victory__"
 item_name_to_id = {name: id for id, name in item_id_to_name.items()}
@@ -70,4 +88,4 @@ item_name_to_id = {name: id for id, name in item_id_to_name.items()}
 
 
 class ManualItem(Item):
-    game = "Manual"
+    game = game_name

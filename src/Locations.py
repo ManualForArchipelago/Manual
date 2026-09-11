@@ -1,6 +1,7 @@
 from BaseClasses import Location
-from .Data import location_table
-from .Game import starting_index
+from .Data import location_table, event_table
+from .Game import starting_index, game_name
+from typing import Any
 
 
 ######################
@@ -44,21 +45,51 @@ if not victory_names:
     victory_names.append("__Manual Game Complete__")
 
 location_id_to_name: dict[int, str] = {}
-location_name_to_location: dict[str, dict] = {}
-location_name_groups: dict[str, list[str]] = {}
+location_name_to_location: dict[str, dict[str, Any]] = {}
+location_name_groups: dict[str, set[str]] = {}
+event_name_to_event: dict[str, dict[str, Any]] = {}
+event_name_groups: dict[str, set[str]] = {}
 
-for item in location_table:
-    location_id_to_name[item["id"]] = item["name"]
-    location_name_to_location[item["name"]] = item
+for loc in location_table:
+    loc_name = loc.get("name", f"Unnamed Location {loc['id']}")
+    location_id_to_name[loc["id"]] = loc_name
+    location_name_to_location[loc_name] = loc
 
-    for c in item.get("category", []):
+    for c in loc.get("category", []):
         if c not in location_name_groups:
-            location_name_groups[c] = []
-        location_name_groups[c].append(item["name"])
+            location_name_groups[c] = set()
+        location_name_groups[c].add(loc_name)
 
 
 # location_id_to_name[None] = "__Manual Game Complete__"
 location_name_to_id = {name: id for id, name in location_id_to_name.items()}
+
+id = 0
+for key, event in enumerate(event_table):
+    event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
+    while event_name in location_name_to_location:
+        id += 1
+        event_name = f"{id}_{event['name']}".upper().replace(" ", "_")
+    if "location_name" in event:
+        if event["location_name"] in location_name_to_location:
+            raise Exception(f"Cannot define event {event['location_name']} with the same name as a location.")
+        event_name_to_event[event["location_name"]] = event
+    else:
+        event_name_to_event[event_name] = event
+        event_name_to_event[event_name]["location_name"] = event_name
+        event_table[key]["location_name"] = event_name
+    if 'visible' not in event:
+        event_name_to_event[event_name]['visible'] = False
+        event_table[key]['visible'] = False
+    if 'region' not in event:
+        event_name_to_event[event_name]['region'] = "Manual"
+        event_table[key]['region'] = "Manual"
+    for c in event.get("category", []):
+        if c not in event_name_groups:
+            event_name_groups[c] = set()
+        event_name_groups[c].add(event['name'])
+
+    id += 1
 
 ######################
 # Location classes
@@ -66,4 +97,4 @@ location_name_to_id = {name: id for id, name in location_id_to_name.items()}
 
 
 class ManualLocation(Location):
-    game = "Manual"
+    game = game_name

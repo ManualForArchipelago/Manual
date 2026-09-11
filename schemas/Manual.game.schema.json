@@ -12,18 +12,16 @@
             "description": "The name of your game, compatible with capital letters.",
             "type": "string"
         },
-        "player": {
-            "description": "Deprecated use 'creator' instead",
-            "type": "string",
-            "deprecated": true
-        },
         "creator": {
             "description": "Your Username.",
             "type": "string"
         },
         "filler_item_name": {
-            "description": "Name of the filler items that get placed when there's no more real items to place.",
-            "type": "string"
+            "description": "Names of the filler items that get placed when there's no more real items to place.",
+            "type": ["string", "array"],
+            "items": {
+                "type":"string"
+            }
         },
         "starting_items": {
             "description": "(Optional) Starting inventory",
@@ -42,13 +40,14 @@
             "type": "integer",
             "default": 1
         },
+        "unused_goals_are_locations": {
+            "description": "(Optional) If true, goals that are not selected in the yaml will be treated as normal locations and can be placed with items.",
+            "type": "boolean",
+            "default": false
+        },
         "_comment": {"$ref": "#/definitions/comment"}
     },
-    "required":["game", "filler_item_name"],
-    "oneOf":[
-        {"required":["creator"]},
-        {"required":["player"]}
-    ],
+    "required":["game", "creator", "filler_item_name"],
     "definitions": {
         "comment": {
             "description": "(Optional) Does nothing, Its mainly here for Dev notes for future devs to understand your logic",

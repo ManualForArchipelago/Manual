@@ -5,5 +5,11 @@
     },
     "Example Yaml-option category": {
         "yaml_option": ["DLC_enabled"]
+    },
+    "Left Side":{
+        "sort-key": "Side2"
+    },
+    "Right Side":{
+        "sort-key": "Side1"
     }
 }

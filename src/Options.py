@@ -17,6 +17,13 @@ class FillerTrapPercent(Range):
     """How many fillers will be replaced with traps. 0 means no additional traps, 100 means all fillers are traps."""
     range_end = 100
 
+class GenerateRegionDiagram(Toggle):
+    """Generate a region diagram."""
+    visibility = Visibility.none  # Hidden option
+
+class ManualDeathLink(DeathLink):
+    pass
+
 def createChoiceOptions(values: dict, aliases: dict) -> dict:
     values = {'option_' + i: v for i, v in values.items()}
     aliases = {'alias_' + i: v for i, v in aliases.items()}
@@ -61,6 +68,7 @@ def addOptionToGroup(option_name: str, group: str):
 
 manual_options: dict[str, Type[Option[Any]]] = before_options_defined({})
 manual_options["start_inventory_from_pool"] = StartInventoryPool
+manual_options["generate_region_diagram"] = GenerateRegionDiagram
 
 if len(victory_names) > 1:
     if manual_options.get('goal'):
@@ -77,7 +85,7 @@ if any(item.get('trap') for item in item_table):
     manual_options["filler_traps"] = FillerTrapPercent
 
 if game_table.get("death_link"):
-    manual_options["death_link"] = DeathLink
+    manual_options["death_link"] = ManualDeathLink
 
 
 ######################
@@ -237,6 +245,10 @@ def make_options_group() -> list[OptionGroup]:
         if 'Item & Location Options' in manual_option_groups.keys():
             base_item_loc_group = manual_option_groups.pop('Item & Location Options') #Put the custom options before the base AP options
             base_item_loc_group.extend(item_and_loc_options)
+
+        if 'Game Options' in manual_option_groups.keys():
+            # Archipelago automatically assign ungrouped options to this group unless its defined so by deleting it here we let AP recreate it later
+            manual_option_groups.pop('Game Options')
 
         for group, options in manual_option_groups.items():
             option_groups.append(OptionGroup(group, options))
