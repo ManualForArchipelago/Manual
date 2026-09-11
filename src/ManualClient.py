@@ -173,14 +173,6 @@ class ManualContext(SuperContext):
         'game_select_button': [200/255, 200/255, 200/255, 1],
         'header_background': [15/255, 80/255, 112/255, 1]
     }
-    def get_colors_hex(self, color: str) -> str:
-        color_array = self.colors[color]
-        r = int(color_array[0] * 255)
-        g = int(color_array[1] * 255)
-        b = int(color_array[2] * 255)
-        a = int(color_array[3] * 255)
-
-        return f"{r:02x}{g:02x}{b:02x}{format(a, '02x') if a < 255 else ''}"
 
     def __init__(self, server_address, password, game, player_name) -> None:
         super(ManualContext, self).__init__(server_address, password)
