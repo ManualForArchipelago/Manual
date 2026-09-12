@@ -37,7 +37,8 @@ class ManualFile:
 
         return contents
 
-
+tab_items_table: list[dict[str, Any]] = convert_to_list(ManualFile('tab_items.json', list).load(), 'data') #list
+tab_locations_table: list[dict[str, Any]] = convert_to_list(ManualFile('tab_locations.json', list).load(), 'data') #list
 game_table: dict[str, Any] = ManualFile('game.json', dict).load() #dict
 item_table: list[dict[str, Any]] = convert_to_list(ManualFile('items.json', list).load(), 'data') #list
 location_table: list[dict[str, Any]] = convert_to_list(ManualFile('locations.json', list).load(), 'data') #list
