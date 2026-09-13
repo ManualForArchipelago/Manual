@@ -299,7 +299,7 @@ class ManualContext(SuperContext):
                     self.visible_events = args['slot_data'].get('visible_events', {})
                     self.location_name_to_description = args['slot_data'].get('location_name_to_description', {})
                     self.item_name_to_description = args['slot_data'].get('item_name_to_description', {})
-                    logger.info(f"Slot data: {args['slot_data']}")
+                    logger.debug(f"Slot data: {args['slot_data']}")
 
             self.ui.build_tracker_and_locations_table()
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
