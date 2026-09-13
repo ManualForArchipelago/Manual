@@ -502,7 +502,7 @@ def convert_req_function_args(state: CollectionState | None, func, args: list[st
     index = -1
     for parameter in parameters.values():
         target_type = parameter.annotation
-        if "rule_builder.options.OptionFilter" in str(parameter):
+        if str(target_type) == "collections.abc.Iterable[rule_builder.options.OptionFilter]":
             # parameters >= this one are added by rule builder and do not need to be converted
             break
 
