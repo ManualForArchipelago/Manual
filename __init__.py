@@ -1,0 +1,622 @@
+
+
+#Hey! This is the __init__.py for the APWorld.
+#Nearly all of it is forked from Manual Archipelago.
+#The parts that aren't are riddled with my comments so I'll remember what I changed.
+#If you're here, you're probably reviewing my code. Don't bother with the stuff not riddled with comments. I don't know where Manual Archipelago got it from, but I didn't touch it. It all worked perfectly fine.
+#That just leaves the patching stuff, the output generation, and the client component adding. All at either the top or the bottom.
+#I also added support for multiple items with the same name somewhere in the middle, in fill_slot_data, since it didn't seem to have that already. I like progressive items.
+
+#Happy to answer any questions! Ask them in the game's topic post within the official Archipelago Discord server. 
+#Enjoy!
+
+#CCtheOwl 9/12/2026
+
+
+from base64 import b64encode
+import logging
+import os
+import hashlib
+import json
+from typing import Callable, Optional, Counter
+import webbrowser
+
+import Utils
+from Utils import open_filename
+from worlds.generic.Rules import forbid_items_for_player
+from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch, icon_paths
+from worlds.Files import APProcedurePatch, APPatchExtension
+
+from .Data import item_table, location_table, region_table, category_table
+from .Game import game_name, filler_item_name, starting_items
+from .Meta import world_description, world_webworld, enable_region_diagram
+from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names
+from .Items import item_id_to_name, item_name_to_id, item_name_to_item, item_name_groups
+from .DataValidation import runGenerationDataValidation, runPreFillDataValidation
+
+from .Regions import create_regions
+from .Items import ManualItem
+from .Rules import set_rules
+from .Options import manual_options_data
+from .Helpers import is_item_enabled, get_option_value, get_items_for_player, resolve_yaml_option, format_state_prog_items_key, ProgItemsCat
+
+from BaseClasses import CollectionState, ItemClassification, Item
+from Options import PerGameCommonOptions
+from worlds.AutoWorld import World
+
+from .hooks.World import \
+    hook_get_filler_item_name, before_create_regions, after_create_regions, \
+    before_create_items_all, before_create_items_starting, before_create_items_filler, after_create_items, \
+    before_create_item, after_create_item, \
+    before_set_rules, after_set_rules, \
+    before_generate_basic, after_generate_basic, \
+    before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
+    before_extend_hint_information, after_extend_hint_information, \
+    after_collect_item, after_remove_item
+from .hooks.Data import hook_interpret_slot_data
+
+
+#Bare-bones patching that just allows the player to keep their vanilla dump's SaveRAM untouched.
+class WariosWoodsPatch(APProcedurePatch): #Subclassing.
+    game = "Wario's Woods"
+    patch_file_ending = ".wwnes" #Overriding Superclass.
+    result_file_ending = ".nes" #Overriding Superclass.
+    procedure = [("copy_rom", [])] #Overriding Superclass. This specifies the function of the thing that'll happen to the player's vanilla dump contents.
+    
+    hash = "6f265e6433ba432e033eb397b11abf3f759178742dc644fd21e6ac29d1f8b3a6" #The SHA-256 hash that the player's vanilla dump should equate to.
+
+    @classmethod
+    def get_source_data(cls):
+        storage = Utils.persistent_load() #Local storage so I don't have to pass args through 50 functions.
+        rom_path = storage.get("WariosWoods", {}).get("rom_path") #Fetch the player's dump's path from storage.
+       
+        if not rom_path or not os.path.exists(rom_path): #If the player hasn't selected the path before, or if the dump file isn't at that location anymore...
+            rom_path = open_filename("Select your Wario's Woods (NES) dump. Only gotta do it the first time.", (("NES Files", "*.nes"), ("All Files", "*"))) #...Make the player select their vanilla dump file.
+
+            if not rom_path: #If the player didn't select their dump, go no further.
+                raise Exception("No ROM selected.")
+
+        with open(rom_path, "rb") as f:
+            rom_data = f.read() #Retrieve the contents of the provided dump file...
+
+        file_hash = hashlib.sha256(rom_data).hexdigest() #...Then hash those contents. Better than hashing the whole file, since the name could be different.
+
+        if file_hash.lower() != cls.hash.lower(): #If the player's vanilla dump hash isn't the same string as my vanilla dump's hash...
+            Utils.persistent_store("WariosWoods", "rom_path", None) #...Then it's not the same game. Clear the path that's currently stored, and go no further.
+            raise Exception("The ROM you provided doesn't look like a vanilla Wario's Woods (NES) dump to me, dawg. SHA256 should come out as 6f265e6433ba432e033eb397b11abf3f759178742dc644fd21e6ac29d1f8b3a6. It's bad otherwise. Check your dump, then try again.")
+            
+        Utils.persistent_store("WariosWoods", "rom_path", rom_path) #If everything else passed, we're gucci. Store that path so the player won't have to re-select it next time.
+        
+        return rom_data #Pass the vanilla dump's contents to the caller.
+
+
+class WariosWoodsPatchExtension(APPatchExtension): #Subclassing.
+    game = "Wario's Woods" #Overriding Superclass.
+
+    @staticmethod
+    def copy_rom(caller, rom): #Overriding Superclass. This function contains the stuff that'll happen to the player's vanilla dump contents, since it's the procedure specified earlier.
+        
+        rom = bytearray(rom) #Convert the dump contents to a bytearray so I can easily parse the exact addresses I need to poke.
+        rom[0x0B] = 0x01 #Changing unused header byte so emulator won't recognize the game & therefore won't overwrite vanilla save data.
+        
+        seed = caller.get_file("seed.txt") #Get the multiworld's seed. I've injected it into the patchfile so it's easy to retrieve here.
+        return bytes(rom) + seed #Adding the multiworld's seed to the end of the file on disk. Seems to be what the BizHawk Client expects, but I'm not using that, so just keeping this in the event that it's best practice.
+
+
+class ManualWorld(World): #Not gonna rename the world Subclass, in case it would mean I'd have to change a bunch of the other .py files. Cuz I don't wanna do that.
+    __doc__ = world_description
+    game: str = game_name
+    web = world_webworld
+
+    options_dataclass = manual_options_data
+    data_version = 2
+    required_client_version = (0, 3, 4)
+
+    # These properties are set from the imports of the same name above.
+    item_table = item_table
+    location_table = location_table # this is likely imported from Data instead of Locations because the Game Complete location should not be in here, but is used for lookups
+    category_table = category_table
+
+    item_id_to_name = item_id_to_name
+    item_name_to_id = item_name_to_id
+    item_name_to_item = item_name_to_item
+    item_name_groups = item_name_groups
+
+    filler_item_name = filler_item_name
+
+    item_counts: dict[int, Counter[str]] = {}
+    item_counts_progression: dict[int, Counter[str]] = {}
+    start_inventory = {}
+
+    location_id_to_name = location_id_to_name
+    location_name_to_id = location_name_to_id
+    location_name_to_location = location_name_to_location
+    location_name_groups = location_name_groups
+    victory_names = victory_names
+
+    # UT (the universal-est of trackers) can now generate without a YAML
+    ut_can_gen_without_yaml = False  # Temporary disable until we fix the bugs with it
+
+    def get_filler_item_name(self) -> str:
+        return hook_get_filler_item_name(self, self.multiworld, self.player) or self.filler_item_name
+
+    def interpret_slot_data(self, slot_data: dict[str, any]):
+        #this is called by tools like UT
+        if not slot_data:
+            return False
+
+        regen = False
+        for key, value in slot_data.items():
+            if key in self.options_dataclass.type_hints:
+                getattr(self.options, key).value = value
+                regen = True
+
+        regen = hook_interpret_slot_data(self, self.player, slot_data) or regen
+        return regen
+
+    @classmethod
+    def stage_assert_generate(cls, multiworld) -> None:
+        runGenerationDataValidation(cls)
+
+
+    def create_regions(self):
+        before_create_regions(self, self.multiworld, self.player)
+
+        create_regions(self, self.multiworld, self.player)
+
+        location_game_complete = self.multiworld.get_location(victory_names[get_option_value(self.multiworld, self.player, 'goal')], self.player)
+        location_game_complete.address = None
+
+        for unused_goal in [self.multiworld.get_location(name, self.player) for name in victory_names if name != location_game_complete.name]:
+            unused_goal.parent_region.locations.remove(unused_goal)
+
+        location_game_complete.place_locked_item(
+            ManualItem("__Victory__", ItemClassification.progression, None, player=self.player))
+
+        after_create_regions(self, self.multiworld, self.player)
+
+    def create_items(self):
+        # Generate item pool
+        pool: list[Item] = []
+        traps = []
+        configured_item_names = self.item_id_to_name.copy()
+
+        items_config: dict[str, int|dict[ItemClassification | str | int, int]] = {}
+        for name in configured_item_names.values():
+            if name == "__Victory__": continue
+            if name == filler_item_name: continue # intentionally using the Game.py filler_item_name here because it's a non-Items item
+
+            item = self.item_name_to_item[name]
+            item_count = int(item.get("count", 1))
+
+            if item.get("trap"):
+                traps.append(name)
+
+            if "category" in item:
+                if not is_item_enabled(self.multiworld, self.player, item):
+                    item_count = 0
+
+            items_config[name] = item_count
+
+        items_config = before_create_items_all(items_config, self, self.multiworld, self.player)
+
+        for name, configs in items_config.items():
+            total_created = 0
+            if type(configs) is int:
+                total_created = configs
+                for _ in range(configs):
+                    new_item = self.create_item(name)
+                    pool.append(new_item)
+            elif type(configs) is dict:
+                for cat, count in configs.items():
+                    total_created += count
+                    if isinstance(cat, ItemClassification):
+                        true_class = cat
+                    else:
+                        try:
+                            if isinstance(cat, int):
+                                true_class = ItemClassification(cat)
+                            elif cat.startswith('0b'):
+                                true_class = ItemClassification(int(cat, base=0))
+                            else:
+                                true_class = ItemClassification[cat]
+                        except Exception as ex:
+                            raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+
+                    for _ in range(count):
+                        new_item = self.create_item(name, true_class)
+                        pool.append(new_item)
+            else:
+                raise Exception(f"Item override for {name} improperly defined")
+
+            if total_created == 0: continue
+
+            item = self.item_name_to_item[name]
+            if item.get("early"): # Some or all early
+                if isinstance(item["early"],int) or (isinstance(item["early"],str) and item["early"].isnumeric()):
+                    self.multiworld.early_items[self.player][name] = int(item["early"])
+
+                elif isinstance(item["early"],bool): #No need to deal with true vs false since false wont get here
+                    self.multiworld.early_items[self.player][name] = total_created
+
+                else:
+                    raise Exception(f"Item {name}'s 'early' has an invalid value of '{item['early']}'. \nA boolean or an integer was expected.")
+
+            if item.get("local"): # All local
+                if name not in self.options.local_items.value:
+                    self.options.local_items.value.add(name)
+
+            if item.get("local_early"): # Some or all local and early
+                if isinstance(item["local_early"],int) or (isinstance(item["local_early"],str) and item["local_early"].isnumeric()):
+                    self.multiworld.local_early_items[self.player][name] = int(item["local_early"])
+
+                elif isinstance(item["local_early"],bool):
+                    self.multiworld.local_early_items[self.player][name] = total_created
+
+                else:
+                    raise Exception(f"Item {name}'s 'local_early' has an invalid value of '{item['local_early']}'. \nA boolean or an integer was expected.")
+
+
+        pool = before_create_items_starting(pool, self, self.multiworld, self.player)
+
+        items_started: list[Item] = []
+
+        if starting_items:
+            for starting_item_block in starting_items:
+                if not resolve_yaml_option(self.multiworld, self.player, starting_item_block):
+                    continue
+                # if there's a condition on having a previous item, check for any of them
+                # if not found in items started, this starting item rule shouldn't execute, and check the next one
+                if "if_previous_item" in starting_item_block:
+                    matching_items = [item for item in items_started if item.name in starting_item_block["if_previous_item"]]
+
+                    if len(matching_items) == 0:
+                        continue
+
+                # start with the full pool of items
+                items = pool
+
+                # if the setting lists specific item names, limit the items to just those
+                if "items" in starting_item_block:
+                    items = [item for item in pool if item.name in starting_item_block["items"]]
+
+                # if the setting lists specific item categories, limit the items to ones that have any of those categories
+                if "item_categories" in starting_item_block:
+                    items_in_categories = [item["name"] for item in self.item_name_to_item.values() if "category" in item and len(set(starting_item_block["item_categories"]).intersection(item["category"])) > 0]
+                    items = [item for item in pool if item.name in items_in_categories]
+
+                self.random.shuffle(items)
+
+                # if the setting lists a specific number of random items that should be pulled, only use a subset equal to that number
+                if "random" in starting_item_block:
+                    items = items[0:starting_item_block["random"]]
+
+                for starting_item in items:
+                    items_started.append(starting_item)
+                    self.multiworld.push_precollected(starting_item)
+                    pool.remove(starting_item)
+
+        self.start_inventory = {i.name: items_started.count(i) for i in items_started}
+
+        pool = before_create_items_filler(pool, self, self.multiworld, self.player)
+        pool = self.adjust_filler_items(pool, traps)
+        pool = after_create_items(pool, self, self.multiworld, self.player)
+
+        # need to put all of the items in the pool so we can have a full state for placement
+        # then will remove specific item placements below from the overall pool
+        self.multiworld.itempool += pool
+
+        real_pool = pool + items_started
+        self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
+        self.item_counts_progression[self.player] = self.get_item_counts(pool=real_pool, only_progression=True)
+
+    def create_item(self, name: str, class_override: Optional['ItemClassification']=None) -> Item:
+        name = before_create_item(name, self, self.multiworld, self.player)
+
+        item = self.item_name_to_item[name]
+        if class_override is not None:
+            classification = class_override
+        else:
+            classification = ItemClassification.filler
+
+            if "trap" in item and item["trap"]:
+                classification |= ItemClassification.trap
+
+            if "useful" in item and item["useful"]:
+                classification |= ItemClassification.useful
+
+            if "progression_skip_balancing" in item and item["progression_skip_balancing"]:
+                classification |= ItemClassification.progression_skip_balancing
+            elif "progression" in item and item["progression"]:
+                classification |= ItemClassification.progression
+
+        item_object = ManualItem(name, classification,
+                        self.item_name_to_id[name], player=self.player)
+
+        item_object = after_create_item(item_object, self, self.multiworld, self.player)
+
+        return item_object
+
+    # Item Value need a tweaked collect and remove:
+    def collect(self, state: CollectionState, item: Item) -> bool:
+        change = super().collect(state, item)
+        manual_item = self.item_name_to_item.get(item.name, {})
+        if change and manual_item.get("value"):
+            for key, value in manual_item["value"].items():
+                state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] += int(value)
+        after_collect_item(self, state, change, item)
+        return change
+
+    def remove(self, state: CollectionState, item: Item) -> bool:
+        change = super().remove(state, item)
+        manual_item = self.item_name_to_item.get(item.name, {})
+        if change and manual_item.get("value"):
+            for key, value in manual_item["value"].items():
+                state.prog_items[item.player][format_state_prog_items_key(ProgItemsCat.VALUE, key)] -= int(value)
+        after_remove_item(self, state, change, item)
+        return change
+
+    def set_rules(self):
+        before_set_rules(self, self.multiworld, self.player)
+
+        set_rules(self, self.multiworld, self.player)
+
+        after_set_rules(self, self.multiworld, self.player)
+
+    def generate_basic(self):
+        before_generate_basic(self, self.multiworld, self.player)
+
+        # Handle item forbidding
+        manual_locations_with_forbid = {location['name']: location for location in location_name_to_location.values() if "dont_place_item" in location or "dont_place_item_category" in location}
+        locations_with_forbid = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_forbid.keys()]
+        for location in locations_with_forbid:
+            manual_location = manual_locations_with_forbid[location.name]
+            forbidden_item_names = []
+
+            if manual_location.get("dont_place_item"):
+                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if i["name"] in manual_location["dont_place_item"]])
+
+            if manual_location.get("dont_place_item_category"):
+                forbidden_item_names.extend([i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])])
+
+            if forbidden_item_names:
+                forbid_items_for_player(location, set(forbidden_item_names), self.player)
+
+        # Handle specific item placements using fill_restrictive
+        manual_locations_with_placements = {location['name']: location for location in location_name_to_location.values() if "place_item" in location or "place_item_category" in location}
+        locations_with_placements = [l for l in self.multiworld.get_unfilled_locations(player=self.player) if l.name in manual_locations_with_placements.keys()]
+        for location in locations_with_placements:
+            manual_location = manual_locations_with_placements[location.name]
+            eligible_items = []
+            eligible_item_names = []
+            forbidden_item_names = []
+            place_messages = []
+            forbid_messages = []
+
+            #First we get possible items names
+            if manual_location.get("place_item"):
+                eligible_item_names += manual_location["place_item"]
+                place_messages.append('", "'.join(manual_location["place_item"]))
+
+            if manual_location.get("place_item_category"):
+                eligible_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["place_item_category"])]
+                place_messages.append('", "'.join(manual_location["place_item_category"]) + " category(ies)")
+
+            # Second we check for forbidden items names
+            if manual_location.get("dont_place_item"):
+                forbidden_item_names += manual_location["dont_place_item"]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item"]) + ' items')
+
+            if manual_location.get("dont_place_item_category"):
+                forbidden_item_names += [i["name"] for i in item_name_to_item.values() if "category" in i and set(i["category"]).intersection(manual_location["dont_place_item_category"])]
+                forbid_messages.append('", "'.join(manual_location["dont_place_item_category"]) + ' category(ies)')
+
+            # If we forbid some names, check for those in the possible names and remove them
+            if forbidden_item_names:
+                eligible_item_names = [name for name in eligible_item_names if name not in forbidden_item_names]
+
+            if eligible_item_names:
+                eligible_items = [item for item in self.multiworld.itempool if item.player == self.player and item.name in eligible_item_names]
+
+            if len(eligible_items) == 0:
+                nl = "\n"
+                if forbidden_item_names:
+                    raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}".\n    No items that match "{f"{nl}     or ".join(place_messages)}"\n    Maybe because of forbidden "{f"{nl}     or ".join(forbid_messages)}"')
+                raise Exception(f'Could not find a suitable item to place at "{manual_location["name"]}". \n    No items that match "{f"{nl}     or ".join(place_messages)}"')
+
+            item_to_place = self.random.choice(eligible_items)
+            location.place_locked_item(item_to_place)
+
+            # remove the item we're about to place from the pool so it isn't placed twice
+            self.multiworld.itempool.remove(item_to_place)
+
+
+        after_generate_basic(self, self.multiworld, self.player)
+
+        # Enable this in Meta.json to generate a diagram of your manual.  Only works on 0.4.4+
+        if enable_region_diagram:
+            from Utils import visualize_regions
+            visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.game}_{self.player}.puml")
+
+    def pre_fill(self):
+        # DataValidation after all the hooks are done but before fill
+        runPreFillDataValidation(self, self.multiworld)
+
+    def fill_slot_data(self):
+        slot_data = before_fill_slot_data({}, self, self.multiworld, self.player)
+
+        # slot_data["DeathLink"] = bool(self.multiworld.death_link[self.player].value)
+        common_options = set(PerGameCommonOptions.type_hints.keys())
+        for option_key, _ in self.options_dataclass.type_hints.items():
+            if option_key in common_options:
+                continue
+            
+            value = get_option_value(self.multiworld, self.player, option_key) #Fetch from the YAML. That's normal.
+            
+            #Adding support for multiple items with the same name. I'm assuming that's why it's coming out in such a funky way, anyway.
+            #I can't figure out how to instantiate this as something that can be converted to JSON.
+            #It's getting built in the format of a Counter, so I'm treating it as a Counter and converting it to something JSON-serializable manually.
+            #PythonSux
+            from collections import Counter #Need to convert progressive items from Counter to dictionary.
+            if isinstance(value, Counter): #If the item is a progressive (and I can tell because it's of datatype Counter)...
+                value = dict(value) #...Convert it to a dictionary. That's what slot_data at option_key should have. Not a Counter.
+            
+            slot_data[option_key] = value #THEN you may add it.
+
+
+        slot_data = after_fill_slot_data(slot_data, self, self.multiworld, self.player)
+        return slot_data
+
+
+    def write_spoiler(self, spoiler_handle):
+        before_write_spoiler(self, self.multiworld, spoiler_handle)
+
+    def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
+        before_extend_hint_information(hint_data, self, self.multiworld, self.player)
+
+        for location in self.multiworld.get_locations(self.player):
+            if not location.address:
+                continue
+            if "hint_entrance" in self.location_name_to_location[location.name]:
+                if self.player not in hint_data:
+                    hint_data.update({self.player: {}})
+                hint_data[self.player][location.address] = self.location_name_to_location[location.name]["hint_entrance"]
+
+        after_extend_hint_information(hint_data, self, self.multiworld, self.player)
+
+    ###
+    # Non-standard AP world methods
+    ###
+
+    rules_functions_maximum_recursion: int = 5
+    """Default: 5\n
+    The maximum time a location/region's requirement can loop to check for functions\n
+    One thing to remember is the more you loop the longer generation will take. So probably leave it as is unless you really needs it."""
+
+    def add_filler_items(self, item_pool, traps):
+        Utils.deprecate("Use adjust_filler_items instead.")
+        return self.adjust_filler_items(item_pool, traps)
+
+    def adjust_filler_items(self, item_pool, traps):
+        extras = len(self.multiworld.get_unfilled_locations(player=self.player)) - len(item_pool)
+
+        if extras > 0:
+            trap_percent = get_option_value(self.multiworld, self.player, "filler_traps")
+            if not traps:
+                trap_percent = 0
+
+            trap_count = extras * trap_percent // 100
+            filler_count = extras - trap_count
+
+            for _ in range(0, trap_count):
+                extra_item = self.create_item(self.random.choice(traps))
+                item_pool.append(extra_item)
+
+            for _ in range(0, filler_count):
+                extra_item = self.create_item(self.get_filler_item_name())
+                item_pool.append(extra_item)
+        elif extras < 0:
+            logging.warning(f"{self.game} has more items than locations. {abs(extras)} non-progression items will be removed at random.")
+            # Filler is only assigned if the item doesn't have any other tags, so it only has to be covered by itself.
+            # Skip Balancing is also not covered due to how it's only supported when paired with Progression.
+            # As a result, these cover every possible combination can be removed.
+            fillers = [item for item in item_pool if item.classification == ItemClassification.filler]
+            traps = [item for item in item_pool if item.classification == ItemClassification.trap]
+            useful = [item for item in item_pool if item.classification == ItemClassification.useful]
+            # Useful + Trap is classified separately so that it can have a unique priority ranking.
+            useful_traps = [item for item in item_pool if
+                            ItemClassification.progression not in item.classification
+                            and ItemClassification.useful in item.classification
+                            and ItemClassification.trap in item.classification]
+            self.random.shuffle(fillers)
+            self.random.shuffle(traps)
+            self.random.shuffle(useful)
+            self.random.shuffle(useful_traps)
+            for _ in range(0, abs(extras)):
+                popped = None
+                if fillers:
+                    popped = fillers.pop()
+                elif traps:
+                    popped = traps.pop()
+                elif useful:
+                    popped = useful.pop()
+                elif useful_traps:
+                    popped = useful_traps.pop()
+                else:
+                    logging.warning("Could not remove enough non-progression items from the pool.")
+                    break
+                item_pool.remove(popped)
+
+        return item_pool
+
+    def get_item_counts(self, player: Optional[int] = None, pool: list[Item] | None | bool = None, only_progression: bool = False) -> Counter[str]:
+        """Returns the player real item counts.\n
+        If you provide an item pool using the pool argument, then it's item counts will be returned.
+        Otherwise, this function will only work after create_items, before then an empty Counter is returned.\n
+        The only_progression argument let you filter the items to only get the count of progression items."""
+        if player is None:
+            player = self.player
+
+        if isinstance(pool, bool):
+            Utils.deprecate("the 'reset' argument of get_item_counts has been deprecated to increase the stability of item counts.\
+                \nIt should be removed. If you require a new up to date count you can get it using the 'pool' argument.\
+                \nThat result wont be saved to world unless you override the values of world.item_counts_progression or world.item_counts depending on if you counted only the items with progresion or not.")
+            pool = None
+
+        if pool is not None:
+            return Counter([i.name for i in pool if not only_progression or i.advancement])
+
+        if only_progression:
+            return self.item_counts_progression.get(player, Counter())
+        else:
+            return self.item_counts.get(player, Counter())
+
+
+    def client_data(self):
+        return {
+            "game": self.game,
+            'player_name': self.multiworld.get_player_name(self.player),
+            'player_id': self.player,
+            'items': self.item_name_to_item,
+            'locations': self.location_name_to_location,
+            # todo: extract connections out of multiworld.get_regions() instead, in case hooks have modified the regions.
+            'regions': region_table,
+            'categories': category_table
+        }
+    
+    #ManualWorld doesn't patch the game, so we're hijacking the generate_output function.
+    def generate_output(self, output_directory: str): #This is the stuff that'll show up in the multiworld's zip file.
+        player_name = self.multiworld.player_name[self.player] #Slot name.
+        patch = WariosWoodsPatch(player = self.player, player_name = player_name) #Run all the code in the class that patches the player's vanilla dump into an AP romhack, creating the patchfile.
+        patch.write_file("seed.txt", self.multiworld.seed_name.encode("utf-8")) #Tuck the multiworld's seed name in the patchfile, too.
+        patch.write(os.path.join(output_directory, f"{player_name}_AP_{self.multiworld.seed_name}.wwnes")) #Manifest the patch into the patchfile, and name it slotname_AP_multiworldseed.apgamefiletype.
+        #As an aside, the webhost apparently throws a fit if you give it a multiworld zip to host, if the zip contains more than two files whose name starts with AP_multiworldseed.
+        #I don't know how to and wasn't able to learn how to make the webhost distribute the patchfile. I'd sure like to. Hit me up.
+
+
+
+###
+# Non-world client methods
+###
+
+
+#I don't want to use the ManualClient so we're gonna do our own thing. Ooo-ooo aah-aah!
+def run_client(*args: str):
+    from .WariosWoodsArchipelagoClient import main #Get all the code from the client.
+    launch(main, name = "WWNESClient", args = args) #Run the client. Well, that'll happen when the Archipelago Launcher launches the patchfile.
+
+
+#Add the client to the list of clients when using the ArchipelagoLauncher.exe.
+#You have no idea how long it took me to figure this out. How embarrassing. Telling devs to use other implementations as examples and documentation is terrible. Literally telling people to ask for help they won't get.
+#I need an instructions sheet, not a contact that doesn't have the time to instruct me. This stuff isn't so variable that there can't be a reliably functional standard to post online in plaintext.
+components.append(
+    Component(
+        "Wario's Woods Client", #Tells the AP Launcher what the list item should say. You know. The one with the Open button.
+        func = run_client, #Tells the AP Launcher what the Open button should do.
+        component_type = Type.CLIENT, #Tells the AP Launcher what category to put the list item into.
+        file_identifier = SuffixIdentifier(".wwnes") #Tells the AP Launcher, "Hey, if the user executes the AP Launcher using this filetype, hit the Open button for this specific component."
+    )
+)
+#Actually I don't need it because I've solved the puzzle for how to open everything by double-clicking the patchfile. It's all handled in the game's client.
+#...Actually I need it because the archipelago launcher can't open jack squat without a component that provides the name. 
+#Don't try to open the game client directly please. I don't remember explicitly writing handling for that.

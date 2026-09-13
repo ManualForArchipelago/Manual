@@ -1,0 +1,208 @@
+[
+  {
+    "name": "A-Type Round 4",
+    "category": ["A-Type"],
+    "requires": []
+  },
+  {
+    "name": "A-Type Round 9",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:1|"
+  },
+  {
+    "name": "A-Type Round 14",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:2|"
+  },
+  {
+    "name": "A-Type Round 19",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:3|"
+  },
+  {
+    "name": "A-Type Round 24",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:4|"
+  },
+  {
+    "name": "A-Type Round 29",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:5|"
+  },
+  {
+    "name": "A-Type Round 34",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:6|"
+  },
+  {
+    "name": "A-Type Round 39",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:7|"
+  },
+  {
+    "name": "A-Type Round 44",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:8|"
+  },
+  {
+    "name": "A-Type Round 49",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:9|"
+  },
+  {
+    "name": "A-Type Round 54",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:10|"
+  },
+  {
+    "name": "A-Type Round 59",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:11|"
+  },
+  {
+    "name": "A-Type Round 64",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:12|"
+  },
+  {
+    "name": "A-Type Round 69",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:13|"
+  },
+  {
+    "name": "A-Type Round 74",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:14|"
+  },
+  {
+    "name": "A-Type Round 79",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:15|"
+  },
+  {
+    "name": "A-Type Round 84",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:16|"
+  },
+  {
+    "name": "A-Type Round 89",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:17|"
+  },
+  {
+    "name": "A-Type Round 94",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:18|"
+  },
+  {
+    "name": "A-Type Round 99",
+    "category": ["A-Type"],
+    "requires": "|@A-Type:19|"
+  },
+  {
+    "name": "B-Type Round 4",
+    "category": ["B-Type"],
+    "requires": []
+  },
+  {
+    "name": "B-Type Round 9",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:1|"
+  },
+  {
+    "name": "B-Type Round 14",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:2|"
+  },
+  {
+    "name": "B-Type Round 19",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:3|"
+  },
+  {
+    "name": "B-Type Round 24",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:4|"
+  },
+  {
+    "name": "B-Type Round 29",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:5|"
+  },
+  {
+    "name": "B-Type Round 34",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:6|"
+  },
+  {
+    "name": "B-Type Round 39",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:7|"
+  },
+  {
+    "name": "B-Type Round 44",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:8|"
+  },
+  {
+    "name": "B-Type Round 49",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:9|"
+  },
+  {
+    "name": "B-Type Round 54",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:10|"
+  },
+  {
+    "name": "B-Type Round 59",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:11|"
+  },
+  {
+    "name": "B-Type Round 64",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:12|"
+  },
+  {
+    "name": "B-Type Round 69",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:13|"
+  },
+  {
+    "name": "B-Type Round 74",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:14|"
+  },
+  {
+    "name": "B-Type Round 79",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:15|"
+  },
+  {
+    "name": "B-Type Round 84",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:16|"
+  },
+  {
+    "name": "B-Type Round 89",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:17|"
+  },
+  {
+    "name": "B-Type Round 94",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:18|"
+  },
+  {
+    "name": "B-Type Round 99",
+    "category": ["B-Type"],
+    "requires": "|@B-Type:19|"
+  },
+  {
+    "name": "Out of the Woods",
+    "victory": true,
+    "category": ["Goal"],
+    "requires": "|@A-Type:19| AND |@B-Type:19|"
+  }
+]

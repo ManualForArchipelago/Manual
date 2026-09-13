@@ -1,0 +1,11 @@
+{
+  "game": "Wario's Woods",
+  "options": {
+    "sub_game_name": {
+      "display_name": "Sub-Game Name",
+      "description": "Internal identifier for this non-manual setup.",
+      "type": "string",
+      "default": "CCtheOwl"
+    }
+  }
+}
