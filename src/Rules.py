@@ -139,9 +139,9 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
             total_count = sum([items_counts.get(item, 0) for item in world.item_and_event_name_groups.get(item_name, set())])
         else:
             total_count = items_counts.get(item_name, 0)
-        if item_count == 'all':
+        if item_count.lower() == 'all':
             count = total_count
-        elif item_count == 'half':
+        elif item_count.lower() == 'half':
             count = int(total_count / 2)
         elif item_count.endswith('%') and len(item_count) > 1:
             percent = clamp(float(item_count[:-1]) / 100, 0, 1)
