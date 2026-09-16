@@ -44,22 +44,29 @@ def before_generate_early(world: World, multiworld: MultiWorld, player: int) -> 
     """
     pass
 
-# Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
+    """
+    Called before regions and locations are created. Not clear why you'd want this, but it's here.
+    Victory location is included, but Victory event is not placed yet.
+    """
     pass
 
-# Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
-    # Use this hook to remove locations from the world
-    locationNamesToRemove: list[str] = [] # List of location names
+    """
+    Called after regions and locations are created, in case you want to see or modify that information.
+    Victory location is included.
 
-    # Add your code here to calculate which locations to remove
+    Use this hook to modify locations from the world
+    If you wish to remove them entirely, use Helpers.before_is_location_enabled instead.
+    """
 
+    # Add your code here to calculate which locations to exclude
     for region in multiworld.regions:
         if region.player == player:
-            for location in list(region.locations):
-                if location.name in locationNamesToRemove:
-                    region.locations.remove(location)
+            for location in region.locations:
+                # If you have other things you want to modify, you can do it here as well.
+                # The fields you might care about are: item_rule, always_allow, progress_type, and show_in_spoiler.
+                pass
 
 # This hook allows you to access the item names & counts before the items are created. Use this to increase/decrease the amount of a specific item in the pool
 # Valid item_config key/values:
