@@ -185,7 +185,10 @@ class ManualContext(SuperContext):
 
     async def server_auth(self, password_requested: bool = False):
         if password_requested and not self.password:
-            await super(ManualContext, self).server_auth(password_requested)
+            if tracker_loaded:
+                await super(SuperContext, self).server_auth(password_requested) # type: ignore
+            else:
+                await super(ManualContext, self).server_auth(password_requested)
 
         if "Manual_" not in self.ui.game_bar_text.text:
             raise Exception("The Manual client can only be used for Manual games.")
