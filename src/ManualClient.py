@@ -141,6 +141,7 @@ class ManualContext(SuperContext):
     set_deathlink = False
     last_death_link = 0
     deathlink_out = False
+    goaled = False
 
     visible_events: dict[str, dict[str, Any]]  = {}
 
@@ -194,6 +195,7 @@ class ManualContext(SuperContext):
             raise Exception("The Manual client can only be used for Manual games.")
 
         self.game = self.ui.game_bar_text.text
+        self.goaled = False
 
         world = AutoWorldRegister.world_types.get(self.game)
         if not self.location_table and not self.item_table and world is None:
@@ -1375,7 +1377,7 @@ class ManualContext(SuperContext):
                 if tracker_loaded and self.ctx.block_unreachable_location_press and "__Victory__" not in self.ctx.tracker_reachable_events:
                     logger.debug(f"button for location '{button.text}' was pressed while unreachable")
                 else:
-                    self.ctx.items_received.append("__Victory__")
+                    self.ctx.goaled = True
                     self.ctx.syncing = True
 
         return ManualManager
@@ -1403,7 +1405,7 @@ async def game_watcher_manual(ctx: ManualContext):
             ctx.deathlink_out = False
             await ctx.send_death()
 
-        victory = ("__Victory__" in ctx.items_received)
+        victory = ctx.goaled
         ctx.locations_checked = []
         ctx.locations_scouted = []
         if not ctx.finished_game and victory:
