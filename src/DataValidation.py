@@ -34,7 +34,7 @@ class DataValidation():
                     item_name = match.group(2)
                     item_count = (str(match.group(3) or "1")).lstrip(':').strip()
 
-                    if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
+                    if not item_count.isnumeric() and item_count.lower() not in ["all", "half"] and not item_count.endswith('%'):
                         item_name = match.group(0).strip("|")
                         logging.debug(f'Invalid item_count "{item_count}" found, reverting to initial item_name "{item_name}"')
 
@@ -100,7 +100,7 @@ class DataValidation():
                     item_name = match.group(2)
                     item_count = (str(match.group(3) or "1")).lstrip(':').strip()
 
-                    if not item_count.isnumeric() and item_count not in ["all", "half"] and not item_count.endswith('%'):
+                    if not item_count.isnumeric() and item_count.lower() not in ["all", "half"] and not item_count.endswith('%'):
                         item_name = match.group(0).strip("|")
                         logging.debug(f'Invalid item_count "{item_count}" found, reverting to initial item_name "{item_name}"')
 
