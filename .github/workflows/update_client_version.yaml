@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - 'src/ManualClient.py'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-client-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Update client version
+        run: python .github/update_client_version.py
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+            branch: update-client-version
+            title: Update client version
+            add-paths: 'src/__init__.py'
+            author: 'GitHub Actions <actionrunner@veryrealandnotmadeupdomain.com>'
+            committer: 'GitHub Actions <actionrunner@veryrealandnotmadeupdomain.com>'
+            reviewers: '${{ github.actor }}'
