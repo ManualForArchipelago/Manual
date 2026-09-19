@@ -179,18 +179,18 @@ class ManualWorld(World):
                     new_item = self.create_item(name)
                     pool.append(new_item)
             elif type(configs) is dict:
-                for cat, count in configs.items():
+                for override, count in configs.items():
                     total_created += count
-                    if isinstance(cat, ItemClassification):
-                        true_class = cat
+                    if isinstance(override, ItemClassification):
+                        true_class = override
                     else:
                         try:
-                            if isinstance(cat, int):
-                                true_class = ItemClassification(cat)
+                            if isinstance(override, int):
+                                true_class = ItemClassification(override)
                             else:
-                                true_class = convert_string_to_itemclassification(cat)
+                                true_class = convert_string_to_itemclassification(override)
                         except Exception as ex:
-                            raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+                            raise Exception(f"Item override '{override}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 
                     for _ in range(count):
                         new_item = self.create_item(name, true_class)
