@@ -512,13 +512,20 @@ class ManualWorld(World):
             trap_count = extras * trap_percent // 100
             filler_count = extras - trap_count
 
+            if trap_count:
+                logging.info(f"{self.game} is adding {trap_count} traps due to 'filler_traps'.")
+
             for _ in range(0, trap_count):
                 extra_item = self.create_item(self.random.choice(traps))
                 item_pool.append(extra_item)
 
+            if filler_count:
+                logging.info(f"{self.game} is adding {filler_count} filler items to match location count.")
+
             for _ in range(0, filler_count):
                 extra_item = self.create_item(self.get_filler_item_name())
                 item_pool.append(extra_item)
+
         elif extras < 0:
             logging.warning(f"{self.game} has more items than locations. {abs(extras)} non-progression items will be removed at random.")
             # Filler is only assigned if the item doesn't have any other tags, so it only has to be covered by itself.
