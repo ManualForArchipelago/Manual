@@ -142,6 +142,7 @@ class ManualWorld(World):
         pool: list[Item] = []
         traps = []
         configured_item_names = self.item_id_to_name.copy()
+        is_UT = bool(getattr(self.multiworld, "generation_is_fake", False))
 
         items_config: dict[str, int|dict[ItemClassification | str | int, int]] = {}
         for name in configured_item_names.values():
@@ -178,18 +179,18 @@ class ManualWorld(World):
                     new_item = self.create_item(name)
                     pool.append(new_item)
             elif type(configs) is dict:
-                for cat, count in configs.items():
+                for override, count in configs.items():
                     total_created += count
-                    if isinstance(cat, ItemClassification):
-                        true_class = cat
+                    if isinstance(override, ItemClassification):
+                        true_class = override
                     else:
                         try:
-                            if isinstance(cat, int):
-                                true_class = ItemClassification(cat)
+                            if isinstance(override, int):
+                                true_class = ItemClassification(override)
                             else:
-                                true_class = convert_string_to_itemclassification(cat)
+                                true_class = convert_string_to_itemclassification(override)
                         except Exception as ex:
-                            raise Exception(f"Item override '{cat}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
+                            raise Exception(f"Item override '{override}' for {name} improperly defined\n\n{type(ex).__name__}:{ex}")
 
                     for _ in range(count):
                         new_item = self.create_item(name, true_class)
@@ -197,7 +198,7 @@ class ManualWorld(World):
             else:
                 raise Exception(f"Item override for {name} improperly defined")
 
-            if total_created == 0: continue
+            if total_created == 0 or is_UT: continue
 
             item = self.item_name_to_item[name]
             if item.get("early"): # Some or all early
@@ -224,12 +225,13 @@ class ManualWorld(World):
         pool = before_create_items_place_items(pool, self, self.multiworld, self.player)
         locations_with_forbid: list[Location] = []
         locations_with_placements: list[Location] = []
-        for location in self.multiworld.get_unfilled_locations(player=self.player):
-            manual_location = self.location_name_to_location.get(location.name, {})
-            if manual_location.get("place_item") or manual_location.get("place_item_category"):
-                locations_with_placements.append(location)
-            elif manual_location.get("dont_place_item") or manual_location.get("dont_place_item_category"):
-                locations_with_forbid.append(location)
+        if not is_UT:
+            for location in self.multiworld.get_unfilled_locations(player=self.player):
+                manual_location = self.location_name_to_location.get(location.name, {})
+                if manual_location.get("place_item") or manual_location.get("place_item_category"):
+                    locations_with_placements.append(location)
+                elif manual_location.get("dont_place_item") or manual_location.get("dont_place_item_category"):
+                    locations_with_forbid.append(location)
 
         # Handle specific item forbidding using forbid_items_for_player
         for location in locations_with_forbid:
@@ -251,7 +253,7 @@ class ManualWorld(World):
             manual_location = self.location_name_to_location.get(location.name, {})
             eligible_items = []
             eligible_item_names: set[str] = set()
-            forbidden_item_names: set[str] = set()
+            forbidden_item_names = set()
             place_messages = []
             forbid_messages = []
 
@@ -347,7 +349,7 @@ class ManualWorld(World):
         precollected_items = list(self.multiworld.precollected_items[self.player])
 
         # UT doesn't precollect the exceptions so this can be skipped
-        if not getattr(self.multiworld, "generation_is_fake", False):
+        if not is_UT:
             # Filter Precollected items for those not in logic aka created by start_inventory(_from_pool)
             precollected_exceptions = self.options.start_inventory.value + self.options.start_inventory_from_pool.value # type: ignore
             for item, count in precollected_exceptions.items():
@@ -357,7 +359,8 @@ class ManualWorld(World):
         # Placed items:
         placed_pool: list[Item] = []
         for location in self.multiworld.get_filled_locations(self.player):
-            placed_pool.append(location.item)
+            if location.item is not None: # For type checkers
+                placed_pool.append(location.item)
 
         real_pool = pool + precollected_items + placed_pool
         self.item_counts[self.player] = self.get_item_counts(pool=real_pool)
