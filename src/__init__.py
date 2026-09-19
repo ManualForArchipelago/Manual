@@ -34,6 +34,7 @@ from .hooks.World import \
     before_fill_slot_data, after_fill_slot_data, before_write_spoiler, \
     before_extend_hint_information, after_extend_hint_information, \
     after_collect_item, after_remove_item, before_generate_early, hook_interpret_slot_data
+from .client_version import CLIENT_VERSION
 
 class ManualWorld(World):
     __doc__ = world_description
@@ -603,7 +604,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2026_09_18 # YYYYMMDD
+    version = CLIENT_VERSION # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
