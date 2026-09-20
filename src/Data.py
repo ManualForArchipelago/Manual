@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from .DataValidation import DataValidation, ValidationError
-from .Helpers import load_data_file as helpers_load_data_file
+from .Helpers import load_data_file as helpers_load_data_file, load_toml
 
 from .hooks.Data import \
     after_load_game_file, \
@@ -37,7 +37,7 @@ class ManualFile:
 
         return contents
 
-
+project_manifest: dict[str, Any] = load_toml("manual.toml")
 game_table: dict[str, Any] = ManualFile('game.json', dict).load() #dict
 item_table: list[dict[str, Any]] = convert_to_list(ManualFile('items.json', list).load(), 'data') #list
 location_table: list[dict[str, Any]] = convert_to_list(ManualFile('locations.json', list).load(), 'data') #list
