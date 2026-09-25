@@ -7,7 +7,7 @@ import Utils
 from worlds.generic.Rules import forbid_items_for_player
 from worlds.LauncherComponents import Component, SuffixIdentifier, components, Type, launch, icon_paths
 
-from .Data import item_table, location_table, event_table, category_table
+from .Data import project_manifest, item_table, location_table, event_table, category_table
 from .Game import game_name, filler_item_name, starting_items, unused_goals_are_locations
 from .Meta import world_description, world_webworld
 from .Locations import location_id_to_name, location_name_to_id, location_name_to_location, location_name_groups, victory_names, event_name_to_event, event_name_groups
@@ -606,7 +606,7 @@ class VersionedComponent(Component):
         self.version = version
 
 def add_client_to_launcher() -> None:
-    version = 2026_09_18 # YYYYMMDD
+    version = int(project_manifest.get("client", {}).get("version", 0)) # YYYYMMDD
     found = False
 
     if "manual" not in icon_paths:
