@@ -427,25 +427,27 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
     used_location_names = []
     # Region access rules
     extra_entrance_rules = {}
+    area: dict[str, Any] # for type checkers (mypy)
+    extra: dict[str, Any] # for type checkers (mypy)
     for region in regionMap.keys():
         entrance_rules = regionMap[region].get("entrance_requires", {})
         for e in entrance_rules:
             entrance = world.get_entrance(f'{e}To{region}')
-            area = {"requires": entrance_rules[e]}
+            area = {"requires": entrance_rules[e], "name": entrance.name, "is_region": True}
             extra_entrance_rules[entrance.name] = area
 
         exit_rules = regionMap[region].get("exit_requires", {})
         for e in exit_rules:
             exit = world.get_entrance(f'{region}To{e}')
-            area = {"requires": exit_rules[e]}
+            area = {"requires": exit_rules[e], "name": exit.name, "is_region": True}
             extra_entrance_rules[exit.name] = area
 
     for region in regionMap.keys():
         used_location_names.extend([l.name for l in multiworld.get_region(region, player).locations])
         for exitRegion in multiworld.get_region(region, player).entrances:
             extra = extra_entrance_rules.get(exitRegion.name, {})
-            area = regionMap[region]
-            area["name"] = exitRegion.name
+            area = dict(regionMap[region])
+            area["name"] = region
             area['is_region'] = True
             rb_rule = construct_rule_from_string(area)
             if rb_rule is not None:
