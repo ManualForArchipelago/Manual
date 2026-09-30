@@ -579,13 +579,11 @@ def OptOne(world: "ManualWorld", item: str) -> str:
 
     item_for_regex = item.strip()
     if not item_for_regex.startswith("|"):
-        item_for_regex = "|" + item_for_regex
-    if not item_for_regex.endswith("|"):
-        item_for_regex = item_for_regex + "|"
+        item_for_regex = "|" + item_for_regex + "|"
 
     match = ITEM_REGEX.match(item_for_regex)
     if match is None:
-        raise Exception(f'OptOne was called with an invalid item "{item}"')
+        raise Exception(f'OptOne was called with an invalid item "{item}". There might be multiple "|" on one side or one missing.')
 
     is_category = bool(match.group(1))
     item_name = match.group(2)
@@ -597,14 +595,14 @@ def OptOne(world: "ManualWorld", item: str) -> str:
         item_count = int(str_count)
     else:
         new_name, item_count = evaluate_nonnumeric_count(match.group(0), item_name, str_count, False, world)
-        # evaluate_nonnumeric_count here to support item with a : in their name.
-        # Made it think this is not a category for Optimization purposes
+        # Used evaluate_nonnumeric_count here to support item with a : in their name.
+        # Told it this is not a category for Optimization purposes
         if new_name != item_name:
             was_numeric = True
             item_name = new_name
 
     if was_numeric:
-        # if the count is just a number
+        # If the count is just a number
         if is_category:
             category_items = world.item_and_event_name_groups.get(item_name, set())
             category_items_counts = sum([items_counts.get(category_item, 0) for category_item in category_items])
@@ -614,7 +612,7 @@ def OptOne(world: "ManualWorld", item: str) -> str:
             item_count = clamp(int(item_count), 0, item_current_count)
         return f"|{'@' if is_category else ''}{item_name}:{item_count}|"
     else:
-        # if the count is something like ALL, HALF, or a percentage we don't need to clamp since it will be done anyway
+        # If the count is something like ALL, HALF, or a percentage we don't need to clamp since it will be done anyway
         return f"|{'@' if is_category else ''}{item_name}:{str_count}|"
 
 
