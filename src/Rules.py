@@ -128,30 +128,30 @@ def evaluate_postfix(expr: str, location: dict) -> bool:
 
     return stack.pop()
 
+def evaluate_nonnumeric_count(item_base: str, item_name: str, item_count: str, is_category: bool, world: "ManualWorld") -> tuple[str, int]:
+    item_count = item_count.strip()
+    if item_count.isnumeric():
+        return item_name, int(item_count)
+
+    items_counts = world.get_item_counts(only_progression=True)
+    if is_category:
+        total_count = sum([items_counts.get(item, 0) for item in world.item_and_event_name_groups.get(item_name, set())])
+    else:
+        total_count = items_counts.get(item_name, 0)
+    if item_count.lower() == 'all':
+        count = total_count
+    elif item_count.lower() == 'half':
+        count = int(total_count / 2)
+    elif item_count.endswith('%') and len(item_count) > 1:
+        percent = clamp(float(item_count[:-1]) / 100, 0, 1)
+        count = math.ceil(total_count * percent)
+    # If invalid count assume its actually part of the item name
+    else:
+        item_name = item_base.strip("|")
+        count = 1
+    return item_name, count
+
 def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
-    def evaluate_nonnumeric_count(item_base: str, item_name: str, item_count: str, is_category: bool, area: dict) -> tuple[str, int]:
-        item_count = item_count.strip()
-        if item_count.isnumeric():
-            return item_name, int(item_count)
-
-        items_counts = world.get_item_counts(player, only_progression=True)
-        if is_category:
-            total_count = sum([items_counts.get(item, 0) for item in world.item_and_event_name_groups.get(item_name, set())])
-        else:
-            total_count = items_counts.get(item_name, 0)
-        if item_count.lower() == 'all':
-            count = total_count
-        elif item_count.lower() == 'half':
-            count = int(total_count / 2)
-        elif item_count.endswith('%') and len(item_count) > 1:
-            percent = clamp(float(item_count[:-1]) / 100, 0, 1)
-            count = math.ceil(total_count * percent)
-        # If invalid count assume its actually part of the item name
-        else:
-            item_name = item_base.strip("|")
-            count = 1
-        return item_name, count
-
     def construct_rule_from_string(area: dict) -> "rule_builder.rules.Rule | None":
         if not use_rulebuilder:
             return None
@@ -176,7 +176,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 if item_count.isnumeric():
                     count = int(item_count)
                 else:
-                    item_name, count = evaluate_nonnumeric_count(match.group(0), item_name, item_count, is_category, area)
+                    item_name, count = evaluate_nonnumeric_count(match.group(0), item_name, item_count, is_category, world)
 
                 if is_category:
                     rule = rule_builder.rules.HasFromList(*world.item_and_event_name_groups.get(item_name, set()), count=count)
@@ -349,7 +349,7 @@ def set_rules(world: "ManualWorld", multiworld: MultiWorld, player: int):
                 item_count = "1"
             item_count = item_count.lstrip(':')
 
-            item_name, numeric_count = evaluate_nonnumeric_count(item_base, item_name, item_count, is_category, area)
+            item_name, numeric_count = evaluate_nonnumeric_count(item_base, item_name, item_count, is_category, world)
 
             if is_category:
                 found = state.has_from_list(world.item_and_event_name_groups.get(item_name, set()), player, numeric_count)
@@ -570,40 +570,53 @@ def OptOne(world: "ManualWorld", item: str) -> str:
     Eg. requires: "{OptOne(|DisabledItem|)} and |other items|" become "|DisabledItem:0| and |other items|" if the item is disabled.
     """
     if item == "":
-        return "" #Skip this function if item is left blank
+        raise Exception("OptOne was called with no arguments. There should be at least an item/category name in between the parentheses")
 
     items_counts = world.get_item_counts(only_progression=True)
 
-    require_category = False
+    item_for_regex = item.strip()
+    if not item_for_regex.startswith("|"):
+        item_for_regex = "|" + item_for_regex
+    if not item_for_regex.endswith("|"):
+        item_for_regex = item_for_regex + "|"
 
-    if '@' in item[:2]:
-        require_category = True
+    match = ITEM_REGEX.match(item_for_regex)
+    if match is None:
+        raise Exception(f'OptOne was called with an invalid item "{item}"')
 
-    item = item.lstrip('|@$').rstrip('|')
+    is_category = bool(match.group(1))
+    item_name = match.group(2)
+    str_count = (str(match.group(3) or "1")).lstrip(':')
 
-    item_parts = item.split(":")
-    item_name = item
-    item_count = '1'
-
-    if len(item_parts) > 1:
-        item_name = item_parts[0]
-        item_count = item_parts[1]
-
-    if require_category:
-        if item_count.isnumeric():
-            #Only loop if we can use the result to clamp
-            category_items = [item for item in world.item_name_to_item.values() if "category" in item and item_name in item["category"]]
-            category_items_counts = sum([items_counts.get(category_item["name"], 0) for category_item in category_items])
-            item_count = clamp(int(item_count), 0, category_items_counts)
-        return f"|@{item_name}:{item_count}|"
+    was_numeric = False
+    if str_count.isnumeric():
+        was_numeric = True
+        item_count = int(str_count)
     else:
-        if item_count.isnumeric():
+        new_name, item_count = evaluate_nonnumeric_count(match.group(0), item_name, str_count, False, world)
+        # evaluate_nonnumeric_count here to support item with a : in their name.
+        # Made it think this is not a category for Optimization purposes
+        if new_name != item_name:
+            was_numeric = True
+            item_name = new_name
+
+    if was_numeric:
+        # if the count is just a number
+        if is_category:
+            category_items = world.item_and_event_name_groups.get(item_name, set())
+            category_items_counts = sum([items_counts.get(category_item, 0) for category_item in category_items])
+            item_count = clamp(int(item_count), 0, category_items_counts)
+        else:
             item_current_count = items_counts.get(item_name, 0)
             item_count = clamp(int(item_count), 0, item_current_count)
-        return f"|{item_name}:{item_count}|"
+        return f"|{'@' if is_category else ''}{item_name}:{item_count}|"
+    else:
+        # if the count is something like ALL, HALF, or a percentage we don't need to clamp since it will be done anyway
+        return f"|{'@' if is_category else ''}{item_name}:{str_count}|"
+
 
 # OptAll check the passed require string and loop every item to check if they're enabled,
-def OptAll(world: "ManualWorld", requires: str) -> bool|str:
+def OptAll(world: "ManualWorld", requires: str) -> str:
     """Check the passed require string and loop every item to check if they're enabled,
     then returns the require string with items counts adjusted using OptOne\n
     eg. requires: "{OptAll(|DisabledItem| and |@CategoryWithModifedCount:10|)} and |other items|"
@@ -611,10 +624,14 @@ def OptAll(world: "ManualWorld", requires: str) -> bool|str:
     requires_list = requires
 
     if requires_list == "":
-        return True
+        raise Exception("OptAll was called with no arguments. There should be at least an item/category name in between the parentheses")
 
-    # parse user written statement into list of each item
-    for item in re.findall(r'\|[^|]+\|', requires):
+    # Use the main Item regex to find each item in string
+    for match in ITEM_REGEX.finditer(requires):
+        item = match.group(0)
+        if item not in requires_list:
+            # previous instance of this item was already processed
+            continue
         itemScanned = OptOne(world, item)
         requires_list = requires_list.replace(item, itemScanned)
 
