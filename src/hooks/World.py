@@ -34,7 +34,7 @@ import logging
 
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
-def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
+def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> list[str] | str | bool:
     return False
 
 def before_generate_early(world: World, multiworld: MultiWorld, player: int) -> None:
@@ -44,22 +44,29 @@ def before_generate_early(world: World, multiworld: MultiWorld, player: int) -> 
     """
     pass
 
-# Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
+    """
+    Called before regions and locations are created. Not clear why you'd want this, but it's here.
+    Victory location is included, but Victory event is not placed yet.
+    """
     pass
 
-# Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
-    # Use this hook to remove locations from the world
-    locationNamesToRemove: list[str] = [] # List of location names
+    """
+    Called after regions and locations are created, in case you want to see or modify that information.
+    Victory location is included.
 
-    # Add your code here to calculate which locations to remove
+    Use this hook to modify locations from the world
+    If you wish to remove them entirely, use Helpers.before_is_location_enabled instead.
+    """
 
+    # Add your code here to calculate which locations to exclude
     for region in multiworld.regions:
         if region.player == player:
-            for location in list(region.locations):
-                if location.name in locationNamesToRemove:
-                    region.locations.remove(location)
+            for location in region.locations:
+                # If you have other things you want to modify, you can do it here as well.
+                # The fields you might care about are: item_rule, always_allow, progress_type, and show_in_spoiler.
+                pass
 
 # This hook allows you to access the item names & counts before the items are created. Use this to increase/decrease the amount of a specific item in the pool
 # Valid item_config key/values:
@@ -71,6 +78,10 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
     return item_config
+
+# The item pool before place_item(_category) are processed, in case you want to see the raw item pool at that stage
+def before_create_items_place_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    return item_pool
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
@@ -138,10 +149,6 @@ def after_create_item(item: ManualItem, world: World, multiworld: MultiWorld, pl
 
 # This method is run towards the end of pre-generation, before the place_item options have been handled and before AP generation occurs
 def before_generate_basic(world: World, multiworld: MultiWorld, player: int):
-    pass
-
-# This method is run at the very end of pre-generation, once the place_item options have been handled and before AP generation occurs
-def after_generate_basic(world: World, multiworld: MultiWorld, player: int):
     pass
 
 # This method is run every time an item is added to the state, can be used to modify the value of an item.

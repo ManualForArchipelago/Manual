@@ -30,6 +30,10 @@
                             "type": "boolean",
                             "default": false
                         },
+                        "sort-key": {
+                            "description": "(Optional) A string to sort the category by. If not provided, categories will always be sorted by name.",
+                            "type": "string"
+                        },
                         "_comment": {"$ref": "#/definitions/comment"}
                     }
                 }

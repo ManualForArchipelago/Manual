@@ -36,33 +36,27 @@ if typing.TYPE_CHECKING:
     import kvui
 
 class SortingOrderLoc(IntEnum):
-    custom = 1
-    inverted_custom = -1
-    alphabetical = 2
-    inverted_alphabetical = -2
-    natural = 3
-    inverted_natural = -3
-    default = 3
+    alphabetical = 1
+    inverted_alphabetical = -1
+    natural = 2
+    inverted_natural = -2
+    default = 2
 
 # Docs must be done after because otherwise __doc__ return none
-SortingOrderLoc.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in locations.json if present, and the name otherwise."
 SortingOrderLoc.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in locations.json."
-SortingOrderLoc.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+SortingOrderLoc.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 
 class SortingOrderItem(IntEnum):
-    custom = 1
-    inverted_custom = -1
-    alphabetical = 2
-    inverted_alphabetical = -2
-    natural = 3
-    inverted_natural = -3
-    received = 4
-    inverted_received = -4
-    default = 4
+    alphabetical = 1
+    inverted_alphabetical = -1
+    natural = 2
+    inverted_natural = -2
+    received = 3
+    inverted_received = -3
+    default = 3
 
-SortingOrderItem.custom.__doc__ = "Sort alphabetically using the custom sorting keys defined in items.json if present, and the name otherwise."
 SortingOrderItem.alphabetical.__doc__ = "Sort alphabetically using the name of item defined in items.json."
-SortingOrderItem.natural.__doc__ = "Sort like custom but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
+SortingOrderItem.natural.__doc__ = "Sort like alphabetically but makes sure that any number are read as integer and thus sorted naturally. EG. key2 < key12"
 SortingOrderItem.received.__doc__ = "Sort the item in the order they are received from the server"
 
 class SortingOrderCategories(IntEnum):
@@ -96,6 +90,7 @@ def natural_sort_key(key: str):
     return [convert(c) for c in re.split('([0-9]+)', key)]
 
 class ManualClientCommandProcessor(ClientCommandProcessor):
+    ctx: ManualContext
     def _cmd_resync(self) -> bool:
         """Manually trigger a resync."""
         self.output("Syncing items.")
@@ -141,11 +136,13 @@ class ManualContext(SuperContext):
     category_table = {}
 
     tracker_reachable_locations: list[str] = []
+    tracker_glitched_locations: list[str] = []
     tracker_reachable_events: list[str] = []
 
     set_deathlink = False
     last_death_link = 0
     deathlink_out = False
+    goaled = False
 
     visible_events: dict[str, dict[str, Any]]  = {}
     location_name_to_description: dict[str, str] = {}
@@ -153,17 +150,25 @@ class ManualContext(SuperContext):
 
     search_term = ""
     items_sorting = SortingOrderItem.default.name
+    items_sorting_uses_sortkeys = True
     item_categories_sorting = SortingOrderCategories.default.name
+    item_categories_sorting_uses_sortkeys = True
     locations_sorting = SortingOrderLoc.default.name
+    locations_sorting_uses_sortkeys = True
     location_categories_sorting = SortingOrderCategories.default.name
+    location_categories_sorting_uses_sortkeys = True
     block_unreachable_location_press = True
+    display_glitched_locations = True
+    allow_glitched_location_press = True
 
     colors = {
         'location_default': [219/255, 218/255, 213/255, 1],
         'location_in_logic': [2/255, 242/255, 42/255, 1],
+        'location_in_glitched_logic': [247/255, 255/255, 119/255, 1],
         'category_even_default': [0.5, 0.5, 0.5, 0.1],
         'category_odd_default': [1.0, 1.0, 1.0, 0.0],
         'category_in_logic': [2/255, 82/255, 2/255, 1],
+        'category_in_glitched_logic': [172/255, 179/255, 81/255, 1],
         'deathlink_received': [1, 0, 0, 1],
         'deathlink_primed': [1, 1, 1, 1],
         'deathlink_sent': [0, 1, 0, 1],
@@ -178,20 +183,28 @@ class ManualContext(SuperContext):
             super().set_callback(self.on_tracker_updated) # Universal Tracker takes this func and calls it when updateTracker is called
             if hasattr(self, "set_events_callback"):
                 super().set_events_callback(self.on_tracker_events) # Universal Tracker takes this func and calls it when events are calculated
+            if hasattr(self, "set_glitches_callback"):
+                super().set_glitches_callback(self.on_glitches_call) # Universal Tracker takes this func and calls it when OOL glitched location are calculated
 
         self.send_index: int = 0
         self.syncing = False
-        self.game: str = game
+        self.game = game
         self.username = player_name
+        self.locations_checked: list[int] = []
+        self.locations_scouted: list[int] = []
 
     async def server_auth(self, password_requested: bool = False):
         if password_requested and not self.password:
-            await super(ManualContext, self).server_auth(password_requested)
+            if tracker_loaded:
+                await super(SuperContext, self).server_auth(password_requested) # type: ignore
+            else:
+                await super(ManualContext, self).server_auth(password_requested)
 
         if "Manual_" not in self.ui.game_bar_text.text:
             raise Exception("The Manual client can only be used for Manual games.")
 
         self.game = self.ui.game_bar_text.text
+        self.goaled = False
 
         world = AutoWorldRegister.world_types.get(self.game)
         if not self.location_table and not self.item_table and world is None:
@@ -239,7 +252,7 @@ class ManualContext(SuperContext):
         location = self.location_table.get(name)
         if not location:
             # It is absolutely possible to pull categories from the data_package via self.update_game. I have not done this yet.
-            location = AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name})
+            location = AutoWorldRegister.world_types[self.game].location_name_to_location.get(name, {"name": name}) # type: ignore
         return location
 
     def get_location_by_id(self, id) -> dict[str, Any]:
@@ -249,12 +262,38 @@ class ManualContext(SuperContext):
     def get_item_by_name(self, name):
         item = self.item_table.get(name)
         if not item:
-            item = AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name})
+            item = AutoWorldRegister.world_types[self.game].item_name_to_item.get(name, {"name": name}) # type: ignore
         return item
 
     def get_item_by_id(self, id):
         name = self.item_names.lookup_in_game(id)
         return self.get_item_by_name(name)
+
+    def get_category_by_name( self, name:str) -> dict[str, Any]:
+        category = self.category_table.get(name)
+        if not category:
+            category = AutoWorldRegister.world_types[self.game].category_table.get(name, {"name": name}) # type: ignore
+        return category
+
+    def get_sorting_key_by_id(self, key, is_item=True) -> str:
+        Manual_dict: Dict[str, str] = self.get_item_by_id(key) if is_item else self.get_location_by_id(key)
+        name: str | None = None
+        if (is_item and self.items_sorting_uses_sortkeys) or \
+            (not is_item and self.locations_sorting_uses_sortkeys):
+            name = Manual_dict.get("sort-key")
+        name = Manual_dict["name"] if name is None else name
+        name = strip_articles(name.lower())
+        return name
+
+    def get_category_sorting_key_by_name(self, name, is_item = True) -> str:
+        Manual_dict: Dict[str, Any] = self.get_category_by_name(name)
+        key: str | None = None
+        if (is_item and self.item_categories_sorting_uses_sortkeys) or\
+            (not is_item and self.location_categories_sorting_uses_sortkeys):
+            key = Manual_dict.get("sort-key")
+        key = name if key is None else key
+        key = strip_articles(key.lower())
+        return key
 
     def update_ids(self, data_package) -> None:
         self.location_names_to_id = data_package['location_name_to_id']
@@ -320,6 +359,11 @@ class ManualContext(SuperContext):
     def on_tracker_events(self, events: list[str]):
         self.tracker_reachable_events = events
         if events:
+            self.ui.request_update_tracker_and_locations_table(update_highlights=True)
+
+    def on_glitches_call(self, glitched_locations: list[str]):
+        self.tracker_glitched_locations = glitched_locations
+        if glitched_locations:
             self.ui.request_update_tracker_and_locations_table(update_highlights=True)
 
     def is_event_visible(self, event_name, category_name):
@@ -461,10 +505,16 @@ class ManualContext(SuperContext):
                 super().build()
 
                 self.ctx.items_sorting = self.config.get('manual', 'items_sorting_order')
+                self.ctx.items_sorting_uses_sortkeys = self.config.get('manual', 'items_sorting_uses_sortkeys')
                 self.ctx.locations_sorting = self.config.get('manual', 'locations_sorting_order')
+                self.ctx.locations_sorting_uses_sortkeys = self.config.get('manual', 'locations_sorting_uses_sortkeys')
                 self.ctx.item_categories_sorting = self.config.get('manual', 'item_categories_sorting_order')
+                self.ctx.item_categories_sorting_uses_sortkeys = self.config.get('manual', 'item_categories_sorting_uses_sortkeys')
                 self.ctx.location_categories_sorting = self.config.get('manual', 'location_categories_sorting_order')
+                self.ctx.location_categories_sorting_uses_sortkeys = self.config.get('manual', 'location_categories_sorting_uses_sortkeys')
                 self.ctx.block_unreachable_location_press = True if self.config.get('universal-tracker', 'block_unreachable_location_press') == "Yes" else False
+                self.ctx.display_glitched_locations = True if self.config.get('universal-tracker', 'display_glitched_locations') == "Yes" else False
+                self.ctx.allow_glitched_location_press = True if self.config.get('universal-tracker', 'allow_glitched_location_press') == "Yes" else False
 
                 self.manual_game_layout = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(30))
 
@@ -498,12 +548,18 @@ class ManualContext(SuperContext):
                 super().build_config(config)
                 config.setdefaults("manual", {
                     "items_sorting_order": SortingOrderItem.default.name,
+                    "items_sorting_uses_sortkeys": "Yes",
                     "locations_sorting_order": SortingOrderLoc.default.name,
+                    "locations_sorting_uses_sortkeys": "Yes",
                     "item_categories_sorting_order": SortingOrderCategories.default.name,
-                    "location_categories_sorting_order": SortingOrderCategories.default.name
+                    "item_categories_sorting_uses_sortkeys": "Yes",
+                    "location_categories_sorting_order": SortingOrderCategories.default.name,
+                    "location_categories_sorting_uses_sortkeys": "Yes"
                 })
                 config.setdefaults("universal-tracker", {
-                    "block_unreachable_location_press": "Yes"
+                    "block_unreachable_location_press": "Yes",
+                    "display_glitched_locations": "Yes",
+                    "allow_glitched_location_press": "Yes"
                 })
 
             def build_settings(self, settings: Settings):
@@ -523,12 +579,28 @@ class ManualContext(SuperContext):
                             "desc": '\n'.join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderItem if i.__doc__ is not None])
                         },
                         {
+                            "type": "bool",
+                            "title": "Items Sorting uses sortkeys",
+                            "desc": "Should Item sorting respect sort-keys",
+                            "section": "manual",
+                            "key": "items_sorting_uses_sortkeys",
+                            "values": ["No", "Yes"]
+                        },
+                        {
                             "type": "options",
                             "title": "Locations Sorting Order",
                             "section": "manual",
                             "key": "locations_sorting_order",
                             "options": list(SortingOrderLoc._member_names_),
                             "desc": "\n".join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderLoc if i.__doc__ is not None])
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Locations Sorting uses sortkeys",
+                            "desc": "Should Location sorting respect sort-keys",
+                            "section": "manual",
+                            "key": "locations_sorting_uses_sortkeys",
+                            "values": ["No", "Yes"]
                         },
                         {
                             "type": "options",
@@ -539,12 +611,28 @@ class ManualContext(SuperContext):
                             "desc": '\n'.join([f'[b]{i.name}/inverted_{i.name}[/b]: {i.__doc__}' for i in SortingOrderCategories if i.__doc__ is not None])
                         },
                         {
+                            "type": "bool",
+                            "title": "Item Categories Sorting uses sortkeys",
+                            "desc": "Should Item Category sorting respect sort-keys",
+                            "section": "manual",
+                            "key": "item_categories_sorting_uses_sortkeys",
+                            "values": ["No", "Yes"]
+                        },
+                        {
                             "type": "options",
                             "title": "Location Categories Sorting Order",
                             "section": "manual",
                             "key": "location_categories_sorting_order",
                             "options": list(SortingOrderCategories._member_names_),
                             "desc": "Same Options as Items Category Sorting Order."
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Location Categories Sorting uses sortkeys",
+                            "desc": "Should Location sorting respect sort-keys",
+                            "section": "manual",
+                            "key": "location_categories_sorting_uses_sortkeys",
+                            "values": ["No", "Yes"]
                         },
                     ]
                 if tracker_loaded:
@@ -558,7 +646,23 @@ class ManualContext(SuperContext):
                             "title": "Stop accidental button press",
                             "section": "universal-tracker",
                             "key": "block_unreachable_location_press",
-                            "desc": "Should only green location be able to be pressed",
+                            "desc": "Should only reachable location be able to be pressed",
+                            "values": ["No", "Yes"]
+                        },
+                        {
+                            "type": "bool",
+                            "title": "See Glitched Logic",
+                            "section": "universal-tracker",
+                            "key": "display_glitched_locations",
+                            "desc": "Should locations marked as accessible OOL be shown in Yellow",
+                            "values": ["No", "Yes"]
+                        },
+                        {
+                            "type": "bool",
+                            "title": "Count glitched location as reachable for the press protection",
+                            "section": "universal-tracker",
+                            "key": "allow_glitched_location_press",
+                            "desc": "Should locations marked as accessible OOL not be protected from being pressed",
                             "values": ["No", "Yes"]
                         },
                     ])
@@ -571,24 +675,49 @@ class ManualContext(SuperContext):
                         if value in SortingOrderItem._member_names_:
                             self.ctx.items_sorting = value
                             self.request_update_tracker_and_locations_table()
+                    elif key == "items_sorting_uses_sortkeys":
+                        self.ctx.items_sorting_uses_sortkeys = True if value == "Yes" else False
+                        self.request_update_tracker_and_locations_table()
+
                     elif key == "locations_sorting_order":
                         if value in SortingOrderLoc._member_names_:
                             self.ctx.locations_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
+                    elif key == "locations_sorting_uses_sortkeys":
+                        self.ctx.locations_sorting_uses_sortkeys = True if value == "Yes" else False
+                        self.build_tracker_and_locations_table()
+                        self.request_update_tracker_and_locations_table()
+
                     elif key == "location_categories_sorting_order":
                         if value in SortingOrderCategories._member_names_:
                             self.ctx.location_categories_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
+                    elif key == "location_categories_sorting_uses_sortkeys":
+                        self.ctx.location_categories_sorting_uses_sortkeys = True if value == "Yes" else False
+                        self.build_tracker_and_locations_table()
+                        self.request_update_tracker_and_locations_table()
+
                     elif key == "item_categories_sorting_order":
                         if value in SortingOrderCategories._member_names_:
                             self.ctx.item_categories_sorting = value
                             self.build_tracker_and_locations_table()
                             self.request_update_tracker_and_locations_table()
+                    elif key == "item_categories_sorting_uses_sortkeys":
+                        self.ctx.item_categories_sorting_uses_sortkeys = True if value == "Yes" else False
+                        self.build_tracker_and_locations_table()
+                        self.request_update_tracker_and_locations_table()
+
                 elif section == "universal-tracker":
                     if key == "block_unreachable_location_press":
                         self.ctx.block_unreachable_location_press = True if value == "Yes" else False
+                    elif key == "display_glitched_locations":
+                        self.ctx.display_glitched_locations = True if value == "Yes" else False
+                        self.build_tracker_and_locations_table()
+                        self.request_update_tracker_and_locations_table()
+                    elif key == "allow_glitched_location_press":
+                        self.ctx.allow_glitched_location_press = True if value == "Yes" else False
 
             def clear_lists(self):
                 self.listed_items = {"(No Category)": []}
@@ -807,17 +936,16 @@ class ManualContext(SuperContext):
 
                 loc_sorting = SortingOrderLoc[self.ctx.locations_sorting]
 
+                def get_location_key(key: int) -> str:
+                    return self.ctx.get_sorting_key_by_id(key, is_item=False)
+
                 if abs(loc_sorting) == SortingOrderLoc.alphabetical:
                     for category in self.listed_locations:
-                        self.listed_locations[category].sort(key=self.ctx.location_names.lookup_in_game, reverse=loc_sorting < 0)
-                elif abs(loc_sorting) == SortingOrderLoc.custom:
-                    for category in self.listed_locations:
-                        self.listed_locations[category].sort(key=lambda i: self.ctx.get_location_by_id(i).get("sort-key", self.ctx.get_location_by_id(i).get("name", "")), \
-                            reverse=loc_sorting < 0)
+                        self.listed_locations[category].sort(key=get_location_key, reverse=loc_sorting < 0)
 
                 elif abs(loc_sorting) == SortingOrderLoc.natural:
                     def alphanum_key(key: int) -> list[str|int]:
-                        return natural_sort_key(self.ctx.get_location_by_id(key).get("sort-key",self.ctx.get_location_by_id(key).get("name", "")))
+                        return natural_sort_key(get_location_key(key))
                     for category in self.listed_locations:
                         self.listed_locations[category].sort(key=alphanum_key, reverse=loc_sorting < 0)
 
@@ -827,15 +955,27 @@ class ManualContext(SuperContext):
                 tracker_panel = TreeView(root_options=dict(text="Items Received (%d)" % (items_length)), size_hint_y=None)
                 tracker_panel.bind(minimum_height=tracker_panel.setter('height'))
 
-                def category_sort_key(key: str):
-                    result = natural_sort_key(key)
+                def get_item_category_key(key: str) -> str:
+                    return self.ctx.get_category_sorting_key_by_name(key)
+                def item_category_normal_sort_key(key: str):
+                    result = [get_item_category_key(key)]
                     return [0 if key.lstrip().startswith("(") else 1] + result
+                def item_category_nat_sort_key(key: str):
+                    result = natural_sort_key(get_item_category_key(key))
+                    return [0 if key.lstrip().startswith("(") else 1] + result
+
                 # Sorting items categories
                 item_cat_sorting = SortingOrderCategories[self.ctx.item_categories_sorting]
                 if abs(item_cat_sorting) == SortingOrderCategories.natural:
-                    self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), key=category_sort_key, reverse=item_cat_sorting < 0)}
+                    self.listed_items = {key: self.listed_items[key] for key in
+                                         sorted(self.listed_items.keys(),
+                                                key=item_category_nat_sort_key,
+                                                reverse=item_cat_sorting < 0)}
                 else:
-                    self.listed_items = {key: self.listed_items[key] for key in sorted(self.listed_items.keys(), reverse=item_cat_sorting < 0)}
+                    self.listed_items = {key: self.listed_items[key] for key in
+                                         sorted(self.listed_items.keys(),
+                                                key=item_category_normal_sort_key,
+                                                reverse=item_cat_sorting < 0)}
 
                 # Since items_received is not available on connect, don't bother building item labels here
                 for item_category in self.listed_items.keys():
@@ -859,10 +999,25 @@ class ManualContext(SuperContext):
 
                 # Sorting location categories
                 loc_cat_sorting = SortingOrderCategories[self.ctx.location_categories_sorting]
+
+                def get_location_category_key(key: str) -> str:
+                    return self.ctx.get_category_sorting_key_by_name(key, is_item=False)
+                def loc_category_normal_sort_key(key: str):
+                    result = [get_location_category_key(key)]
+                    return [0 if key.lstrip().startswith("(") else 1] + result
+                def loc_category_nat_sort_key(key: str):
+                    result = natural_sort_key(get_location_category_key(key))
+                    return [0 if key.lstrip().startswith("(") else 1] + result
                 if abs(loc_cat_sorting) == SortingOrderCategories.natural:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), key=category_sort_key, reverse=loc_cat_sorting < 0)}
+                    self.listed_locations = {key: self.listed_locations[key] for key in
+                                             sorted(self.listed_locations.keys(),
+                                                    key=loc_category_nat_sort_key,
+                                                    reverse=loc_cat_sorting < 0)}
                 else:
-                    self.listed_locations = {key: self.listed_locations[key] for key in sorted(self.listed_locations.keys(), reverse=loc_cat_sorting < 0)}
+                    self.listed_locations = {key: self.listed_locations[key] for key in
+                                             sorted(self.listed_locations.keys(),
+                                                    key=loc_category_normal_sort_key,
+                                                    reverse=loc_cat_sorting < 0)}
 
                 for location_category in self.listed_locations.keys():
                     locations_in_category = len(self.listed_locations[location_category])
@@ -1023,21 +1178,21 @@ class ManualContext(SuperContext):
                                 # Label (for all item listings)
                                 item_sorting = SortingOrderItem[self.ctx.items_sorting]
                                 sorted_items_received = [i.item for i in self.ctx.items_received]
+                                def get_item_key(key: int) -> str:
+                                    return self.ctx.get_sorting_key_by_id(key, is_item=True)
 
                                 if abs(item_sorting) == SortingOrderItem.alphabetical:
                                     sorted_items_received = sorted(sorted_items_received,
-                                    key=self.ctx.item_names.lookup_in_game,
-                                    reverse=item_sorting < 0)
-                                elif abs(item_sorting) == SortingOrderItem.custom:
-                                    sorted_items_received = sorted(sorted_items_received,
-                                    key=lambda i: self.ctx.get_item_by_id(i).get("sort-key", self.ctx.get_item_by_id(i).get("name", "")),
+                                    key=get_item_key,
                                     reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.natural:
                                     def alphanum_key(key: int) -> list[str|int]:
-                                        return natural_sort_key(self.ctx.get_item_by_id(key).get("sort-key", self.ctx.get_item_by_id(key).get("name", "")))
+                                        return natural_sort_key(get_item_key(key))
 
-                                    sorted_items_received = sorted(sorted_items_received, key=alphanum_key, reverse=item_sorting < 0)
+                                    sorted_items_received = sorted(sorted_items_received,
+                                    key=alphanum_key,
+                                    reverse=item_sorting < 0)
 
                                 elif abs(item_sorting) == SortingOrderItem.received:
                                     if item_sorting < 0:
@@ -1124,6 +1279,7 @@ class ManualContext(SuperContext):
                                 category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
                                 category_count = 0
                                 reachable_count = 0
+                                reachable_glitch_count = 0
 
                                 buttons_to_remove = []
 
@@ -1159,6 +1315,10 @@ class ManualContext(SuperContext):
                                                     location_button.background_color = self.ctx.colors['location_in_logic']
                                                     reachable_count += 1
 
+                                                elif self.ctx.display_glitched_locations and location_button.victory and "__Victory__" in self.ctx.tracker_glitched_locations:
+                                                    location_button.background_color = self.ctx.colors['location_in_glitched_logic']
+                                                    reachable_glitch_count += 1
+
                                                 continue
 
                                         if location_button.id and location_button.id not in self.ctx.missing_locations:
@@ -1167,10 +1327,14 @@ class ManualContext(SuperContext):
                                             continue
 
                                         was_reachable = False
+                                        was_reachable_glitched = False
 
                                         if location_button.location_name in self.ctx.tracker_reachable_locations:
                                             location_button.background_color = self.ctx.colors['location_in_logic']
                                             was_reachable = True
+                                        elif self.ctx.display_glitched_locations and location_button.text in self.ctx.tracker_glitched_locations:
+                                            location_button.background_color = self.ctx.colors['location_in_glitched_logic']
+                                            was_reachable_glitched = True
                                         else:
                                             location_button.background_color = self.ctx.colors['location_default']
 
@@ -1182,7 +1346,8 @@ class ManualContext(SuperContext):
 
                                             if was_reachable:
                                                 reachable_count += 1
-
+                                            elif was_reachable_glitched:
+                                                reachable_glitch_count += 1
                                             category_count += 1
 
                                 for location_button in buttons_to_remove:
@@ -1202,18 +1367,26 @@ class ManualContext(SuperContext):
                                 if scrollview_height < 10:
                                     scrollview_height = 50
 
-                                count_text = category_count
+                                count_text: str = str(category_count)
 
                                 if tracker_loaded:
-                                    count_text = "{}/{}".format(reachable_count, category_count)
+                                    if self.ctx.display_glitched_locations and reachable_glitch_count:
+                                        count_text = f"{reachable_count}/{category_count} ({reachable_glitch_count})"
+                                    else:
+                                        count_text = f"{reachable_count}/{category_count}"
 
-                                category_name = re.sub(r"\s\(\d+\/?(\d+)?\)$", "", category_label.text)
+                                category_name = re.sub(r"\s\(\d+\/?([\d\s]+)?(\(\d+\))?\)$", "", category_label.text)
                                 category_label.text = "%s (%s)" % (category_name, count_text)
 
                                 if reachable_count > 0:
                                     # treeviewlabels don't have background color. because #justkivythings.
                                     category_label.even_color = self.ctx.colors['category_in_logic']
                                     category_label.odd_color = self.ctx.colors['category_in_logic']
+                                    category_label.odd_color[3] = 0.9
+                                elif self.ctx.display_glitched_locations and reachable_glitch_count > 0:
+                                    category_label.even_color = self.ctx.colors['category_in_glitched_logic']
+                                    category_label.odd_color = self.ctx.colors['category_in_glitched_logic']
+                                    category_label.odd_color[3] = 0.9
                                 else:
                                     category_label.even_color = self.ctx.colors['category_even_default']
                                     category_label.odd_color = self.ctx.colors['category_odd_default']
@@ -1236,19 +1409,26 @@ class ManualContext(SuperContext):
                     return
 
                 if location_id:
-                    if tracker_loaded and self.ctx.block_unreachable_location_press and button.location_name not in self.ctx.tracker_reachable_locations:
-                        logger.debug(f"button for location '{button.text}' was pressed while unreachable")
-                    else:
-                        self.ctx.locations_checked.append(location_id)
-                        self.ctx.syncing = True
-                        # Remove both the location button and its adjacent scout button/spacer from 2-column grid
-                        parent = button.parent
-                        button_index = parent.children.index(button)
-                        # Grid cols=2: pairs are at adjacent indices (even with odd, odd with even)
-                        pair_index = button_index - 1 if button_index % 2 == 1 else button_index + 1
-                        if 0 <= pair_index < len(parent.children):
-                            parent.remove_widget(parent.children[pair_index])
-                        parent.remove_widget(button)
+                    if tracker_loaded and self.ctx.block_unreachable_location_press:
+                        if button.location_name in self.ctx.tracker_reachable_locations:
+                            pass
+                        elif self.ctx.display_glitched_locations and self.ctx.allow_glitched_location_press \
+                            and button.location_name in self.ctx.tracker_glitched_locations:
+                            pass
+                        else:
+                            logger.debug(f"button for location '{button.location_name}' was pressed while unreachable")
+                            return
+
+                    self.ctx.locations_checked.append(location_id)
+                    self.ctx.syncing = True
+                    # Remove both the location button and its adjacent scout button/spacer from 2-column grid
+                    parent = button.parent
+                    button_index = parent.children.index(button)
+                    # Grid cols=2: pairs are at adjacent indices (even with odd, odd with even)
+                    pair_index = button_index - 1 if button_index % 2 == 1 else button_index + 1
+                    if 0 <= pair_index < len(parent.children):
+                        parent.remove_widget(parent.children[pair_index])
+                    parent.remove_widget(button)
 
                     # message = [{"cmd": 'LocationChecks', "locations": [location_id]}]
                     # self.ctx.send_msgs(message)
@@ -1284,7 +1464,7 @@ class ManualContext(SuperContext):
                 if tracker_loaded and self.ctx.block_unreachable_location_press and "__Victory__" not in self.ctx.tracker_reachable_events:
                     logger.debug(f"button for location '{button.text}' was pressed while unreachable")
                 else:
-                    self.ctx.items_received.append("__Victory__")
+                    self.ctx.goaled = True
                     self.ctx.syncing = True
 
         return ManualManager
@@ -1295,12 +1475,13 @@ async def game_watcher_manual(ctx: ManualContext):
             ctx.ui.check_for_requested_update()
 
         if ctx.syncing == True:
-            sync_msg = [{'cmd': 'Sync'}]
+            sync_msg = []
             if ctx.locations_checked:
-                sync_msg.append({"cmd": "LocationChecks", "locations": list(ctx.locations_checked)})
+                await ctx.check_locations(ctx.locations_checked)
             if ctx.locations_scouted:
                 sync_msg.append({"cmd": "LocationScouts", "locations": list(ctx.locations_scouted), "create_as_hint": 2})
-            await ctx.send_msgs(sync_msg)
+            if sync_msg:
+                await ctx.send_msgs(sync_msg)
             ctx.syncing = False
 
         if ctx.set_deathlink:
@@ -1311,7 +1492,7 @@ async def game_watcher_manual(ctx: ManualContext):
             ctx.deathlink_out = False
             await ctx.send_death()
 
-        victory = ("__Victory__" in ctx.items_received)
+        victory = ctx.goaled
         ctx.locations_checked = []
         ctx.locations_scouted = []
         if not ctx.finished_game and victory:

@@ -102,6 +102,10 @@ def is_location_name_enabled(multiworld: MultiWorld, player: int, location_name:
 
 def is_location_enabled(multiworld: MultiWorld, player: int, location: dict[str, Any]) -> bool:
     """Check if a location has been disabled by a yaml option."""
+    if getattr(multiworld, "generation_is_fake", False):
+        # When UT is doing a fake gen, give it everything
+        return True
+
     hook_result = before_is_location_enabled(multiworld, player, location)
     if hook_result is not None:
         return hook_result

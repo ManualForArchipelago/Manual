@@ -92,6 +92,11 @@
                     "type": "boolean",
                     "default": false
                 },
+                "scoutable": {
+                    "description": "(Optional) Adds a button on the client to scout (free hint) this location",
+                    "type": "boolean",
+                    "default": false
+                },
                 "hint_entrance": {
                     "description": "(Optional) Adds additional text to this location's hints to convey useful information. Typically used for entrance randomization.",
                     "type": "string"
