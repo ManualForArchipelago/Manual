@@ -1332,7 +1332,7 @@ class ManualContext(SuperContext):
                                         if location_button.location_name in self.ctx.tracker_reachable_locations:
                                             location_button.background_color = self.ctx.colors['location_in_logic']
                                             was_reachable = True
-                                        elif self.ctx.display_glitched_locations and location_button.text in self.ctx.tracker_glitched_locations:
+                                        elif self.ctx.display_glitched_locations and location_button.location_name in self.ctx.tracker_glitched_locations:
                                             location_button.background_color = self.ctx.colors['location_in_glitched_logic']
                                             was_reachable_glitched = True
                                         else:
