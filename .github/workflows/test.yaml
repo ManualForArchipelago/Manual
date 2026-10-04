@@ -2,6 +2,8 @@ name: Test apworld
 on:
   push:
   pull_request:
+env:
+  AP_TEST_WORLDS: manual_ultimatemarvelvscapcom3_manualteam
 
 jobs:
   tests:
@@ -14,5 +16,6 @@ jobs:
       - uses: Eijebong/ap-actions/ap-tests@main
         with:
           apworld-path: src
+          apworld-name: manual_ultimatemarvelvscapcom3_manualteam
           ap-version: ${{ env.AP_VERSION }}
           python-version: '3.12'
