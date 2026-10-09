@@ -2,6 +2,7 @@ import ast
 import csv
 import pkgutil
 import json
+import tomllib
 import re
 
 from BaseClasses import MultiWorld, Item, ItemClassification
@@ -19,7 +20,7 @@ def load_data_file(*args) -> dict:
     try:
         filedata = json.loads(pkgutil.get_data(__name__, fname).decode())
     except:
-        filedata = []
+        filedata = {}
 
     return filedata
 
@@ -31,6 +32,16 @@ def load_data_csv(*args) -> list[dict]:
     except:
         lines = []
     filedata = list(csv.DictReader(lines))
+
+    return filedata
+
+def load_toml(*args) -> dict:
+    fname = "/".join(args)
+
+    try:
+        filedata = tomllib.loads(pkgutil.get_data(__name__, fname).decode())
+    except:
+        filedata = {}
 
     return filedata
 
