@@ -90,16 +90,22 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 # The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
 def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
-    itemNamesToRemove: list[str] = [] # List of item names
+    itemNamesToRemoveOnce: list[str] = [] # List of item names to only remove one per entry
+    itemNamesToRemoveAll: list[str] = [] # List of item names to remove all instances of
 
     # Add your code here to calculate which items to remove.
-    #
-    # Because multiple copies of an item can exist, you need to add an item name
-    # to the list multiple times if you want to remove multiple copies of it.
+    # Examples:
+    # itemNamesToRemoveOnce += ["Item Name 1", "Item Name 1"] # This removes 2 items named "Item Name 1" from the item pool.
+    # itemNamesToRemoveAll += ["Item Name 2"] # This removes all items named "Item Name 2" from the item pool.
 
-    for itemName in itemNamesToRemove:
+    for itemName in itemNamesToRemoveOnce:
         item = next(i for i in item_pool if i.name == itemName)
         remove_specific_item(item_pool, item)
+
+    for itemName in itemNamesToRemoveAll:
+        for i in item_pool.copy():
+            if (i.name == itemName):
+                remove_specific_item(item_pool, i)
 
     return item_pool
 
