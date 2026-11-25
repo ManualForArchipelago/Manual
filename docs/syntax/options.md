@@ -172,7 +172,7 @@ Here's an example of setting more fine-grained visibility settings on an option:
 ---
 
 ### Adding the option to an option group
-If you'd like to show one or more options in a option group in the YAML, you can set the `group` property to the name of the option group it should show up in. If the option group doesn't exist, it will be created.
+If you'd like to show one or more options in a option group in the YAML, you can set the `group` property to the name of the option group it should show up in. If the option group doesn't exist, it will be created. Note that your world must have a `meta.json` file with a `web` property defined for option groups to be created (see [meta.md](https://github.com/ManualForArchipelago/Manual/blob/main/docs/syntax/meta.md)).
 
 Here's an example of setting an option group for an option:
 
