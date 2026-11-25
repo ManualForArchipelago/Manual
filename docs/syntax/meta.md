@@ -31,7 +31,7 @@ Here's an example of setting that world description:
 ```json
 {
     "docs": {
-        "apworld_description": "This is a game about selling bananas. Sell all the bananas to be the banana time emperor of all time."
+        "apworld_description": ["This is a game about selling bananas. Sell all the bananas to be the banana time emperor of all time."]
     }
 }
 ```
