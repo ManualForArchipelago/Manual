@@ -131,7 +131,9 @@ For Example, `{ItemValue(Coins:12)}` will check if the player has collect at lea
 
 ### `OptOne(ItemName)`
 
-Requires an item only if that item exists.  Useful if an item might have been disabled by a yaml option.
+Requires an item only if that item exists. Useful if an item might have been disabled by a yaml option. If the item does not exist, the requirement is treated as equivalent to requiring 0 of that item.
+
+For example, `requires: "{OptOne(|FancyCoin:2|)}"` will require 2 `FancyCoin` items if `FancyCoin` exists, otherwise it will require 0 `FancyCoin` and thus always evaluate to `true`.
 
 ### `OptAll(ItemName)`
 
