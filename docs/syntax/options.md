@@ -186,6 +186,7 @@ Here's an example of setting an option group for an option:
     }
 }
 ```
+If your option group(s) don't appear as expected, verify that your world has a `meta.json` file with a `web` property defined (see [meta.md](https://github.com/ManualForArchipelago/Manual/blob/main/docs/syntax/meta.md)).
 
 ---
 
